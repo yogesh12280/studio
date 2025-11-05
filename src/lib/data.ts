@@ -5,7 +5,7 @@ import { PlaceHolderImages } from './placeholder-images';
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
 
 export const users: User[] = [
-  { id: 'user-1', name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1'), role: 'Admin' },
+  { id: 'user-1', name: 'Neha M', avatarUrl: getImageUrl('avatar1'), role: 'Admin' },
   { id: 'user-2', name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2'), role: 'Employee' },
 ];
 
@@ -24,7 +24,7 @@ const staticNow = new Date('2025-11-05T07:25:07.254Z');
 export const initialBulletins: Bulletin[] = [
   {
     id: 'bulletin-1',
-    author: { name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1') },
+    author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1') },
     category: 'Organization',
     title: 'Announcing Our Annual Company Retreat 2024!',
     content: 'Get ready for an unforgettable experience! This year, we are heading to the mountains for a weekend of team-building, workshops, and fun. More details to follow next week. Make sure to clear your calendars for the first weekend of October.',
