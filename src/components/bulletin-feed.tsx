@@ -31,11 +31,6 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
         if (currentUser.role === 'Admin') {
           return true
         }
-
-        const scheduledFor = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null
-        if (scheduledFor && scheduledFor > now) {
-          return false
-        }
         
         const endDate = bulletin.endDate ? new Date(bulletin.endDate) : null
         if (endDate && endDate < now) {
