@@ -23,9 +23,9 @@ export default function GrievancePage() {
         />
         <main className="p-4 sm:p-6">
           {currentUser.role === 'Admin' ? (
-            <GrievanceManagement />
+            <GrievanceManagement searchQuery={searchQuery} />
           ) : (
-            <EmployeeGrievanceView />
+            <EmployeeGrievanceView searchQuery={searchQuery} />
           )}
         </main>
       </div>

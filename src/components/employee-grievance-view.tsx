@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +11,11 @@ import { initialGrievances } from '@/lib/data'
 import type { Grievance } from '@/lib/types'
 import { format } from 'date-fns'
 
-export function EmployeeGrievanceView() {
+interface EmployeeGrievanceViewProps {
+  searchQuery: string
+}
+
+export function EmployeeGrievanceView({ searchQuery }: EmployeeGrievanceViewProps) {
   const { currentUser } = useUser()
   const [grievances, setGrievances] = useState<Grievance[]>(() =>
     initialGrievances.filter((g) => g.employeeId === currentUser.id)
@@ -42,6 +46,13 @@ export function EmployeeGrievanceView() {
     }
   }
 
+  const filteredGrievances = useMemo(() => {
+    return grievances.filter(grievance => 
+      grievance.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      grievance.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [grievances, searchQuery])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -54,7 +65,7 @@ export function EmployeeGrievanceView() {
         </RegisterGrievanceDialog>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {grievances.map((grievance) => (
+        {filteredGrievances.map((grievance) => (
           <Card key={grievance.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -79,7 +90,7 @@ export function EmployeeGrievanceView() {
             </CardContent>
           </Card>
         ))}
-        {grievances.length === 0 && (
+        {filteredGrievances.length === 0 && (
             <div className="md:col-span-2 lg:col-span-3 text-center text-muted-foreground py-12">
                 You haven&apos;t submitted any grievances yet.
             </div>

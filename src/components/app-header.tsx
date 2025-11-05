@@ -20,7 +20,7 @@ interface AppHeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
   title: string
-  onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
+  onAddBulletin?: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
 }
 
 export function AppHeader({
@@ -47,7 +47,7 @@ export function AppHeader({
         />
       </div>
       <div className="flex items-center gap-2">
-        {title === 'Bulletins' && (
+        {title === 'Bulletins' && onAddBulletin && (
           <CreateBulletinDialog onAddBulletin={onAddBulletin}>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />

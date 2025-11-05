@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Table,
   TableBody,
@@ -23,7 +23,11 @@ import { initialGrievances } from '@/lib/data'
 import { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 
-export function GrievanceManagement() {
+interface GrievanceManagementProps {
+  searchQuery: string;
+}
+
+export function GrievanceManagement({ searchQuery }: GrievanceManagementProps) {
   const [grievances, setGrievances] = useState<Grievance[]>(initialGrievances)
 
   const handleStatusChange = (
@@ -56,6 +60,17 @@ export function GrievanceManagement() {
     }
   }
 
+  const filteredGrievances = useMemo(() => {
+    const searchLower = searchQuery.toLowerCase();
+    return grievances
+      .filter(g => 
+        g.employeeName.toLowerCase().includes(searchLower) ||
+        g.subject.toLowerCase().includes(searchLower)
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [grievances, searchQuery]);
+
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold font-headline">Manage Grievances</h2>
@@ -71,9 +86,7 @@ export function GrievanceManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {grievances
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .map((grievance) => (
+            {filteredGrievances.map((grievance) => (
               <TableRow key={grievance.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
