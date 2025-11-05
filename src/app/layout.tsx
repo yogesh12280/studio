@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { UserProvider } from '@/contexts/user-context'
 
 export const metadata: Metadata = {
-  title: 'SEMB Blast',
+  title: 'SembBlast',
   description: 'Efficient and targeted bulletin delivery for your organization.',
 }
 
