@@ -37,23 +37,28 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/" legacyBehavior passHref>
-              <SidebarMenuButton tooltip="Bulletins" isActive={pathname === '/'}>
+            <SidebarMenuButton
+              asChild
+              tooltip="Bulletins"
+              isActive={pathname === '/'}
+            >
+              <Link href="/">
                 <Newspaper />
                 <span>Bulletins</span>
-              </SidebarMenuButton>
-            </Link>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/grievance" legacyBehavior passHref>
-              <SidebarMenuButton
-                tooltip="Grievance"
-                isActive={pathname === '/grievance'}
-              >
+            <SidebarMenuButton
+              asChild
+              tooltip="Grievance"
+              isActive={pathname === '/grievance'}
+            >
+              <Link href="/grievance">
                 <ShieldAlert />
                 <span>Grievance</span>
-              </SidebarMenuButton>
-            </Link>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
