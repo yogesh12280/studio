@@ -57,10 +57,6 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : undefined;
   const isExpired = endDateDate && endDateDate < now;
   
-  if (currentUser.role !== 'Admin' && (isScheduled || isExpired)) {
-    return null;
-  }
-
   const createdAtDate = new Date(bulletin.createdAt);
   
   const formattedCreatedAt = isClient

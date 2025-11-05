@@ -19,19 +19,6 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
   const filteredBulletins = useMemo(() => {
     return bulletins
       .filter(bulletin => {
-        const now = new Date();
-        const scheduledForDate = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null;
-        const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : null;
-
-        const isScheduled = scheduledForDate && scheduledForDate > now;
-        const isExpired = endDateDate && endDateDate < now;
-
-        if (currentUser.role !== 'Admin') {
-            // All users can see scheduled/expired posts as per new requirement,
-            // but admins need to see them for management purposes.
-            // This logic is now the same for all users, but we keep the admin view for scheduled/expired badges.
-        }
-
         const searchLower = searchQuery.toLowerCase()
         return (
           bulletin.title.toLowerCase().includes(searchLower) ||
@@ -39,8 +26,12 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
           bulletin.author.name.toLowerCase().includes(searchLower)
         )
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [bulletins, searchQuery, currentUser.role])
+      .sort((a, b) => {
+        const dateA = a.scheduledFor ? new Date(a.scheduledFor) : new Date(a.createdAt);
+        const dateB = b.scheduledFor ? new Date(b.scheduledFor) : new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      })
+  }, [bulletins, searchQuery])
 
   const organizationBulletins = filteredBulletins.filter(
     (b) => b.category === 'Organization'
