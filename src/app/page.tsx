@@ -9,7 +9,7 @@ import { initialBulletins } from '@/lib/data'
 import { useUser } from '@/contexts/user-context'
 import type { Bulletin } from '@/lib/types'
 
-export default function OrgaBlastPage() {
+export default function SEMBBlastPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [bulletins, setBulletins] = useState<Bulletin[]>(initialBulletins)
   const { currentUser } = useUser()
