@@ -18,28 +18,33 @@ import { CreateBulletinDialog } from './create-bulletin-dialog'
 interface AppHeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
+  title: string
 }
 
-export function AppHeader({ searchQuery, setSearchQuery }: AppHeaderProps) {
+export function AppHeader({
+  searchQuery,
+  setSearchQuery,
+  title,
+}: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <h1 className="text-xl font-semibold md:text-2xl font-headline hidden sm:block">
-        Bulletins
+        {title}
       </h1>
       <div className="relative flex-1">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search bulletins..."
+          placeholder={`Search ${title.toLowerCase()}...`}
           className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
       <div className="flex items-center gap-2">
-        {currentUser.role === 'Admin' && (
+        {currentUser.role === 'Admin' && title === 'Bulletins' && (
           <CreateBulletinDialog>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
@@ -85,7 +90,9 @@ export function AppHeader({ searchQuery, setSearchQuery }: AppHeaderProps) {
                 ) : (
                   <Users className="mr-2 h-4 w-4" />
                 )}
-                <span>{user.name} ({user.role})</span>
+                <span>
+                  {user.name} ({user.role})
+                </span>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

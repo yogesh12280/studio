@@ -1,4 +1,4 @@
-import type { User, Employee, Bulletin } from './types';
+import type { User, Employee, Bulletin, Grievance } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -18,6 +18,7 @@ export const employees: Employee[] = [
 ];
 
 const now = new Date();
+const staticNow = new Date('2025-11-05T07:25:07.254Z');
 
 export const initialBulletins: Bulletin[] = [
   {
@@ -31,10 +32,10 @@ export const initialBulletins: Bulletin[] = [
     likedBy: ['user-2'],
     viewers: 58,
     comments: [
-        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(now.getTime() - 1000 * 60 * 5).toISOString() }
+        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString() }
     ],
-    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
-    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+    endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
   },
   {
     id: 'bulletin-2',
@@ -47,11 +48,11 @@ export const initialBulletins: Bulletin[] = [
     likedBy: [],
     viewers: 75,
     comments: [],
-    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24).toISOString(),
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24).toISOString(),
     target: {
       departments: ['Technology', 'Product'],
     },
-    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+    endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
   },
   {
     id: 'bulletin-3',
@@ -64,8 +65,42 @@ export const initialBulletins: Bulletin[] = [
     likedBy: [],
     viewers: 62,
     comments: [],
-    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 72).toISOString(),
-    scheduledFor: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(), // Scheduled for 2 days from now
-    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 5).toISOString(),
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 72).toISOString(),
+    scheduledFor: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(), // Scheduled for 2 days from now
+    endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 5).toISOString(),
+  },
+];
+
+export const initialGrievances: Grievance[] = [
+  {
+    id: 'grievance-1',
+    employeeId: 'user-2',
+    employeeName: 'Samantha Lee',
+    employeeAvatarUrl: getImageUrl('avatar2'),
+    subject: 'Issue with new workstation',
+    description: 'The new workstation provided is missing a secondary monitor, which is affecting my productivity. I had requested one during the setup process.',
+    status: 'Pending',
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+  {
+    id: 'grievance-2',
+    employeeId: 'emp-1',
+    employeeName: 'Charlie Green',
+    employeeAvatarUrl: getImageUrl('avatar3'),
+    subject: 'Unresolved IT Ticket #12345',
+    description: 'My IT ticket regarding VPN access issues has been open for over a week without any resolution. I am unable to access critical development servers.',
+    status: 'In Progress',
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 8).toISOString(),
+  },
+  {
+    id: 'grievance-3',
+    employeeId: 'user-2',
+    employeeName: 'Samantha Lee',
+    employeeAvatarUrl: getImageUrl('avatar2'),
+    subject: 'Expense Report Reimbursement Delay',
+    description: 'My expense report for the Q2 conference has not been reimbursed yet. It was submitted over a month ago.',
+    status: 'Resolved',
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 45).toISOString(),
+    resolvedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
   },
 ];

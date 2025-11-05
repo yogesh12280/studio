@@ -4,10 +4,13 @@ import { useState } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
-import { BulletinFeed } from '@/components/bulletin-feed'
+import { useUser } from '@/contexts/user-context'
+import { GrievanceManagement } from '@/components/grievance-management'
+import { EmployeeGrievanceView } from '@/components/employee-grievance-view'
 
-export default function OrgaBlastPage() {
+export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const { currentUser } = useUser()
 
   return (
     <SidebarProvider>
@@ -16,10 +19,14 @@ export default function OrgaBlastPage() {
         <AppHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          title="Bulletins"
+          title="Grievance"
         />
         <main className="p-4 sm:p-6">
-          <BulletinFeed searchQuery={searchQuery} />
+          {currentUser.role === 'Admin' ? (
+            <GrievanceManagement />
+          ) : (
+            <EmployeeGrievanceView />
+          )}
         </main>
       </div>
     </SidebarProvider>

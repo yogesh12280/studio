@@ -1,5 +1,7 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import {
   Sidebar,
   SidebarHeader,
@@ -12,43 +14,46 @@ import {
 } from '@/components/ui/sidebar'
 import { OrgaBlastLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  Newspaper,
-  ShieldAlert,
-  Moon,
-  Sun,
-} from 'lucide-react'
+import { Newspaper, ShieldAlert, Moon, Sun } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 
 export function AppSidebar() {
   const { currentUser } = useUser()
+  const pathname = usePathname()
 
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="bg-primary text-primary-foreground rounded-lg p-2">
             <OrgaBlastLogo className="h-6 w-6" />
           </div>
           <span className="font-headline text-lg font-bold group-data-[collapsible=icon]:hidden">
             OrgaBlast
           </span>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Bulletins" isActive>
-              <Newspaper />
-              <span>Bulletins</span>
-            </SidebarMenuButton>
+            <Link href="/" legacyBehavior passHref>
+              <SidebarMenuButton tooltip="Bulletins" isActive={pathname === '/'}>
+                <Newspaper />
+                <span>Bulletins</span>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Grievance">
-              <ShieldAlert />
-              <span>Grievance</span>
-            </SidebarMenuButton>
+            <Link href="/grievance" legacyBehavior passHref>
+              <SidebarMenuButton
+                tooltip="Grievance"
+                isActive={pathname === '/grievance'}
+              >
+                <ShieldAlert />
+                <span>Grievance</span>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
@@ -69,9 +74,7 @@ export function AppSidebar() {
               src={currentUser.avatarUrl}
               alt={currentUser.name}
             />
-            <AvatarFallback>
-              {currentUser.name.charAt(0)}
-            </AvatarFallback>
+            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-medium">{currentUser.name}</span>
