@@ -26,7 +26,7 @@ export function AppHeader({ searchQuery, setSearchQuery }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       <h1 className="text-xl font-semibold md:text-2xl font-headline hidden sm:block">
-        Dashboard
+        Bulletins
       </h1>
       <div className="relative flex-1">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
