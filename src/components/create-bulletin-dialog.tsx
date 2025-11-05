@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -50,6 +50,16 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
 
+  useEffect(() => {
+    if (open) {
+      if (currentUser.role === 'Employee') {
+        setCategory('Employee')
+      } else {
+        setCategory(undefined)
+      }
+    }
+  }, [open, currentUser.role])
+
   const resetForm = () => {
     setTitle('')
     setContent('')
@@ -63,8 +73,10 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !category) {
+    if (!title || !content || !finalCategory) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
@@ -76,7 +88,7 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
     const newBulletinData = {
         title,
         content,
-        category,
+        category: finalCategory,
         imageUrl: imageUrl || undefined,
         link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
         scheduledFor: scheduledFor?.toISOString(),
@@ -92,10 +104,6 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
 
     resetForm()
     setOpen(false)
-  }
-
-  if (currentUser.role !== 'Admin') {
-    return null
   }
 
   return (
@@ -122,20 +130,24 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
               </Label>
               <Textarea id="content" required className="col-span-3 min-h-[120px]" value={content} onChange={e => setContent(e.target.value)} />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category
-              </Label>
-              <Select required value={category} onValueChange={(value: 'Organization' | 'Employee') => setCategory(value)}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="organization">Organization</SelectItem>
-                  <SelectItem value="employee">Employee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {currentUser.role === 'Admin' ? (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Category
+                </Label>
+                <Select required value={category} onValueChange={(value: 'Organization' | 'Employee') => setCategory(value)}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="organization">Organization</SelectItem>
+                    <SelectItem value="employee">Employee</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+                <Input type="hidden" value="Employee" />
+            )}
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="image-url" className="text-right">Image URL</Label>
                 <Input id="image-url" placeholder="https://example.com/image.png" className="col-span-3" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
@@ -147,60 +159,64 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
                     <Input id="link-url" placeholder="https://example.com" className="flex-1" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} />
                 </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="schedule" className="text-right">
-                Schedule
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'col-span-3 w-auto justify-start text-left font-normal',
-                      !scheduledFor && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={scheduledFor}
-                    onSelect={setScheduledFor}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="end-date" className="text-right">
-                End Date
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'col-span-3 w-auto justify-start text-left font-normal',
-                      !endDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            {currentUser.role === 'Admin' && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="schedule" className="text-right">
+                    Schedule
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={'outline'}
+                        className={cn(
+                          'col-span-3 w-auto justify-start text-left font-normal',
+                          !scheduledFor && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={scheduledFor}
+                        onSelect={setScheduledFor}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="end-date" className="text-right">
+                    End Date
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={'outline'}
+                        className={cn(
+                          'col-span-3 w-auto justify-start text-left font-normal',
+                          !endDate && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit">Create Bulletin</Button>
