@@ -1,0 +1,69 @@
+import type { User, Employee, Bulletin } from './types';
+import { PlaceHolderImages } from './placeholder-images';
+
+const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
+
+export const users: User[] = [
+  { id: 'user-1', name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1'), role: 'Admin' },
+  { id: 'user-2', name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2'), role: 'Employee' },
+];
+
+export const employees: Employee[] = [
+    { id: 'emp-1', name: 'Charlie Green', email: 'charlie@orgablast.com', role: 'Software Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar3') },
+    { id: 'emp-2', name: 'Diana Prince', email: 'diana@orgablast.com', role: 'Product Manager', department: 'Product', avatarUrl: getImageUrl('avatar4') },
+    { id: 'emp-3', name: 'Bruce Wayne', email: 'bruce@orgablast.com', role: 'CEO', department: 'Executive', avatarUrl: getImageUrl('avatar5') },
+    { id: 'emp-4', name: 'Clark Kent', email: 'clark@orgablast.com', role: 'Marketing Lead', department: 'Marketing', avatarUrl: getImageUrl('avatar6') },
+    { id: 'emp-5', name: 'Barry Allen', email: 'barry@orgablast.com', role: 'QA Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar1') },
+    { id: 'emp-6', name: 'Hal Jordan', email: 'hal@orgablast.com', role: 'Sales Director', department: 'Sales', avatarUrl: getImageUrl('avatar2') },
+];
+
+export const initialBulletins: Bulletin[] = [
+  {
+    id: 'bulletin-1',
+    author: { name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1') },
+    category: 'Organization',
+    title: 'Announcing Our Annual Company Retreat 2024!',
+    content: 'Get ready for an unforgettable experience! This year, we are heading to the mountains for a weekend of team-building, workshops, and fun. More details to follow next week. Make sure to clear your calendars for the first weekend of October.',
+    imageUrl: getImageUrl('postImage1'),
+    likes: 12,
+    likedBy: ['user-2'],
+    viewers: 58,
+    comments: [
+        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(Date.now() - 1000 * 60 * 5) }
+    ],
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+  },
+  {
+    id: 'bulletin-2',
+    author: { name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1') },
+    category: 'Employee',
+    title: 'Project Phoenix: Official Launch',
+    content: 'We are thrilled to announce the successful launch of Project Phoenix. This is a huge milestone for our team and the company. A big thank you to everyone in the Technology and Product departments for their hard work and dedication.',
+    imageUrl: getImageUrl('postImage2'),
+    likes: 25,
+    likedBy: [],
+    viewers: 75,
+    comments: [],
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    target: {
+      departments: ['Technology', 'Product'],
+    },
+    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+  },
+  {
+    id: 'bulletin-3',
+    author: { name: 'Bruce Wayne', avatarUrl: getImageUrl('avatar5') },
+    category: 'Organization',
+    title: 'Q3 Financial Results & Town Hall Meeting',
+    content: 'Join us for the upcoming town hall where we will discuss our strong Q3 financial results and outline our strategic priorities for Q4. The meeting is scheduled for this Friday at 10:00 AM PST.',
+    link: { url: 'https://meeting.example.com/q3-townhall', text: 'Join Town Hall Meeting' },
+    likes: 8,
+    likedBy: [],
+    viewers: 62,
+    comments: [],
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72),
+    scheduledFor: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // Scheduled for 2 days from now
+    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+  },
+];
