@@ -17,21 +17,39 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
   const { currentUser } = useUser()
 
   const filteredBulletins = useMemo(() => {
+    const now = new Date()
     return bulletins
       .filter(bulletin => {
         const searchLower = searchQuery.toLowerCase()
-        return (
+        const isMatch =
           bulletin.title.toLowerCase().includes(searchLower) ||
           bulletin.content.toLowerCase().includes(searchLower) ||
           bulletin.author.name.toLowerCase().includes(searchLower)
-        )
+
+        if (!isMatch) return false
+
+        if (currentUser.role === 'Admin') {
+          return true
+        }
+
+        const scheduledFor = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null
+        if (scheduledFor && scheduledFor > now) {
+          return false
+        }
+        
+        const endDate = bulletin.endDate ? new Date(bulletin.endDate) : null
+        if (endDate && endDate < now) {
+            return false
+        }
+
+        return true
       })
       .sort((a, b) => {
         const dateA = a.scheduledFor ? new Date(a.scheduledFor) : new Date(a.createdAt);
         const dateB = b.scheduledFor ? new Date(b.scheduledFor) : new Date(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       })
-  }, [bulletins, searchQuery])
+  }, [bulletins, searchQuery, currentUser.role])
 
   const organizationBulletins = filteredBulletins.filter(
     (b) => b.category === 'Organization'
