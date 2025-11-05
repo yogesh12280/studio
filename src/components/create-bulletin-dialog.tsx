@@ -76,11 +76,11 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
     
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !finalCategory) {
+    if (!title || !content || !finalCategory || !scheduledFor || !endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
-            description: "Please fill out Title, Content, and Category.",
+            description: "Please fill out Title, Content, Category, Schedule Date, and End Date.",
         })
         return
     }
@@ -159,7 +159,7 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
                     <Input id="link-url" placeholder="https://example.com" className="flex-1" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} />
                 </div>
             </div>
-            {currentUser.role === 'Admin' && (
+            
               <>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="schedule" className="text-right">
@@ -216,7 +216,7 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
                   </Popover>
                 </div>
               </>
-            )}
+            
           </div>
           <DialogFooter>
             <Button type="submit">Create Bulletin</Button>
