@@ -41,7 +41,7 @@ export const initialBulletins: Bulletin[] = [
   },
   {
     id: 'bulletin-2',
-    author: { name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1') },
+    author: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') },
     category: 'Employee',
     title: 'Project Phoenix: Official Launch',
     content: 'We are thrilled to announce the successful launch of Project Phoenix. This is a huge milestone for our team and the company. A big thank you to everyone in the Technology and Product departments for their hard work and dedication.',
