@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -29,28 +30,73 @@ import { cn } from '@/lib/utils'
 import { TargetedDeliveryForm } from './targeted-delivery-form'
 import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
+import type { Bulletin } from '@/lib/types'
 
-export function CreateBulletinDialog({ children }: { children: React.ReactNode }) {
+interface CreateBulletinDialogProps {
+    children: React.ReactNode;
+    onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
+}
+
+export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletinDialogProps) {
   const [open, setOpen] = useState(false)
   const { currentUser } = useUser()
-  const [isTargeted, setIsTargeted] = useState(false)
+  const { toast } = useToast()
+
+  // Form state
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [category, setCategory] = useState<'Organization' | 'Employee' | undefined>()
+  const [imageUrl, setImageUrl] = useState('')
+  const [linkText, setLinkText] = useState('')
+  const [linkUrl, setLinkUrl] = useState('')
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
-  const { toast } = useToast()
+  const [isTargeted, setIsTargeted] = useState(false)
+
+  const resetForm = () => {
+    setTitle('')
+    setContent('')
+    setCategory(undefined)
+    setImageUrl('')
+    setLinkText('')
+    setLinkUrl('')
+    setScheduledFor(undefined)
+    setEndDate(undefined)
+    setIsTargeted(false)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, you would handle form submission here,
-    // creating a new bulletin object and sending it to an API.
+
+    if (!title || !content || !category) {
+        toast({
+            variant: "destructive",
+            title: "Missing Required Fields",
+            description: "Please fill out Title, Content, and Category.",
+        })
+        return
+    }
+
+    const newBulletinData = {
+        title,
+        content,
+        category,
+        imageUrl: imageUrl || undefined,
+        link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
+        scheduledFor: scheduledFor?.toISOString(),
+        endDate: endDate?.toISOString(),
+        // target data would be handled here if TargetedDeliveryForm was fully implemented
+    }
+
+    onAddBulletin(newBulletinData);
+    
     toast({
       title: 'Bulletin Created!',
       description: 'Your bulletin has been successfully created.',
     })
+
+    resetForm()
     setOpen(false)
-    // Reset form state if needed
-    setIsTargeted(false)
-    setScheduledFor(undefined)
-    setEndDate(undefined)
   }
 
   if (currentUser.role !== 'Admin') {
@@ -59,7 +105,7 @@ export function CreateBulletinDialog({ children }: { children: React.ReactNode }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {children}
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle className="font-headline">Create Bulletin</DialogTitle>
@@ -73,19 +119,19 @@ export function CreateBulletinDialog({ children }: { children: React.ReactNode }
               <Label htmlFor="title" className="text-right">
                 Title
               </Label>
-              <Input id="title" required className="col-span-3" />
+              <Input id="title" required className="col-span-3" value={title} onChange={e => setTitle(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="content" className="text-right">
                 Content
               </Label>
-              <Textarea id="content" required className="col-span-3 min-h-[120px]" />
+              <Textarea id="content" required className="col-span-3 min-h-[120px]" value={content} onChange={e => setContent(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select required>
+              <Select required value={category} onValueChange={(value: 'Organization' | 'Employee') => setCategory(value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -97,13 +143,13 @@ export function CreateBulletinDialog({ children }: { children: React.ReactNode }
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="image-url" className="text-right">Image URL</Label>
-                <Input id="image-url" placeholder="https://example.com/image.png" className="col-span-3" />
+                <Input id="image-url" placeholder="https://example.com/image.png" className="col-span-3" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="link" className="text-right">Link</Label>
                  <div className="col-span-3 flex gap-2">
-                    <Input id="link-text" placeholder="Link Text" className="flex-1" />
-                    <Input id="link-url" placeholder="https://example.com" className="flex-1" />
+                    <Input id="link-text" placeholder="Link Text" className="flex-1" value={linkText} onChange={e => setLinkText(e.target.value)} />
+                    <Input id="link-url" placeholder="https://example.com" className="flex-1" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} />
                 </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -115,7 +161,7 @@ export function CreateBulletinDialog({ children }: { children: React.ReactNode }
                   <Button
                     variant={'outline'}
                     className={cn(
-                      'w-[280px] justify-start text-left font-normal',
+                      'col-span-3 w-auto justify-start text-left font-normal',
                       !scheduledFor && 'text-muted-foreground'
                     )}
                   >
@@ -142,7 +188,7 @@ export function CreateBulletinDialog({ children }: { children: React.ReactNode }
                   <Button
                     variant={'outline'}
                     className={cn(
-                      'w-[280px] justify-start text-left font-normal',
+                      'col-span-3 w-auto justify-start text-left font-normal',
                       !endDate && 'text-muted-foreground'
                     )}
                   >

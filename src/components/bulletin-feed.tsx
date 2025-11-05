@@ -1,46 +1,20 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { BulletinCard } from '@/components/bulletin-card'
-import { initialBulletins } from '@/lib/data'
 import { useUser } from '@/contexts/user-context'
 import type { Bulletin } from '@/lib/types'
 
 interface BulletinFeedProps {
   searchQuery: string
+  bulletins: Bulletin[]
+  onLikeToggle: (bulletinId: string) => void
+  onDelete: (bulletinId: string) => void
 }
 
-export function BulletinFeed({ searchQuery }: BulletinFeedProps) {
+export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }: BulletinFeedProps) {
   const { currentUser } = useUser()
-  const [bulletins, setBulletins] = useState<Bulletin[]>(initialBulletins)
-  
-  // This useEffect simulates fetching and updating data
-  useEffect(() => {
-    // In a real app, you might re-fetch or listen to updates
-    setBulletins(initialBulletins)
-  }, [currentUser])
-  
-  const handleLikeToggle = (bulletinId: string) => {
-    setBulletins(prevBulletins => 
-      prevBulletins.map(b => {
-        if (b.id === bulletinId) {
-          const isLiked = b.likedBy.includes(currentUser.id)
-          return {
-            ...b,
-            likes: isLiked ? b.likes - 1 : b.likes + 1,
-            likedBy: isLiked ? b.likedBy.filter(id => id !== currentUser.id) : [...b.likedBy, currentUser.id]
-          }
-        }
-        return b
-      })
-    )
-  }
-
-  const handleDelete = (bulletinId: string) => {
-    setBulletins(prevBulletins => prevBulletins.filter(b => b.id !== bulletinId))
-    // In real app, call API to delete
-  }
 
   const filteredBulletins = useMemo(() => {
     return bulletins
@@ -83,8 +57,8 @@ export function BulletinFeed({ searchQuery }: BulletinFeedProps) {
           <BulletinCard 
             key={bulletin.id} 
             bulletin={bulletin} 
-            onLikeToggle={handleLikeToggle}
-            onDelete={handleDelete}
+            onLikeToggle={onLikeToggle}
+            onDelete={onDelete}
           />
         ))}
       </div>

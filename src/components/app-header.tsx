@@ -14,17 +14,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useUser } from '@/contexts/user-context'
 import { CreateBulletinDialog } from './create-bulletin-dialog'
+import type { Bulletin } from '@/lib/types'
 
 interface AppHeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
   title: string
+  onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
 }
 
 export function AppHeader({
   searchQuery,
   setSearchQuery,
   title,
+  onAddBulletin,
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
 
@@ -45,7 +48,7 @@ export function AppHeader({
       </div>
       <div className="flex items-center gap-2">
         {currentUser.role === 'Admin' && title === 'Bulletins' && (
-          <CreateBulletinDialog>
+          <CreateBulletinDialog onAddBulletin={onAddBulletin}>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Create Bulletin</span>
