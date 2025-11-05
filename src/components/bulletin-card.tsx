@@ -31,7 +31,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from './ui/separator'
-import type { Bulletin } from '@/lib/types'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import type { Bulletin, User } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 
@@ -42,7 +43,7 @@ interface BulletinCardProps {
 }
 
 export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardProps) {
-  const { currentUser } = useUser()
+  const { currentUser, users } = useUser()
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -68,6 +69,10 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   const formattedEndDate = isClient && endDateDate
     ? format(endDateDate, "MMM d, yyyy")
     : ''
+
+  const likers = bulletin.likedBy
+    .map(userId => users.find(u => u.id === userId))
+    .filter((u): u is User => !!u);
 
   return (
     <Card className="max-w-2xl mx-auto overflow-hidden">
@@ -121,7 +126,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
       <CardContent className="p-4 pt-0">
         <h2 className="text-xl font-bold font-headline mb-2">{bulletin.title}</h2>
         
-        {isScheduled && (
+        {(isScheduled) && (
             <Badge variant="secondary" className="mb-2">
                 <Clock className="mr-1 h-3 w-3" />
                 Scheduled for {formattedScheduledFor}
@@ -159,10 +164,32 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
       <Separator />
       <CardFooter className="p-2 flex justify-between">
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => onLikeToggle(bulletin.id)}>
-            <Heart className={cn('h-4 w-4 mr-2', isLiked && 'fill-red-500 text-red-500')} />
-            {bulletin.likes}
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => onLikeToggle(bulletin.id)}>
+                <Heart className={cn('h-4 w-4 mr-2', isLiked && 'fill-red-500 text-red-500')} />
+                {bulletin.likes}
+              </Button>
+            </PopoverTrigger>
+            {likers.length > 0 && (
+              <PopoverContent className="w-auto max-w-xs">
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-sm">Liked by</p>
+                  <div className="flex flex-wrap gap-2">
+                    {likers.map(user => (
+                      <div key={user.id} className="flex items-center gap-2 text-xs">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={user.avatarUrl} alt={user.name} />
+                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{user.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            )}
+          </Popover>
           <Button variant="ghost" size="sm">
             <MessageCircle className="h-4 w-4 mr-2" />
             {bulletin.comments.length}
