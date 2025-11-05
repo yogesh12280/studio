@@ -14,7 +14,7 @@ export default function OrgaBlastPage() {
   const [bulletins, setBulletins] = useState<Bulletin[]>(initialBulletins)
   const { currentUser } = useUser()
 
-  const handleAddBulletin = (newBulletinData: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => {
+  const handleAddBulletin = (newBulletinData: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => {
     const newBulletin: Bulletin = {
         id: `bulletin-${Date.now()}`,
         author: {
@@ -24,6 +24,7 @@ export default function OrgaBlastPage() {
         likes: 0,
         likedBy: [],
         viewers: 0,
+        viewedBy: [],
         comments: [],
         createdAt: new Date().toISOString(),
         ...newBulletinData,

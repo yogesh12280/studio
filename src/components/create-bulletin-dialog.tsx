@@ -32,7 +32,7 @@ import type { Bulletin } from '@/lib/types'
 
 interface CreateBulletinDialogProps {
     children: React.ReactNode;
-    onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
+    onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
 }
 
 export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletinDialogProps) {

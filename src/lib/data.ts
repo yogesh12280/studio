@@ -31,6 +31,7 @@ export const initialBulletins: Bulletin[] = [
     likes: 12,
     likedBy: ['user-2'],
     viewers: 58,
+    viewedBy: ['user-1', 'user-2'],
     comments: [
         { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString() }
     ],
@@ -47,6 +48,7 @@ export const initialBulletins: Bulletin[] = [
     likes: 25,
     likedBy: [],
     viewers: 75,
+    viewedBy: ['user-1'],
     comments: [],
     createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24).toISOString(),
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
@@ -61,6 +63,7 @@ export const initialBulletins: Bulletin[] = [
     likes: 8,
     likedBy: [],
     viewers: 62,
+    viewedBy: [],
     comments: [],
     createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 72).toISOString(),
     scheduledFor: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(), // Scheduled for 2 days from now

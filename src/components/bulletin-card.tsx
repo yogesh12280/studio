@@ -73,6 +73,10 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   const likers = bulletin.likedBy
     .map(userId => users.find(u => u.id === userId))
     .filter((u): u is User => !!u);
+  
+  const viewers = (bulletin.viewedBy || [])
+    .map(userId => users.find(u => u.id === userId))
+    .filter((u): u is User => !!u);
 
   return (
     <Card className="max-w-2xl mx-auto overflow-hidden">
@@ -195,10 +199,32 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
             {bulletin.comments.length}
           </Button>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Eye className="h-4 w-4" />
-          <span>{bulletin.viewers} views</span>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2 text-xs text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span>{bulletin.viewers} views</span>
+            </Button>
+          </PopoverTrigger>
+          {viewers.length > 0 && (
+              <PopoverContent className="w-auto max-w-xs">
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-sm">Viewed by</p>
+                  <div className="flex flex-wrap gap-2">
+                    {viewers.map(user => (
+                      <div key={user.id} className="flex items-center gap-2 text-xs">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={user.avatarUrl} alt={user.name} />
+                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{user.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            )}
+        </Popover>
       </CardFooter>
     </Card>
   )

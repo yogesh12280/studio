@@ -35,6 +35,7 @@ export type Bulletin = {
   likes: number;
   likedBy: string[];
   viewers: number;
+  viewedBy: string[];
   comments: Comment[];
   createdAt: string;
   scheduledFor?: string;
