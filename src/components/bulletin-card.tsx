@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -42,10 +43,26 @@ interface BulletinCardProps {
 
 export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardProps) {
   const { currentUser } = useUser()
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const isLiked = bulletin.likedBy.includes(currentUser.id)
 
   const isScheduled = bulletin.scheduledFor && bulletin.scheduledFor > new Date()
   const isExpired = bulletin.endDate && bulletin.endDate < new Date()
+
+  const formattedCreatedAt = isClient
+    ? formatDistanceToNow(bulletin.createdAt, { addSuffix: true })
+    : ''
+  const formattedScheduledFor = isClient && bulletin.scheduledFor
+    ? format(bulletin.scheduledFor, "MMM d, yyyy 'at' p")
+    : ''
+  const formattedEndDate = isClient && bulletin.endDate
+    ? format(bulletin.endDate, "MMM d, yyyy")
+    : ''
 
   return (
     <Card className="max-w-2xl mx-auto overflow-hidden">
@@ -63,7 +80,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
               <p className="font-semibold">{bulletin.author.name}</p>
               <p className="text-xs text-muted-foreground">
                 <time dateTime={bulletin.createdAt.toISOString()}>
-                  {formatDistanceToNow(bulletin.createdAt, { addSuffix: true })}
+                  {formattedCreatedAt}
                 </time>
               </p>
             </div>
@@ -98,13 +115,13 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
         {currentUser.role === 'Admin' && isScheduled && (
             <Badge variant="secondary" className="mb-2">
                 <Clock className="mr-1 h-3 w-3" />
-                Scheduled for {format(bulletin.scheduledFor!, "MMM d, yyyy 'at' p")}
+                Scheduled for {formattedScheduledFor}
             </Badge>
         )}
         {currentUser.role === 'Admin' && isExpired && (
             <Badge variant="destructive" className="mb-2">
                 <CalendarOff className="mr-1 h-3 w-3" />
-                Expired on {format(bulletin.endDate!, "MMM d, yyyy")}
+                Expired on {formattedEndDate}
             </Badge>
         )}
 
