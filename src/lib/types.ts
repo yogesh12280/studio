@@ -18,7 +18,7 @@ export type Comment = {
   id: string;
   user: Pick<User, 'name' | 'avatarUrl'>;
   text: string;
-  timestamp: Date;
+  timestamp: string; // Changed to string
 }
 
 export type Bulletin = {
@@ -36,9 +36,9 @@ export type Bulletin = {
   likedBy: string[];
   viewers: number;
   comments: Comment[];
-  createdAt: Date;
-  scheduledFor?: Date;
-  endDate?: Date;
+  createdAt: string; // Changed to string
+  scheduledFor?: string; // Changed to string
+  endDate?: string; // Changed to string
   target?: {
     roles?: string[];
     departments?: string[];

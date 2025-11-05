@@ -17,6 +17,8 @@ export const employees: Employee[] = [
     { id: 'emp-6', name: 'Hal Jordan', email: 'hal@orgablast.com', role: 'Sales Director', department: 'Sales', avatarUrl: getImageUrl('avatar2') },
 ];
 
+const now = new Date();
+
 export const initialBulletins: Bulletin[] = [
   {
     id: 'bulletin-1',
@@ -29,10 +31,10 @@ export const initialBulletins: Bulletin[] = [
     likedBy: ['user-2'],
     viewers: 58,
     comments: [
-        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(Date.now() - 1000 * 60 * 5) }
+        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(now.getTime() - 1000 * 60 * 5).toISOString() }
     ],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
   },
   {
     id: 'bulletin-2',
@@ -45,11 +47,11 @@ export const initialBulletins: Bulletin[] = [
     likedBy: [],
     viewers: 75,
     comments: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24).toISOString(),
     target: {
       departments: ['Technology', 'Product'],
     },
-    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
   },
   {
     id: 'bulletin-3',
@@ -62,8 +64,8 @@ export const initialBulletins: Bulletin[] = [
     likedBy: [],
     viewers: 62,
     comments: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72),
-    scheduledFor: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2), // Scheduled for 2 days from now
-    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 72).toISOString(),
+    scheduledFor: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 2).toISOString(), // Scheduled for 2 days from now
+    endDate: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 5).toISOString(),
   },
 ];

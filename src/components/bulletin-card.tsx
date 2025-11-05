@@ -50,18 +50,24 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   }, [])
 
   const isLiked = bulletin.likedBy.includes(currentUser.id)
+  
+  const now = new Date();
+  const isScheduled = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) > now : false;
+  const isExpired = bulletin.endDate ? new Date(bulletin.endDate) < now : false;
 
-  const isScheduled = bulletin.scheduledFor && bulletin.scheduledFor > new Date()
-  const isExpired = bulletin.endDate && bulletin.endDate < new Date()
+  const createdAtDate = new Date(bulletin.createdAt);
+  const scheduledForDate = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : undefined;
+  const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : undefined;
+
 
   const formattedCreatedAt = isClient
-    ? formatDistanceToNow(bulletin.createdAt, { addSuffix: true })
+    ? formatDistanceToNow(createdAtDate, { addSuffix: true })
     : ''
-  const formattedScheduledFor = isClient && bulletin.scheduledFor
-    ? format(bulletin.scheduledFor, "MMM d, yyyy 'at' p")
+  const formattedScheduledFor = isClient && scheduledForDate
+    ? format(scheduledForDate, "MMM d, yyyy 'at' p")
     : ''
-  const formattedEndDate = isClient && bulletin.endDate
-    ? format(bulletin.endDate, "MMM d, yyyy")
+  const formattedEndDate = isClient && endDateDate
+    ? format(endDateDate, "MMM d, yyyy")
     : ''
 
   return (
@@ -79,9 +85,13 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
             <div>
               <p className="font-semibold">{bulletin.author.name}</p>
               <p className="text-xs text-muted-foreground">
-                <time dateTime={bulletin.createdAt.toISOString()}>
-                  {formattedCreatedAt}
-                </time>
+                {isClient ? (
+                  <time dateTime={createdAtDate.toISOString()}>
+                    {formattedCreatedAt}
+                  </time>
+                ) : (
+                  <span>&nbsp;</span>
+                )}
               </p>
             </div>
             {currentUser.role === 'Admin' && (

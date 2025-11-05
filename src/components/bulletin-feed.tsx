@@ -46,8 +46,11 @@ export function BulletinFeed({ searchQuery }: BulletinFeedProps) {
     return bulletins
       .filter(bulletin => {
         const now = new Date();
-        const isScheduled = bulletin.scheduledFor && bulletin.scheduledFor > now;
-        const isExpired = bulletin.endDate && bulletin.endDate < now;
+        const scheduledForDate = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null;
+        const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : null;
+
+        const isScheduled = scheduledForDate && scheduledForDate > now;
+        const isExpired = endDateDate && endDateDate < now;
 
         if (currentUser.role !== 'Admin') {
           if (isScheduled || isExpired) return false;
@@ -60,7 +63,7 @@ export function BulletinFeed({ searchQuery }: BulletinFeedProps) {
           bulletin.author.name.toLowerCase().includes(searchLower)
         )
       })
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [bulletins, searchQuery, currentUser.role])
 
   const organizationBulletins = filteredBulletins.filter(
