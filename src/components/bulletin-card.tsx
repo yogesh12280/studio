@@ -52,14 +52,17 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   const isLiked = bulletin.likedBy.includes(currentUser.id)
   
   const now = new Date();
-  const isScheduled = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) > now : false;
-  const isExpired = bulletin.endDate ? new Date(bulletin.endDate) < now : false;
+  const scheduledForDate = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : undefined;
+  const isScheduled = scheduledForDate && scheduledForDate > now;
+  const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : undefined;
+  const isExpired = endDateDate && endDateDate < now;
+  
+  if (currentUser.role !== 'Admin' && (isScheduled || isExpired)) {
+    return null;
+  }
 
   const createdAtDate = new Date(bulletin.createdAt);
-  const scheduledForDate = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : undefined;
-  const endDateDate = bulletin.endDate ? new Date(bulletin.endDate) : undefined;
-
-
+  
   const formattedCreatedAt = isClient
     ? formatDistanceToNow(createdAtDate, { addSuffix: true })
     : ''

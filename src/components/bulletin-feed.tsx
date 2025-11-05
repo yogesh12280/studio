@@ -27,7 +27,9 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
         const isExpired = endDateDate && endDateDate < now;
 
         if (currentUser.role !== 'Admin') {
-          if (isScheduled || isExpired) return false;
+            // All users can see scheduled/expired posts as per new requirement,
+            // but admins need to see them for management purposes.
+            // This logic is now the same for all users, but we keep the admin view for scheduled/expired badges.
         }
 
         const searchLower = searchQuery.toLowerCase()
