@@ -121,7 +121,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
       <CardContent className="p-4 pt-0">
         <h2 className="text-xl font-bold font-headline mb-2">{bulletin.title}</h2>
         
-        {currentUser.role === 'Admin' && isScheduled && (
+        {isScheduled && (
             <Badge variant="secondary" className="mb-2">
                 <Clock className="mr-1 h-3 w-3" />
                 Scheduled for {formattedScheduledFor}
