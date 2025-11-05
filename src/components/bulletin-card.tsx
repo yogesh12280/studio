@@ -45,6 +45,8 @@ interface BulletinCardProps {
 export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardProps) {
   const { currentUser, users } = useUser()
   const [isClient, setIsClient] = useState(false)
+  const [likePopoverOpen, setLikePopoverOpen] = useState(false)
+  const [viewPopoverOpen, setViewPopoverOpen] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
@@ -168,9 +170,15 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
       <Separator />
       <CardFooter className="p-2 flex justify-between">
         <div className="flex items-center gap-1">
-          <Popover>
+          <Popover open={likePopoverOpen} onOpenChange={setLikePopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" onClick={() => onLikeToggle(bulletin.id)}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onLikeToggle(bulletin.id)}
+                onMouseEnter={() => setLikePopoverOpen(true)}
+                onMouseLeave={() => setLikePopoverOpen(false)}
+              >
                 <Heart className={cn('h-4 w-4 mr-2', isLiked && 'fill-red-500 text-red-500')} />
                 {bulletin.likes}
               </Button>
@@ -199,9 +207,15 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
             {bulletin.comments.length}
           </Button>
         </div>
-        <Popover>
+        <Popover open={viewPopoverOpen} onOpenChange={setViewPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-2 text-xs text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 text-xs text-muted-foreground"
+              onMouseEnter={() => setViewPopoverOpen(true)}
+              onMouseLeave={() => setViewPopoverOpen(false)}
+            >
               <Eye className="h-4 w-4" />
               <span>{bulletin.viewers} views</span>
             </Button>
