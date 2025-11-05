@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { BulletinCard } from '@/components/bulletin-card'
-import { useUser } from '@/contexts/user-context'
 import type { Bulletin } from '@/lib/types'
 
 interface BulletinFeedProps {
@@ -15,38 +14,23 @@ interface BulletinFeedProps {
 }
 
 export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, onAddComment }: BulletinFeedProps) {
-  const { currentUser } = useUser()
 
   const filteredBulletins = useMemo(() => {
-    const now = new Date()
     return bulletins
       .filter(bulletin => {
         const searchLower = searchQuery.toLowerCase()
-        const isMatch =
+        return (
           bulletin.title.toLowerCase().includes(searchLower) ||
           bulletin.content.toLowerCase().includes(searchLower) ||
           bulletin.author.name.toLowerCase().includes(searchLower)
-
-        if (!isMatch) return false
-        
-        const endDate = bulletin.endDate ? new Date(bulletin.endDate) : null
-        if (endDate && endDate < now && currentUser.role !== 'Admin') {
-            return false
-        }
-        
-        const scheduledFor = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null;
-        if (scheduledFor && scheduledFor > now && currentUser.role !== 'Admin') {
-            return false;
-        }
-
-        return true
+        )
       })
       .sort((a, b) => {
         const dateA = a.scheduledFor ? new Date(a.scheduledFor) : new Date(a.createdAt);
         const dateB = b.scheduledFor ? new Date(b.scheduledFor) : new Date(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       })
-  }, [bulletins, searchQuery, currentUser.role])
+  }, [bulletins, searchQuery])
 
   const organizationBulletins = filteredBulletins.filter(
     (b) => b.category === 'Organization'
