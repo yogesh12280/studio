@@ -19,7 +19,7 @@ export function BulletinFeed({ searchQuery }: BulletinFeedProps) {
   useEffect(() => {
     // In a real app, you might re-fetch or listen to updates
     setBulletins(initialBulletins)
-  }, [])
+  }, [currentUser])
   
   const handleLikeToggle = (bulletinId: string) => {
     setBulletins(prevBulletins => 
