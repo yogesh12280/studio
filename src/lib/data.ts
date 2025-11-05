@@ -6,7 +6,7 @@ const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)
 
 export const users: User[] = [
   { id: 'user-1', name: 'Alex Hartman', avatarUrl: getImageUrl('avatar1'), role: 'Admin' },
-  { id: 'user-2', name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2'), role: 'Employee' },
+  { id: 'user-2', name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2'), role: 'Employee' },
 ];
 
 export const employees: Employee[] = [
@@ -34,7 +34,7 @@ export const initialBulletins: Bulletin[] = [
     viewers: 58,
     viewedBy: ['user-1', 'user-2'],
     comments: [
-        { id: 'comment-1', user: { name: 'Samantha Lee', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString() }
+        { id: 'comment-1', user: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString() }
     ],
     createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 2).toISOString(),
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
@@ -47,7 +47,7 @@ export const initialBulletins: Bulletin[] = [
     content: 'We are thrilled to announce the successful launch of Project Phoenix. This is a huge milestone for our team and the company. A big thank you to everyone in the Technology and Product departments for their hard work and dedication.',
     imageUrl: getImageUrl('postImage2'),
     likes: 25,
-    likedBy: [],
+    likedBy: ['user-1', 'user-2'],
     viewers: 75,
     viewedBy: ['user-1', 'user-2'],
     comments: [],
@@ -62,7 +62,7 @@ export const initialBulletins: Bulletin[] = [
     content: 'Join us for the upcoming town hall where we will discuss our strong Q3 financial results and outline our strategic priorities for Q4. The meeting is scheduled for this Friday at 10:00 AM PST.',
     link: { url: 'https://meeting.example.com/q3-townhall', text: 'Join Town Hall Meeting' },
     likes: 8,
-    likedBy: [],
+    likedBy: ['user-2'],
     viewers: 62,
     viewedBy: ['user-1', 'user-2'],
     comments: [],
@@ -76,7 +76,7 @@ export const initialGrievances: Grievance[] = [
   {
     id: 'grievance-1',
     employeeId: 'user-2',
-    employeeName: 'Samantha Lee',
+    employeeName: 'Yogesh Patel',
     employeeAvatarUrl: getImageUrl('avatar2'),
     subject: 'Issue with new workstation',
     description: 'The new workstation provided is missing a secondary monitor, which is affecting my productivity. I had requested one during the setup process.',
@@ -96,7 +96,7 @@ export const initialGrievances: Grievance[] = [
   {
     id: 'grievance-3',
     employeeId: 'user-2',
-    employeeName: 'Samantha Lee',
+    employeeName: 'Yogesh Patel',
     employeeAvatarUrl: getImageUrl('avatar2'),
     subject: 'Expense Report Reimbursement Delay',
     description: 'My expense report for the Q2 conference has not been reimbursed yet. It was submitted over a month ago.',
@@ -105,3 +105,4 @@ export const initialGrievances: Grievance[] = [
     resolvedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
   },
 ];
+
