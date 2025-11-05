@@ -51,6 +51,29 @@ export default function OrgaBlastPage() {
   const handleDelete = (bulletinId: string) => {
     setBulletins(prevBulletins => prevBulletins.filter(b => b.id !== bulletinId))
   }
+  
+  const handleAddComment = (bulletinId: string, commentText: string) => {
+    setBulletins(prevBulletins =>
+      prevBulletins.map(b => {
+        if (b.id === bulletinId) {
+          const newComment = {
+            id: `comment-${Date.now()}`,
+            user: {
+              name: currentUser.name,
+              avatarUrl: currentUser.avatarUrl,
+            },
+            text: commentText,
+            timestamp: new Date().toISOString(),
+          }
+          return {
+            ...b,
+            comments: [...b.comments, newComment],
+          }
+        }
+        return b
+      })
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -68,6 +91,7 @@ export default function OrgaBlastPage() {
             bulletins={bulletins}
             onLikeToggle={handleLikeToggle}
             onDelete={handleDelete}
+            onAddComment={handleAddComment}
           />
         </main>
       </div>

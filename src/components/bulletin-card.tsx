@@ -12,6 +12,7 @@ import {
   Edit,
   Clock,
   CalendarOff,
+  Send,
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
@@ -32,7 +33,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from './ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import type { Bulletin, User } from '@/lib/types'
+import { Input } from './ui/input'
+import type { Bulletin, User, Comment } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 
@@ -40,13 +42,16 @@ interface BulletinCardProps {
   bulletin: Bulletin
   onLikeToggle: (bulletinId: string) => void
   onDelete: (bulletinId: string) => void
+  onAddComment: (bulletinId: string, commentText: string) => void
 }
 
-export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardProps) {
+export function BulletinCard({ bulletin, onLikeToggle, onDelete, onAddComment }: BulletinCardProps) {
   const { currentUser, users } = useUser()
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
   const [viewPopoverOpen, setViewPopoverOpen] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [newComment, setNewComment] = useState('')
 
   useEffect(() => {
     setIsClient(true)
@@ -79,6 +84,14 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
   const viewers = (bulletin.viewedBy || [])
     .map(userId => users.find(u => u.id === userId))
     .filter((u): u is User => !!u);
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newComment.trim()) {
+      onAddComment(bulletin.id, newComment.trim())
+      setNewComment('')
+    }
+  }
 
   return (
     <Card className="max-w-2xl mx-auto overflow-hidden">
@@ -132,7 +145,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
       <CardContent className="p-4 pt-0">
         <h2 className="text-xl font-bold font-headline mb-2">{bulletin.title}</h2>
         
-        {(isScheduled) && (
+        {isScheduled && (
             <Badge variant="secondary" className="mb-2">
                 <Clock className="mr-1 h-3 w-3" />
                 Scheduled for {formattedScheduledFor}
@@ -202,7 +215,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
               </PopoverContent>
             )}
           </Popover>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => setShowComments(!showComments)}>
             <MessageCircle className="h-4 w-4 mr-2" />
             {bulletin.comments.length}
           </Button>
@@ -240,6 +253,54 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete }: BulletinCardP
             )}
         </Popover>
       </CardFooter>
+      {showComments && (
+        <>
+          <Separator />
+          <div className="p-4 space-y-4">
+            <h3 className="font-semibold text-sm">Comments</h3>
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {bulletin.comments.length > 0 ? (
+                bulletin.comments.map((comment: Comment) => (
+                  <div key={comment.id} className="flex items-start gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={comment.user.avatarUrl} alt={comment.user.name} />
+                      <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="bg-muted rounded-lg px-3 py-2">
+                        <p className="font-semibold text-sm">{comment.user.name}</p>
+                        <p className="text-sm text-foreground/90">{comment.text}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isClient ? formatDistanceToNow(new Date(comment.timestamp), { addSuffix: true }) : ''}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No comments yet.
+                </p>
+              )}
+            </div>
+            <form onSubmit={handleCommentSubmit} className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <Input
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 h-9"
+              />
+              <Button type="submit" size="icon" className="h-9 w-9">
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+        </>
+      )}
     </Card>
   )
 }

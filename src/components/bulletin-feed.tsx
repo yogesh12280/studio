@@ -11,9 +11,10 @@ interface BulletinFeedProps {
   bulletins: Bulletin[]
   onLikeToggle: (bulletinId: string) => void
   onDelete: (bulletinId: string) => void
+  onAddComment: (bulletinId: string, commentText: string) => void
 }
 
-export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }: BulletinFeedProps) {
+export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, onAddComment }: BulletinFeedProps) {
   const { currentUser } = useUser()
 
   const filteredBulletins = useMemo(() => {
@@ -27,14 +28,15 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
           bulletin.author.name.toLowerCase().includes(searchLower)
 
         if (!isMatch) return false
-
-        if (currentUser.role === 'Admin') {
-          return true
-        }
         
         const endDate = bulletin.endDate ? new Date(bulletin.endDate) : null
-        if (endDate && endDate < now) {
+        if (endDate && endDate < now && currentUser.role !== 'Admin') {
             return false
+        }
+        
+        const scheduledFor = bulletin.scheduledFor ? new Date(bulletin.scheduledFor) : null;
+        if (scheduledFor && scheduledFor > now && currentUser.role !== 'Admin') {
+            return false;
         }
 
         return true
@@ -65,6 +67,7 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete }:
             bulletin={bulletin} 
             onLikeToggle={onLikeToggle}
             onDelete={onDelete}
+            onAddComment={onAddComment}
           />
         ))}
       </div>
