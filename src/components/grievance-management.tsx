@@ -62,10 +62,14 @@ export function GrievanceManagement({ searchQuery }: GrievanceManagementProps) {
 
   const filteredGrievances = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
+    if (!searchLower) {
+      return grievances.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
     return grievances
       .filter(g => 
         g.employeeName.toLowerCase().includes(searchLower) ||
-        g.subject.toLowerCase().includes(searchLower)
+        g.subject.toLowerCase().includes(searchLower) ||
+        g.status.toLowerCase().includes(searchLower)
       )
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [grievances, searchQuery]);
