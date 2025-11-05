@@ -14,7 +14,6 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Textarea } from './ui/textarea'
-import { Switch } from './ui/switch'
 import {
   Select,
   SelectContent,
@@ -23,11 +22,10 @@ import {
   SelectValue,
 } from './ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import { CalendarIcon, Link2 } from 'lucide-react'
+import { CalendarIcon } from 'lucide-react'
 import { Calendar } from './ui/calendar'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { TargetedDeliveryForm } from './targeted-delivery-form'
 import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Bulletin } from '@/lib/types'
@@ -51,7 +49,6 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
   const [linkUrl, setLinkUrl] = useState('')
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
-  const [isTargeted, setIsTargeted] = useState(false)
 
   const resetForm = () => {
     setTitle('')
@@ -62,7 +59,6 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
     setLinkUrl('')
     setScheduledFor(undefined)
     setEndDate(undefined)
-    setIsTargeted(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,7 +81,6 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
         link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
         scheduledFor: scheduledFor?.toISOString(),
         endDate: endDate?.toISOString(),
-        // target data would be handled here if TargetedDeliveryForm was fully implemented
     }
 
     onAddBulletin(newBulletinData);
@@ -206,20 +201,6 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="targeted" className="text-right">
-                Targeted Delivery
-              </Label>
-              <div className="col-span-3 flex items-center space-x-2">
-                <Switch
-                  id="targeted"
-                  checked={isTargeted}
-                  onCheckedChange={setIsTargeted}
-                />
-                <Label htmlFor="targeted">Enable AI-powered suggestions</Label>
-              </div>
-            </div>
-            {isTargeted && <TargetedDeliveryForm />}
           </div>
           <DialogFooter>
             <Button type="submit">Create Bulletin</Button>

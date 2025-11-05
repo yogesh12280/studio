@@ -39,10 +39,6 @@ export type Bulletin = {
   createdAt: string;
   scheduledFor?: string;
   endDate?: string;
-  target?: {
-    roles?: string[];
-    departments?: string[];
-  };
 };
 
 export type Grievance = {

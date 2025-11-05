@@ -49,9 +49,6 @@ export const initialBulletins: Bulletin[] = [
     viewers: 75,
     comments: [],
     createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24).toISOString(),
-    target: {
-      departments: ['Technology', 'Product'],
-    },
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
   },
   {
