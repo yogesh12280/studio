@@ -13,10 +13,8 @@ import {
 import { OrgaBlastLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
-  LayoutDashboard,
   Newspaper,
-  Users,
-  Settings,
+  ShieldAlert,
   Moon,
   Sun,
 } from 'lucide-react'
@@ -41,27 +39,15 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Dashboard" isActive>
-              <LayoutDashboard />
-              <span>Dashboard</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Bulletins">
+            <SidebarMenuButton tooltip="Bulletins" isActive>
               <Newspaper />
               <span>Bulletins</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Employees">
-              <Users />
-              <span>Employees</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Settings">
-              <Settings />
-              <span>Settings</span>
+            <SidebarMenuButton tooltip="Grievance">
+              <ShieldAlert />
+              <span>Grievance</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
