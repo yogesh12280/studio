@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
   Table,
   TableBody,
@@ -19,33 +19,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { MoreHorizontal } from 'lucide-react'
-import { initialGrievances } from '@/lib/data'
 import { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 
 interface GrievanceManagementProps {
   searchQuery: string;
+  grievances: Grievance[];
+  onStatusChange: (grievanceId: string, newStatus: Grievance['status']) => void;
 }
 
-export function GrievanceManagement({ searchQuery }: GrievanceManagementProps) {
-  const [grievances, setGrievances] = useState<Grievance[]>(initialGrievances)
-
-  const handleStatusChange = (
-    grievanceId: string,
-    newStatus: Grievance['status']
-  ) => {
-    setGrievances((prev) =>
-      prev.map((g) =>
-        g.id === grievanceId
-          ? {
-              ...g,
-              status: newStatus,
-              resolvedAt: newStatus === 'Resolved' ? new Date().toISOString() : undefined,
-            }
-          : g
-      )
-    )
-  }
+export function GrievanceManagement({ searchQuery, grievances, onStatusChange }: GrievanceManagementProps) {
 
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
@@ -126,17 +109,17 @@ export function GrievanceManagement({ searchQuery }: GrievanceManagementProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => handleStatusChange(grievance.id, 'Pending')}
+                        onClick={() => onStatusChange(grievance.id, 'Pending')}
                       >
                         Mark as Pending
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleStatusChange(grievance.id, 'In Progress')}
+                        onClick={() => onStatusChange(grievance.id, 'In Progress')}
                       >
                         Mark as In Progress
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleStatusChange(grievance.id, 'Resolved')}
+                        onClick={() => onStatusChange(grievance.id, 'Resolved')}
                       >
                         Mark as Resolved
                       </DropdownMenuItem>

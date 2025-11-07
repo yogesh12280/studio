@@ -1,38 +1,21 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
-import { useUser } from '@/contexts/user-context'
-import { initialGrievances } from '@/lib/data'
 import type { Grievance } from '@/lib/types'
 import { format } from 'date-fns'
 
 interface EmployeeGrievanceViewProps {
   searchQuery: string
+  grievances: Grievance[]
+  onAddGrievance: (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void
 }
 
-export function EmployeeGrievanceView({ searchQuery }: EmployeeGrievanceViewProps) {
-  const { currentUser } = useUser()
-  const [grievances, setGrievances] = useState<Grievance[]>(() =>
-    initialGrievances.filter((g) => g.employeeId === currentUser.id)
-  )
-
-  const handleAddGrievance = (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => {
-    const grievanceToAdd: Grievance = {
-      id: `grievance-${Date.now()}`,
-      employeeId: currentUser.id,
-      employeeName: currentUser.name,
-      employeeAvatarUrl: currentUser.avatarUrl,
-      createdAt: new Date().toISOString(),
-      ...newGrievance,
-    }
-    setGrievances(prev => [grievanceToAdd, ...prev])
-  }
-  
+export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance }: EmployeeGrievanceViewProps) {
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
       case 'Pending':
@@ -50,14 +33,14 @@ export function EmployeeGrievanceView({ searchQuery }: EmployeeGrievanceViewProp
     return grievances.filter(grievance => 
       grievance.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       grievance.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [grievances, searchQuery])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold font-headline">Your Grievances</h2>
-        <RegisterGrievanceDialog onGrievanceSubmit={handleAddGrievance}>
+        <RegisterGrievanceDialog onGrievanceSubmit={onAddGrievance}>
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
             Register New Grievance
