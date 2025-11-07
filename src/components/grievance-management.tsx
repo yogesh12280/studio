@@ -23,7 +23,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import { MoreHorizontal, MessageSquare, Send } from 'lucide-react'
+import { MoreHorizontal, MessageSquare, Send, ChevronDown, ChevronUp } from 'lucide-react'
 import { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 import { useUser } from '@/contexts/user-context'
@@ -45,6 +45,19 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null)
   const [targetStatus, setTargetStatus] = useState<Grievance['status'] | null>(null)
   const [newComment, setNewComment] = useState<{[key: string]: string}>({})
+  const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(new Set());
+
+  const toggleCollapsible = (id: string) => {
+    setOpenCollapsibles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
@@ -116,121 +129,117 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
           </TableHeader>
           <TableBody>
             {filteredGrievances.map((grievance) => (
-              <Collapsible key={grievance.id} asChild>
-                <>
-                  <TableRow>
-                    <TableCell>
-                      <CollapsibleTrigger asChild>
+              <Fragment key={grievance.id}>
+                <TableRow>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" onClick={() => toggleCollapsible(grievance.id)}>
+                      {openCollapsibles.has(grievance.id) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <span className="sr-only">Toggle Comments</span>
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage
+                          src={grievance.employeeAvatarUrl}
+                          alt={grievance.employeeName}
+                        />
+                        <AvatarFallback>
+                          {grievance.employeeName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">{grievance.employeeName}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">{grievance.subject}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDistanceToNow(new Date(grievance.createdAt), {
+                      addSuffix: true,
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusVariant(grievance.status)}>
+                      {grievance.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
-                            <MessageSquare className="h-4 w-4" />
-                            <span className="sr-only">Toggle Comments</span>
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      </CollapsibleTrigger>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage
-                            src={grievance.employeeAvatarUrl}
-                            alt={grievance.employeeName}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleStatusUpdate(grievance, 'Pending')}
+                        >
+                          Mark as Pending
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleStatusUpdate(grievance, 'In Progress')}
+                        >
+                          Mark as In Progress
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleStatusUpdate(grievance, 'Resolved')}
+                        >
+                          Mark as Resolved
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+                {openCollapsibles.has(grievance.id) && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-0">
+                       <div className="p-4 space-y-4 bg-muted/50">
+                        <p className="font-medium text-sm">Conversation History</p>
+                        <p className="text-sm text-muted-foreground">{grievance.description}</p>
+                        <Separator/>
+
+                        {grievance.comments && grievance.comments.map(comment => (
+                           <div key={comment.id} className="flex items-start gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+                                <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="bg-background rounded-lg px-3 py-2">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <p className="font-semibold text-sm">{comment.author.name}</p>
+                                    {comment.status && <Badge variant={getStatusVariant(comment.status)}>{comment.status}</Badge>}
+                                  </div>
+                                  <p className="text-sm text-foreground/90">{comment.text}</p>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                                </p>
+                              </div>
+                            </div>
+                        ))}
+                         {(!grievance.comments || grievance.comments.length === 0) && (
+                          <p className="text-sm text-muted-foreground text-center py-4">No comments yet.</p>
+                         )}
+                        <form onSubmit={(e) => handleCommentSubmit(e, grievance.id)} className="flex items-center gap-2 pt-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <Input
+                            value={newComment[grievance.id] || ''}
+                            onChange={(e) => setNewComment(prev => ({...prev, [grievance.id]: e.target.value}))}
+                            placeholder="Write a reply..."
+                            className="flex-1 h-9"
                           />
-                          <AvatarFallback>
-                            {grievance.employeeName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{grievance.employeeName}</span>
+                          <Button type="submit" size="icon" className="h-9 w-9">
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </form>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{grievance.subject}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(grievance.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(grievance.status)}>
-                        {grievance.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(grievance, 'Pending')}
-                          >
-                            Mark as Pending
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(grievance, 'In Progress')}
-                          >
-                            Mark as In Progress
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(grievance, 'Resolved')}
-                          >
-                            Mark as Resolved
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
-                  <CollapsibleContent asChild>
-                    <TableRow>
-                      <TableCell colSpan={6} className="p-0">
-                         <div className="p-4 space-y-4 bg-muted/50">
-                          <p className="font-medium text-sm">Conversation History</p>
-                          <p className="text-sm text-muted-foreground">{grievance.description}</p>
-                          <Separator/>
-
-                          {grievance.comments && grievance.comments.map(comment => (
-                             <div key={comment.id} className="flex items-start gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
-                                  <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <div className="bg-background rounded-lg px-3 py-2">
-                                    <div className="flex items-center justify-between mb-1">
-                                      <p className="font-semibold text-sm">{comment.author.name}</p>
-                                      {comment.status && <Badge variant={getStatusVariant(comment.status)}>{comment.status}</Badge>}
-                                    </div>
-                                    <p className="text-sm text-foreground/90">{comment.text}</p>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                                  </p>
-                                </div>
-                              </div>
-                          ))}
-                           {(!grievance.comments || grievance.comments.length === 0) && (
-                            <p className="text-sm text-muted-foreground text-center py-4">No comments yet.</p>
-                           )}
-                          <form onSubmit={(e) => handleCommentSubmit(e, grievance.id)} className="flex items-center gap-2 pt-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <Input
-                              value={newComment[grievance.id] || ''}
-                              onChange={(e) => setNewComment(prev => ({...prev, [grievance.id]: e.target.value}))}
-                              placeholder="Write a reply..."
-                              className="flex-1 h-9"
-                            />
-                            <Button type="submit" size="icon" className="h-9 w-9">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </form>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </CollapsibleContent>
-                </>
-              </Collapsible>
+                )}
+              </Fragment>
             ))}
           </TableBody>
         </Table>
