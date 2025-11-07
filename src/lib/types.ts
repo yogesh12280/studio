@@ -47,7 +47,7 @@ export type GrievanceComment = {
   text: string;
   author: Pick<User, 'name' | 'avatarUrl'>;
   createdAt: string;
-  status: Grievance['status'];
+  status?: Grievance['status'];
 }
 
 export type Grievance = {

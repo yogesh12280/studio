@@ -62,6 +62,30 @@ export default function GrievancePage() {
     )
   }
 
+  const handleAddComment = (grievanceId: string, commentText: string) => {
+    setGrievances(prevGrievances =>
+      prevGrievances.map(g => {
+        if (g.id === grievanceId) {
+          const newComment = {
+            id: `g-comment-${Date.now()}`,
+            text: commentText,
+            author: {
+              name: currentUser.name,
+              avatarUrl: currentUser.avatarUrl,
+            },
+            createdAt: new Date().toISOString(),
+          };
+          return {
+            ...g,
+            comments: [...(g.comments || []), newComment],
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -83,6 +107,7 @@ export default function GrievancePage() {
               searchQuery={searchQuery} 
               grievances={grievances.filter(g => g.employeeId === currentUser.id)}
               onAddGrievance={handleAddGrievance}
+              onAddComment={handleAddComment}
             />
           )}
         </main>

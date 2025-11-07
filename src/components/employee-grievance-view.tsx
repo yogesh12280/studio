@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { PlusCircle, MessageSquare } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { PlusCircle, MessageSquare, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,14 +15,20 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Separator } from './ui/separator'
+import { Input } from './ui/input'
+import { useUser } from '@/contexts/user-context'
 
 interface EmployeeGrievanceViewProps {
   searchQuery: string
   grievances: Grievance[]
   onAddGrievance: (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void
+  onAddComment: (grievanceId: string, commentText: string) => void;
 }
 
-export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance }: EmployeeGrievanceViewProps) {
+export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance, onAddComment }: EmployeeGrievanceViewProps) {
+  const { currentUser } = useUser()
+  const [newComment, setNewComment] = useState<{[key: string]: string}>({})
+
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
       case 'Pending':
@@ -42,6 +48,15 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance 
       grievance.description.toLowerCase().includes(searchQuery.toLowerCase())
     ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [grievances, searchQuery])
+  
+  const handleCommentSubmit = (e: React.FormEvent, grievanceId: string) => {
+    e.preventDefault()
+    const commentText = newComment[grievanceId]?.trim()
+    if (commentText) {
+      onAddComment(grievanceId, commentText)
+      setNewComment(prev => ({...prev, [grievanceId]: ''}))
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -79,43 +94,57 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance 
                   </p>
                 )}
               </CardContent>
-              {grievance.comments && grievance.comments.length > 0 && (
-                <>
-                <CardFooter className="pb-4">
+              
+              <CardFooter className="pb-4 flex-col items-start">
+                 {grievance.comments && grievance.comments.length > 0 && (
                   <CollapsibleTrigger asChild>
                      <Button variant="link" className="text-xs p-0 h-auto">
                         <MessageSquare className="mr-2 h-4 w-4"/>
-                        Show admin comments ({grievance.comments.length})
+                        Show conversation ({grievance.comments.length})
                     </Button>
                   </CollapsibleTrigger>
-                </CardFooter>
-                <CollapsibleContent>
-                  <Separator />
-                  <div className="p-4 space-y-4 bg-muted/50">
-                    {grievance.comments.map(comment => (
-                       <div key={comment.id} className="flex items-start gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
-                            <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="bg-background rounded-lg px-3 py-2">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-sm">{comment.author.name}</p>
-                                <Badge variant={getStatusVariant(comment.status)}>{comment.status}</Badge>
-                              </div>
-                              <p className="text-sm text-foreground/90">{comment.text}</p>
+                 )}
+              </CardFooter>
+              <CollapsibleContent>
+                <Separator />
+                <div className="p-4 space-y-4 bg-muted/50">
+                  {grievance.comments && grievance.comments.map(comment => (
+                     <div key={comment.id} className="flex items-start gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+                          <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="bg-background rounded-lg px-3 py-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-semibold text-sm">{comment.author.name}</p>
+                              {comment.status && <Badge variant={getStatusVariant(comment.status)}>{comment.status}</Badge>}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                            </p>
+                            <p className="text-sm text-foreground/90">{comment.text}</p>
                           </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                          </p>
                         </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-                </>
-              )}
+                      </div>
+                  ))}
+                  <form onSubmit={(e) => handleCommentSubmit(e, grievance.id)} className="flex items-center gap-2 pt-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                      <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <Input
+                      value={newComment[grievance.id] || ''}
+                      onChange={(e) => setNewComment(prev => ({...prev, [grievance.id]: e.target.value}))}
+                      placeholder="Write a reply..."
+                      className="flex-1 h-9"
+                    />
+                    <Button type="submit" size="icon" className="h-9 w-9">
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </div>
+              </CollapsibleContent>
             </Card>
           </Collapsible>
         ))}
