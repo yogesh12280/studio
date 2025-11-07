@@ -101,6 +101,7 @@ export default function GrievancePage() {
               searchQuery={searchQuery} 
               grievances={grievances}
               onStatusChange={handleStatusChange}
+              onAddComment={handleAddComment}
             />
           ) : (
             <EmployeeGrievanceView 
