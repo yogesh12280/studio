@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, Fragment } from 'react'
 import {
   Table,
   TableBody,
@@ -116,7 +116,7 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
           </TableHeader>
           <TableBody>
             {filteredGrievances.map((grievance) => (
-              <Collapsible asChild key={grievance.id}>
+              <Collapsible key={grievance.id} asChild>
                 <>
                   <TableRow>
                     <TableCell>
