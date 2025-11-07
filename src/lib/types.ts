@@ -42,6 +42,14 @@ export type Bulletin = {
   endDate?: string;
 };
 
+export type GrievanceComment = {
+  id: string;
+  text: string;
+  author: Pick<User, 'name' | 'avatarUrl'>;
+  createdAt: string;
+  status: Grievance['status'];
+}
+
 export type Grievance = {
   id: string;
   employeeId: string;
@@ -52,4 +60,5 @@ export type Grievance = {
   status: 'Pending' | 'In Progress' | 'Resolved';
   createdAt: string;
   resolvedAt?: string;
+  comments?: GrievanceComment[];
 };

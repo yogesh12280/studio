@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -21,14 +21,20 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { MoreHorizontal } from 'lucide-react'
 import { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
+import { useUser } from '@/contexts/user-context'
+import { AddGrievanceCommentDialog } from './add-grievance-comment-dialog'
 
 interface GrievanceManagementProps {
   searchQuery: string;
   grievances: Grievance[];
-  onStatusChange: (grievanceId: string, newStatus: Grievance['status']) => void;
+  onStatusChange: (grievanceId: string, newStatus: Grievance['status'], comment?: string) => void;
 }
 
 export function GrievanceManagement({ searchQuery, grievances, onStatusChange }: GrievanceManagementProps) {
+  const { currentUser } = useUser()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null)
+  const [targetStatus, setTargetStatus] = useState<Grievance['status'] | null>(null)
 
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
@@ -40,6 +46,22 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange }:
         return 'default'
       default:
         return 'outline'
+    }
+  }
+  
+  const handleStatusUpdate = (grievance: Grievance, status: Grievance['status']) => {
+    if (status === 'In Progress' || status === 'Resolved') {
+      setSelectedGrievance(grievance)
+      setTargetStatus(status)
+      setDialogOpen(true)
+    } else {
+      onStatusChange(grievance.id, status)
+    }
+  }
+  
+  const handleDialogSubmit = (comment: string) => {
+    if (selectedGrievance && targetStatus) {
+      onStatusChange(selectedGrievance.id, targetStatus, comment)
     }
   }
 
@@ -109,17 +131,17 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange }:
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onStatusChange(grievance.id, 'Pending')}
+                        onClick={() => handleStatusUpdate(grievance, 'Pending')}
                       >
                         Mark as Pending
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => onStatusChange(grievance.id, 'In Progress')}
+                        onClick={() => handleStatusUpdate(grievance, 'In Progress')}
                       >
                         Mark as In Progress
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => onStatusChange(grievance.id, 'Resolved')}
+                        onClick={() => handleStatusUpdate(grievance, 'Resolved')}
                       >
                         Mark as Resolved
                       </DropdownMenuItem>
@@ -131,6 +153,13 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange }:
           </TableBody>
         </Table>
       </div>
+       <AddGrievanceCommentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        grievance={selectedGrievance}
+        targetStatus={targetStatus}
+        onSubmit={handleDialogSubmit}
+      />
     </div>
   )
 }

@@ -47,7 +47,7 @@ export const initialBulletins: Bulletin[] = [
     content: 'We are thrilled to announce the successful launch of Project Phoenix. This is a huge milestone for our team and the company. A big thank you to everyone in the Technology and Product departments for their hard work and dedication.',
     imageUrl: getImageUrl('postImage2'),
     likes: 25,
-    likedBy: ['user-1', 'user-2'],
+likedBy: ['user-1', 'user-2'],
     viewers: 75,
     viewedBy: ['user-1', 'user-2'],
     comments: [],
@@ -82,6 +82,7 @@ export const initialGrievances: Grievance[] = [
     description: 'The new workstation provided is missing a secondary monitor, which is affecting my productivity. I had requested one during the setup process.',
     status: 'Pending',
     createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 48).toISOString(),
+    comments: [],
   },
   {
     id: 'grievance-2',
@@ -92,6 +93,15 @@ export const initialGrievances: Grievance[] = [
     description: 'My IT ticket regarding VPN access issues has been open for over a week without any resolution. I am unable to access critical development servers.',
     status: 'In Progress',
     createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 8).toISOString(),
+    comments: [
+        {
+            id: 'g-comment-1',
+            text: 'We are looking into this with high priority.',
+            author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
+            createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+            status: 'In Progress'
+        }
+    ],
   },
   {
     id: 'grievance-3',
@@ -103,5 +113,14 @@ export const initialGrievances: Grievance[] = [
     status: 'Resolved',
     createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 45).toISOString(),
     resolvedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    comments: [
+         {
+            id: 'g-comment-2',
+            text: 'The reimbursement was processed and should reflect in your account within 2-3 business days.',
+            author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
+            createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+            status: 'Resolved'
+        }
+    ],
   },
 ];

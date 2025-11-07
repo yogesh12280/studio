@@ -22,6 +22,7 @@ export default function GrievancePage() {
       employeeName: currentUser.name,
       employeeAvatarUrl: currentUser.avatarUrl,
       createdAt: new Date().toISOString(),
+      comments: [],
       ...newGrievanceData,
     }
     setGrievances(prev => [newGrievance, ...prev])
@@ -29,17 +30,34 @@ export default function GrievancePage() {
 
   const handleStatusChange = (
     grievanceId: string,
-    newStatus: Grievance['status']
+    newStatus: Grievance['status'],
+    comment?: string
   ) => {
     setGrievances((prev) =>
-      prev.map((g) =>
-        g.id === grievanceId
-          ? {
+      prev.map((g) => {
+        if (g.id === grievanceId) {
+          const newComment = comment ? {
+            id: `g-comment-${Date.now()}`,
+            text: comment,
+            author: {
+              name: currentUser.name,
+              avatarUrl: currentUser.avatarUrl,
+            },
+            createdAt: new Date().toISOString(),
+            status: newStatus,
+          } : undefined;
+
+          const updatedComments = newComment ? [...(g.comments || []), newComment] : g.comments;
+
+          return {
               ...g,
               status: newStatus,
               resolvedAt: newStatus === 'Resolved' ? new Date().toISOString() : g.resolvedAt,
+              comments: updatedComments,
             }
-          : g
+        }
+        return g
+      }
       )
     )
   }
