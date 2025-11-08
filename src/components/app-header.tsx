@@ -48,7 +48,7 @@ export function AppHeader({
       </div>
       <div className="flex items-center gap-2">
         {title === 'Bulletins' && onAddBulletin && (
-          <CreateBulletinDialog onAddBulletin={onAddBulletin}>
+          <CreateBulletinDialog onSave={onAddBulletin}>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Create Bulletin</span>

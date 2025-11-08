@@ -11,9 +11,10 @@ interface BulletinFeedProps {
   onLikeToggle: (bulletinId: string) => void
   onDelete: (bulletinId: string) => void
   onAddComment: (bulletinId: string, commentText: string) => void
+  onEditBulletin: (bulletin: Bulletin) => void
 }
 
-export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, onAddComment }: BulletinFeedProps) {
+export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, onAddComment, onEditBulletin }: BulletinFeedProps) {
 
   const filteredBulletins = useMemo(() => {
     return bulletins
@@ -52,6 +53,7 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, o
             onLikeToggle={onLikeToggle}
             onDelete={onDelete}
             onAddComment={onAddComment}
+            onEditBulletin={onEditBulletin}
           />
         ))}
       </div>

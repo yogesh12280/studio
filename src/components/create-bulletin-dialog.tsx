@@ -30,13 +30,34 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Bulletin } from '@/lib/types'
 
-interface CreateBulletinDialogProps {
+type CreateBulletinDialogProps = {
     children: React.ReactNode;
-    onAddBulletin: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
+    mode?: 'create';
+    onSave: (newBulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletinDialogProps) {
-  const [open, setOpen] = useState(false)
+type EditBulletinDialogProps = {
+    children: React.ReactNode;
+    mode: 'edit';
+    bulletinToEdit: Bulletin;
+    onSave: (bulletin: Bulletin) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
+
+type BulletinDialogProps = CreateBulletinDialogProps | EditBulletinDialogProps;
+
+
+export function CreateBulletinDialog(props: BulletinDialogProps) {
+  const { mode = 'create' } = props;
+  const isEditMode = mode === 'edit';
+  
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = props.open ?? internalOpen;
+  const onOpenChange = props.onOpenChange ?? setInternalOpen;
+
   const { currentUser } = useUser()
   const { toast } = useToast()
 
@@ -49,27 +70,32 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
   const [linkUrl, setLinkUrl] = useState('')
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
+  
+  const bulletinToEdit = isEditMode ? props.bulletinToEdit : undefined;
 
   useEffect(() => {
+    const resetForm = () => {
+        setTitle(bulletinToEdit?.title || '')
+        setContent(bulletinToEdit?.content || '')
+        setCategory(bulletinToEdit?.category)
+        setImageUrl(bulletinToEdit?.imageUrl || '')
+        setLinkText(bulletinToEdit?.link?.text || '')
+        setLinkUrl(bulletinToEdit?.link?.url || '')
+        setScheduledFor(bulletinToEdit?.scheduledFor ? new Date(bulletinToEdit.scheduledFor) : undefined)
+        setEndDate(bulletinToEdit?.endDate ? new Date(bulletinToEdit.endDate) : undefined)
+    }
+
     if (open) {
-      if (currentUser.role === 'Employee') {
-        setCategory('Employee')
-      } else {
-        setCategory(undefined)
+      if (isEditMode && bulletinToEdit) {
+        resetForm();
+      } else if (!isEditMode) {
+        resetForm();
+        if (currentUser.role === 'Employee') {
+            setCategory('Employee')
+        }
       }
     }
-  }, [open, currentUser.role])
-
-  const resetForm = () => {
-    setTitle('')
-    setContent('')
-    setCategory(undefined)
-    setImageUrl('')
-    setLinkText('')
-    setLinkUrl('')
-    setScheduledFor(undefined)
-    setEndDate(undefined)
-  }
+  }, [open, isEditMode, bulletinToEdit, currentUser.role])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,35 +111,54 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
         return
     }
 
-    const newBulletinData = {
-        title,
-        content,
-        category: finalCategory,
-        imageUrl: imageUrl || undefined,
-        link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
-        scheduledFor: scheduledFor?.toISOString(),
-        endDate: endDate?.toISOString(),
+    if (isEditMode) {
+        const updatedBulletin = {
+            ...bulletinToEdit,
+            title,
+            content,
+            category: finalCategory,
+            imageUrl: imageUrl || undefined,
+            link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
+            scheduledFor: scheduledFor?.toISOString(),
+            endDate: endDate?.toISOString(),
+        };
+        props.onSave(updatedBulletin);
+        toast({
+          title: 'Bulletin Updated!',
+          description: 'Your bulletin has been successfully updated.',
+        })
+    } else {
+        const newBulletinData = {
+            title,
+            content,
+            category: finalCategory,
+            imageUrl: imageUrl || undefined,
+            link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
+            scheduledFor: scheduledFor?.toISOString(),
+            endDate: endDate?.toISOString(),
+        };
+        props.onSave(newBulletinData);
+        toast({
+          title: 'Bulletin Created!',
+          description: 'Your bulletin has been successfully created.',
+        })
     }
 
-    onAddBulletin(newBulletinData);
-    
-    toast({
-      title: 'Bulletin Created!',
-      description: 'Your bulletin has been successfully created.',
-    })
-
-    resetForm()
-    setOpen(false)
+    onOpenChange(false)
   }
+  
+  const dialogTitle = isEditMode ? "Edit Bulletin" : "Create Bulletin";
+  const dialogDescription = isEditMode ? "Edit and update your announcement." : "Craft and schedule announcements for your organization.";
+  const buttonText = isEditMode ? "Save Changes" : "Create Bulletin";
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Create Bulletin</DialogTitle>
+          <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Craft and schedule announcements for your organization.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -219,7 +264,7 @@ export function CreateBulletinDialog({ children, onAddBulletin }: CreateBulletin
             
           </div>
           <DialogFooter>
-            <Button type="submit">Create Bulletin</Button>
+            <Button type="submit">{buttonText}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

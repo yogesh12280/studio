@@ -37,21 +37,25 @@ import { Input } from './ui/input'
 import type { Bulletin, User, Comment } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
+import { CreateBulletinDialog } from './create-bulletin-dialog'
 
 interface BulletinCardProps {
   bulletin: Bulletin
   onLikeToggle: (bulletinId: string) => void
   onDelete: (bulletinId: string) => void
   onAddComment: (bulletinId: string, commentText: string) => void
+  onEditBulletin: (bulletin: Bulletin) => void
 }
 
-export function BulletinCard({ bulletin, onLikeToggle, onDelete, onAddComment }: BulletinCardProps) {
+export function BulletinCard({ bulletin, onLikeToggle, onDelete, onAddComment, onEditBulletin }: BulletinCardProps) {
   const { currentUser, users } = useUser()
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
   const [viewPopoverOpen, setViewPopoverOpen] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
 
   useEffect(() => {
     setIsClient(true)
@@ -125,7 +129,7 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete, onAddComment }:
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setIsEditDialogOpen(true)}>
                     <Edit className="mr-2 h-4 w-4" />
                     <span>Edit</span>
                   </DropdownMenuItem>
@@ -301,6 +305,15 @@ export function BulletinCard({ bulletin, onLikeToggle, onDelete, onAddComment }:
           </div>
         </>
       )}
+       <CreateBulletinDialog
+          mode="edit"
+          bulletinToEdit={bulletin}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={onEditBulletin}
+        >
+          <></>
+        </CreateBulletinDialog>
     </Card>
   )
 }

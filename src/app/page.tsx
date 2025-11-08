@@ -31,6 +31,15 @@ export default function SEMBBlastPage() {
     }
     setBulletins(prev => [newBulletin, ...prev])
   }
+  
+  const handleEditBulletin = (updatedBulletin: Bulletin) => {
+    setBulletins(prevBulletins =>
+      prevBulletins.map(b =>
+        b.id === updatedBulletin.id ? updatedBulletin : b
+      )
+    );
+  };
+
 
   const handleLikeToggle = (bulletinId: string) => {
     setBulletins(prevBulletins => 
@@ -92,6 +101,7 @@ export default function SEMBBlastPage() {
             onLikeToggle={handleLikeToggle}
             onDelete={handleDelete}
             onAddComment={handleAddComment}
+            onEditBulletin={handleEditBulletin}
           />
         </main>
       </div>
