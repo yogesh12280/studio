@@ -112,8 +112,8 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
     }
 
     if (isEditMode) {
-        const updatedBulletin = {
-            ...bulletinToEdit,
+        const updatedBulletin: Bulletin = {
+            ...(props.bulletinToEdit as Bulletin),
             title,
             content,
             category: finalCategory,
@@ -122,7 +122,7 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
             scheduledFor: scheduledFor?.toISOString(),
             endDate: endDate?.toISOString(),
         };
-        props.onSave(updatedBulletin);
+        (props.onSave as (bulletin: Bulletin) => void)(updatedBulletin);
         toast({
           title: 'Bulletin Updated!',
           description: 'Your bulletin has been successfully updated.',
@@ -137,7 +137,7 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
             scheduledFor: scheduledFor?.toISOString(),
             endDate: endDate?.toISOString(),
         };
-        props.onSave(newBulletinData);
+        (props.onSave as (bulletin: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void)(newBulletinData);
         toast({
           title: 'Bulletin Created!',
           description: 'Your bulletin has been successfully created.',
@@ -185,8 +185,8 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="organization">Organization</SelectItem>
-                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="Organization">Organization</SelectItem>
+                    <SelectItem value="Employee">Employee</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
