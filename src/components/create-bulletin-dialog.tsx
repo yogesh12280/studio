@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Upload } from 'lucide-react'
 import { Calendar } from './ui/calendar'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -60,6 +61,7 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
 
   const { currentUser } = useUser()
   const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [title, setTitle] = useState('')
@@ -96,6 +98,17 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
       }
     }
   }, [open, isEditMode, bulletinToEdit, currentUser.role])
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -169,8 +182,8 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
               </Label>
               <Input id="title" required className="col-span-3" value={title} onChange={e => setTitle(e.target.value)} />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="content" className="text-right">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="content" className="text-right pt-2">
                 Content
               </Label>
               <Textarea id="content" required className="col-span-3 min-h-[120px]" value={content} onChange={e => setContent(e.target.value)} />
@@ -193,9 +206,27 @@ export function CreateBulletinDialog(props: BulletinDialogProps) {
             ) : (
                 <Input type="hidden" value="Employee" />
             )}
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="image-url" className="text-right">Image URL</Label>
-                <Input id="image-url" placeholder="https://example.com/image.png" className="col-span-3" value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
+            <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="image-url" className="text-right pt-2">Image</Label>
+                <div className="col-span-3">
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Browse Image
+                    </Button>
+                    <Input 
+                        type="file" 
+                        id="image-file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                    />
+                     {imageUrl && (
+                        <div className="mt-4 relative w-full aspect-video rounded-md overflow-hidden border">
+                            <Image src={imageUrl} alt="Image preview" fill className="object-contain" />
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="link" className="text-right">Link</Label>
