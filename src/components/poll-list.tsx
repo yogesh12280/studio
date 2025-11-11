@@ -30,7 +30,7 @@ export function PollList({ polls, onSelectPoll }: PollListProps) {
   }
 
   return (
-    <div className="space-y-3 max-w-2xl mx-auto">
+    <div className="space-y-3">
       {polls.map((poll) => (
         <div 
           key={poll.id} 
