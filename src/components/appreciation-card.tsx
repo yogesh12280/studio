@@ -31,7 +31,7 @@ export function AppreciationCard({ appreciation, onLikeToggle }: AppreciationCar
   const isLiked = appreciation.likedBy.includes(currentUser.id)
 
   return (
-    <Card className="max-w-2xl mx-auto overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="p-4">
         <div className="flex items-center justify-center gap-4">
           <div className="flex flex-col items-center text-center">
