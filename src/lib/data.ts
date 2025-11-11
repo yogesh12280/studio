@@ -1,5 +1,5 @@
 
-import type { User, Employee, Notification, Grievance, Poll, Suggestion } from './types';
+import type { User, Employee, Notification, Grievance, Poll, Suggestion, Appreciation } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -195,4 +195,25 @@ export const initialSuggestions: Suggestion[] = [
         upvotedBy: [],
         comments: [],
     }
+];
+
+export const initialAppreciations: Appreciation[] = [
+  {
+    id: 'app-1',
+    fromUser: { id: 'user-1', name: 'Neha M', avatarUrl: getImageUrl('avatar1') },
+    toUser: { id: 'user-2', name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') },
+    message: 'Great job on the Project Phoenix launch! Your dedication and hard work were key to its success.',
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    likes: 5,
+    likedBy: [],
+  },
+  {
+    id: 'app-2',
+    fromUser: { id: 'emp-2', name: 'Diana Prince', avatarUrl: getImageUrl('avatar4') },
+    toUser: { id: 'emp-1', name: 'Charlie Green', avatarUrl: getImageUrl('avatar3') },
+    message: 'Thanks for always being so helpful and patient with my questions on the new system. You are a lifesaver!',
+    createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 8).toISOString(),
+    likes: 10,
+    likedBy: ['user-1', 'user-2'],
+  }
 ];

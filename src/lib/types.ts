@@ -94,3 +94,13 @@ export type Suggestion = {
   upvotedBy: string[];
   comments: Comment[];
 };
+
+export type Appreciation = {
+  id: string;
+  fromUser: Pick<User, 'id' | 'name' | 'avatarUrl'>;
+  toUser: Pick<User, 'id' | 'name' | 'avatarUrl'>;
+  message: string;
+  createdAt: string;
+  likes: number;
+  likedBy: string[];
+};

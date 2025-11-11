@@ -15,7 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useUser } from '@/contexts/user-context'
 import { CreateNotificationDialog } from './create-notification-dialog'
 import { CreatePollDialog } from './create-poll-dialog'
-import type { Notification, Poll } from '@/lib/types'
+import { CreateAppreciationDialog } from './create-appreciation-dialog'
+import type { Notification, Poll, Appreciation } from '@/lib/types'
 
 interface AppHeaderProps {
   searchQuery: string
@@ -23,6 +24,7 @@ interface AppHeaderProps {
   title: string
   onAddNotification?: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
   onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
+  onAddAppreciation?: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
 }
 
 export function AppHeader({
@@ -30,7 +32,8 @@ export function AppHeader({
   setSearchQuery,
   title,
   onAddNotification,
-  onAddPoll
+  onAddPoll,
+  onAddAppreciation,
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
 
@@ -65,6 +68,14 @@ export function AppHeader({
               <span className="hidden sm:inline">Create Poll</span>
             </Button>
           </CreatePollDialog>
+        )}
+        {title === 'Appreciation' && onAddAppreciation && (
+            <CreateAppreciationDialog onSave={onAddAppreciation}>
+                <Button size="sm" className="gap-1">
+                <PlusCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Send Appreciation</span>
+                </Button>
+            </CreateAppreciationDialog>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
