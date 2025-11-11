@@ -40,12 +40,15 @@ interface GrievanceManagementProps {
 }
 
 export function GrievanceManagement({ searchQuery, grievances, onStatusChange, onAddComment }: GrievanceManagementProps) {
-  const { currentUser } = useUser()
+  const { currentUser, users } = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null)
   const [targetStatus, setTargetStatus] = useState<Grievance['status'] | null>(null)
   const [newComment, setNewComment] = useState<{[key: string]: string}>({})
   const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(new Set());
+
+  const adminUser = users.find(u => u.role === 'Admin');
+
 
   const toggleCollapsible = (id: string) => {
     setOpenCollapsibles(prev => {
@@ -196,6 +199,15 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
                         <p className="font-medium text-sm">Conversation History</p>
                         <p className="text-sm text-muted-foreground">{grievance.description}</p>
                         <Separator/>
+                         {adminUser && (
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background p-2 rounded-md">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={adminUser.avatarUrl} alt={adminUser.name} />
+                                    <AvatarFallback>{adminUser.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>Comments will be replied to by <strong>{adminUser.name}</strong> (Admin).</span>
+                            </div>
+                        )}
 
                         {grievance.comments && grievance.comments.map(comment => (
                            <div key={comment.id} className="flex items-start gap-3">
