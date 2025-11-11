@@ -298,8 +298,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             </div>
           </ScrollArea>
           <DialogFooter className="pt-4 border-t">
-            <Button type="submit">{buttonText}</Button>
-          </DialogFooter>
+            <Button type="submit">{buttonText}</Button>          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

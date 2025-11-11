@@ -4,24 +4,24 @@ import { useState } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
-import { BulletinFeed } from '@/components/bulletin-feed'
-import { initialBulletins } from '@/lib/data'
+import { NotificationFeed } from '@/components/notification-feed'
+import { initialNotifications } from '@/lib/data'
 import { useUser } from '@/contexts/user-context'
-import type { Bulletin } from '@/lib/types'
-import { BulletinCard } from '@/components/bulletin-card'
+import type { Notification } from '@/lib/types'
+import { NotificationCard } from '@/components/notification-card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
-import { FeaturedBulletins } from '@/components/featured-bulletins'
+import { FeaturedNotifications } from '@/components/featured-notifications'
 
 export default function SEMBBlastPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [bulletins, setBulletins] = useState<Bulletin[]>(initialBulletins)
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
   const { currentUser } = useUser()
-  const [selectedBulletin, setSelectedBulletin] = useState<Bulletin | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
-  const handleAddBulletin = (newBulletinData: Omit<Bulletin, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => {
-    const newBulletin: Bulletin = {
-        id: `bulletin-${Date.now()}`,
+  const handleAddNotification = (newNotificationData: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => {
+    const newNotification: Notification = {
+        id: `notification-${Date.now()}`,
         author: {
             name: currentUser.name,
             avatarUrl: currentUser.avatarUrl,
@@ -32,54 +32,54 @@ export default function SEMBBlastPage() {
         viewedBy: [],
         comments: [],
         createdAt: new Date().toISOString(),
-        ...newBulletinData,
+        ...newNotificationData,
     }
-    setBulletins(prev => [newBulletin, ...prev])
+    setNotifications(prev => [newNotification, ...prev])
   }
   
-  const handleEditBulletin = (updatedBulletin: Bulletin) => {
-    setBulletins(prevBulletins =>
-      prevBulletins.map(b =>
-        b.id === updatedBulletin.id ? updatedBulletin : b
+  const handleEditNotification = (updatedNotification: Notification) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(b =>
+        b.id === updatedNotification.id ? updatedNotification : b
       )
     );
-    if (selectedBulletin && selectedBulletin.id === updatedBulletin.id) {
-      setSelectedBulletin(updatedBulletin);
+    if (selectedNotification && selectedNotification.id === updatedNotification.id) {
+      setSelectedNotification(updatedNotification);
     }
   };
 
 
-  const handleLikeToggle = (bulletinId: string) => {
-    setBulletins(prevBulletins => 
-      prevBulletins.map(b => {
-        if (b.id === bulletinId) {
+  const handleLikeToggle = (notificationId: string) => {
+    setNotifications(prevNotifications => 
+      prevNotifications.map(b => {
+        if (b.id === notificationId) {
           const isLiked = b.likedBy.includes(currentUser.id)
-          const updatedBulletin = {
+          const updatedNotification = {
             ...b,
             likes: isLiked ? b.likes - 1 : b.likes + 1,
             likedBy: isLiked ? b.likedBy.filter(id => id !== currentUser.id) : [...b.likedBy, currentUser.id]
           };
-          if (selectedBulletin && selectedBulletin.id === bulletinId) {
-            setSelectedBulletin(updatedBulletin);
+          if (selectedNotification && selectedNotification.id === notificationId) {
+            setSelectedNotification(updatedNotification);
           }
-          return updatedBulletin;
+          return updatedNotification;
         }
         return b
       })
     )
   }
 
-  const handleDelete = (bulletinId: string) => {
-    setBulletins(prevBulletins => prevBulletins.filter(b => b.id !== bulletinId));
-    if (selectedBulletin && selectedBulletin.id === bulletinId) {
-      setSelectedBulletin(null);
+  const handleDelete = (notificationId: string) => {
+    setNotifications(prevNotifications => prevNotifications.filter(b => b.id !== notificationId));
+    if (selectedNotification && selectedNotification.id === notificationId) {
+      setSelectedNotification(null);
     }
   }
   
-  const handleAddComment = (bulletinId: string, commentText: string) => {
-    setBulletins(prevBulletins =>
-      prevBulletins.map(b => {
-        if (b.id === bulletinId) {
+  const handleAddComment = (notificationId: string, commentText: string) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(b => {
+        if (b.id === notificationId) {
           const newComment = {
             id: `comment-${Date.now()}`,
             user: {
@@ -89,26 +89,26 @@ export default function SEMBBlastPage() {
             text: commentText,
             timestamp: new Date().toISOString(),
           }
-          const updatedBulletin = {
+          const updatedNotification = {
             ...b,
             comments: [...b.comments, newComment],
           };
-          if (selectedBulletin && selectedBulletin.id === bulletinId) {
-            setSelectedBulletin(updatedBulletin);
+          if (selectedNotification && selectedNotification.id === notificationId) {
+            setSelectedNotification(updatedNotification);
           }
-          return updatedBulletin;
+          return updatedNotification;
         }
         return b
       })
     )
   }
 
-  const handleSelectBulletin = (bulletin: Bulletin) => {
-    setSelectedBulletin(bulletin);
+  const handleSelectNotification = (notification: Notification) => {
+    setSelectedNotification(notification);
   };
 
   const handleBackToList = () => {
-    setSelectedBulletin(null);
+    setSelectedNotification(null);
   }
 
   return (
@@ -118,31 +118,31 @@ export default function SEMBBlastPage() {
         <AppHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          title="Bulletins"
-          onAddBulletin={handleAddBulletin}
+          title="Notifications"
+          onAddNotification={handleAddNotification}
         />
         <main className="p-4 sm:p-6">
-          {selectedBulletin ? (
+          {selectedNotification ? (
             <div className="max-w-2xl mx-auto">
               <Button variant="ghost" onClick={handleBackToList} className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to all bulletins
+                Back to all notifications
               </Button>
-              <BulletinCard 
-                bulletin={selectedBulletin}
+              <NotificationCard 
+                notification={selectedNotification}
                 onLikeToggle={handleLikeToggle}
                 onDelete={handleDelete}
                 onAddComment={handleAddComment}
-                onEditBulletin={handleEditBulletin}
+                onEditNotification={handleEditNotification}
               />
             </div>
           ) : (
             <>
-              <FeaturedBulletins bulletins={bulletins} onSelectBulletin={handleSelectBulletin} />
-              <BulletinFeed 
+              <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
+              <NotificationFeed 
                 searchQuery={searchQuery}
-                bulletins={bulletins}
-                onSelectBulletin={handleSelectBulletin}
+                notifications={notifications}
+                onSelectNotification={handleSelectNotification}
               />
             </>
           )}

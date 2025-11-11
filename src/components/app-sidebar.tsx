@@ -39,12 +39,12 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              tooltip="Bulletins"
+              tooltip="Notifications"
               isActive={pathname === '/'}
             >
               <Link href="/">
                 <Newspaper />
-                <span>Bulletins</span>
+                <span>Notifications</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

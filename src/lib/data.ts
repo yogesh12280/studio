@@ -1,5 +1,5 @@
 
-import type { User, Employee, Bulletin, Grievance } from './types';
+import type { User, Employee, Notification, Grievance } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -21,9 +21,9 @@ export const employees: Employee[] = [
 const now = new Date();
 const staticNow = new Date('2025-11-05T07:25:07.254Z');
 
-export const initialBulletins: Bulletin[] = [
+export const initialNotifications: Notification[] = [
   {
-    id: 'bulletin-1',
+    id: 'notification-1',
     author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1') },
     category: 'Organization',
     title: 'Announcing Our Annual Company Retreat 2024!',
@@ -40,7 +40,7 @@ export const initialBulletins: Bulletin[] = [
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
   },
   {
-    id: 'bulletin-2',
+    id: 'notification-2',
     author: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') },
     category: 'Employee',
     title: 'Project Phoenix: Official Launch',
@@ -55,7 +55,7 @@ likedBy: ['user-1', 'user-2'],
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 14).toISOString(),
   },
   {
-    id: 'bulletin-3',
+    id: 'notification-3',
     author: { name: 'Dinesh R', avatarUrl: getImageUrl('avatar5') },
     category: 'Organization',
     title: 'Q3 Financial Results & Town Hall Meeting',

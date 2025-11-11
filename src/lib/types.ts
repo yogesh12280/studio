@@ -21,7 +21,7 @@ export type Comment = {
   timestamp: string;
 }
 
-export type Bulletin = {
+export type Notification = {
   id: string;
   author: Pick<User, 'name' | 'avatarUrl'>;
   category: 'Organization' | 'Employee';
