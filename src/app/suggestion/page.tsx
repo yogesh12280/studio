@@ -6,7 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { initialSuggestions } from '@/lib/data'
-import type { Suggestion } from '@/lib/types'
+import type { Suggestion, Comment } from '@/lib/types'
 import { SuggestionList } from '@/components/suggestion-list'
 import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 import { Button } from '@/components/ui/button'
@@ -56,7 +56,7 @@ export default function SuggestionPage() {
   const handleAddComment = (suggestionId: string, commentText: string) => {
     const newSuggestions = suggestions.map(s => {
       if (s.id === suggestionId) {
-        const newComment = {
+        const newComment: Comment = {
           id: `comment-${Date.now()}`,
           user: {
             name: currentUser.name,
@@ -64,6 +64,7 @@ export default function SuggestionPage() {
           },
           text: commentText,
           timestamp: new Date().toISOString(),
+          replies: [],
         }
         const updatedSuggestion = {
           ...s,
@@ -78,6 +79,42 @@ export default function SuggestionPage() {
     });
     setSuggestions(newSuggestions);
   };
+  
+  const handleAddReply = (suggestionId: string, commentId: string, replyText: string) => {
+    const newSuggestions = suggestions.map(s => {
+      if (s.id === suggestionId) {
+        const newReply: Comment = {
+          id: `reply-${Date.now()}`,
+          user: {
+            name: currentUser.name,
+            avatarUrl: currentUser.avatarUrl,
+          },
+          text: replyText,
+          timestamp: new Date().toISOString(),
+        };
+
+        const updatedComments = s.comments.map(c => {
+          if (c.id === commentId) {
+            return {
+              ...c,
+              replies: [...(c.replies || []), newReply],
+            };
+          }
+          return c;
+        });
+
+        const updatedSuggestion = { ...s, comments: updatedComments };
+        
+        if (selectedSuggestion && selectedSuggestion.id === suggestionId) {
+            setSelectedSuggestion(updatedSuggestion);
+        }
+        return updatedSuggestion;
+      }
+      return s;
+    });
+    setSuggestions(newSuggestions);
+  };
+
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
@@ -116,6 +153,7 @@ export default function SuggestionPage() {
                         suggestion={selectedSuggestion}
                         onUpvoteToggle={handleUpvoteToggle}
                         onAddComment={handleAddComment}
+                        onAddReply={handleAddReply}
                         currentUser={currentUser}
                     />
                 </div>

@@ -21,6 +21,7 @@ export type Comment = {
   user: Pick<User, 'name' | 'avatarUrl'>;
   text: string;
   timestamp: string;
+  replies?: Comment[];
 }
 
 export type Notification = {
