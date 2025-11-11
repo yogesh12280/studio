@@ -19,7 +19,7 @@ import type { Suggestion } from '@/lib/types'
 
 interface CreateSuggestionDialogProps {
   children: React.ReactNode
-  onSuggestionSubmit: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy'>) => void
+  onSuggestionSubmit: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void
 }
 
 export function CreateSuggestionDialog({ children, onSuggestionSubmit }: CreateSuggestionDialogProps) {

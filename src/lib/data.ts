@@ -180,7 +180,8 @@ export const initialSuggestions: Suggestion[] = [
         description: 'Designate Fridays as no-meeting days to allow for deep work and reduce weekend overwork. This could improve productivity and employee well-being.',
         createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10).toISOString(),
         upvotes: 15,
-        upvotedBy: ['user-1']
+        upvotedBy: ['user-1'],
+        comments: [],
     },
     {
         id: 'sugg-2',
@@ -191,6 +192,7 @@ export const initialSuggestions: Suggestion[] = [
         description: 'Establish a formal mentorship program to connect senior and junior employees. This can aid in skill development, career growth, and knowledge transfer.',
         createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 5).toISOString(),
         upvotes: 22,
-        upvotedBy: []
+        upvotedBy: [],
+        comments: [],
     }
 ];

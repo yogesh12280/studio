@@ -92,4 +92,5 @@ export type Suggestion = {
   createdAt: string;
   upvotes: number;
   upvotedBy: string[];
+  comments: Comment[];
 };
