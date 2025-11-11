@@ -111,7 +111,7 @@ export function FeaturedBulletins({ bulletins, onSelectBulletin }: FeaturedBulle
                     <div 
                         key={bulletin.id} 
                         onClick={() => onSelectBulletin(bulletin)} 
-                        className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden h-[60%]"
+                        className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden"
                     >
                         <div className="p-4 flex flex-col flex-1">
                             {bulletin.imageUrl && (
