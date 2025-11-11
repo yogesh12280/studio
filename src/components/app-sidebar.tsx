@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SembBlastLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Newspaper, ShieldAlert, Moon, Sun } from 'lucide-react'
+import { Newspaper, ShieldAlert, Moon, Sun, Vote } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 
@@ -45,6 +45,18 @@ export function AppSidebar() {
               <Link href="/">
                 <Newspaper />
                 <span>Notifications</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Polling"
+              isActive={pathname === '/polling'}
+            >
+              <Link href="/polling">
+                <Vote />
+                <span>Polling</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

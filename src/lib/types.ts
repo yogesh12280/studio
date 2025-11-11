@@ -64,3 +64,20 @@ export type Grievance = {
   resolvedAt?: string;
   comments?: GrievanceComment[];
 };
+
+export type PollOption = {
+  id: string;
+  text: string;
+  votes: number;
+};
+
+export type Poll = {
+  id: string;
+  question: string;
+  options: PollOption[];
+  author: Pick<User, 'name' | 'avatarUrl'>;
+  category: 'Organization' | 'Employee';
+  createdAt: string;
+  endDate?: string;
+  votedBy: string[];
+};

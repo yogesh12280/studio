@@ -14,13 +14,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useUser } from '@/contexts/user-context'
 import { CreateNotificationDialog } from './create-notification-dialog'
-import type { Notification } from '@/lib/types'
+import { CreatePollDialog } from './create-poll-dialog'
+import type { Notification, Poll } from '@/lib/types'
 
 interface AppHeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
   title: string
-  onAddNotification?: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'comments' | 'createdAt'>) => void;
+  onAddNotification?: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
+  onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy'>) => void;
 }
 
 export function AppHeader({
@@ -28,6 +30,7 @@ export function AppHeader({
   setSearchQuery,
   title,
   onAddNotification,
+  onAddPoll
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
 
@@ -54,6 +57,14 @@ export function AppHeader({
               <span className="hidden sm:inline">Create Notification</span>
             </Button>
           </CreateNotificationDialog>
+        )}
+        {title === 'Polling' && onAddPoll && currentUser.role === 'Admin' && (
+          <CreatePollDialog onSave={onAddPoll}>
+            <Button size="sm" className="gap-1">
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Poll</span>
+            </Button>
+          </CreatePollDialog>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

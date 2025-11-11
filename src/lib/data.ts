@@ -1,5 +1,5 @@
 
-import type { User, Employee, Notification, Grievance } from './types';
+import type { User, Employee, Notification, Grievance, Poll } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -122,5 +122,50 @@ export const initialGrievances: Grievance[] = [
             status: 'Resolved'
         }
     ],
+  },
+];
+
+export const initialPolls: Poll[] = [
+  {
+    id: 'poll-1',
+    question: 'What should be our team-building activity for this quarter?',
+    options: [
+      { id: 'opt-1-1', text: 'Escape Room Challenge', votes: 12 },
+      { id: 'opt-1-2', text: 'Go-Kart Racing', votes: 28 },
+      { id: 'opt-1-3', text: 'Paintball', votes: 15 },
+      { id: 'opt-1-4', text: 'Cooking Class', votes: 8 },
+    ],
+    author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1') },
+    category: 'Organization',
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 9).toISOString(),
+    votedBy: ['user-1'],
+  },
+  {
+    id: 'poll-2',
+    question: 'Which new coffee machine should we get for the office?',
+    options: [
+      { id: 'opt-2-1', text: 'Nespresso Vertuo', votes: 35 },
+      { id: 'opt-2-2', text: 'Jura E8', votes: 10 },
+      { id: 'opt-2-3', text: 'Breville Barista Express', votes: 20 },
+    ],
+    author: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') },
+    category: 'Employee',
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 48).toISOString(),
+    votedBy: [],
+  },
+  {
+    id: 'poll-3',
+    question: 'Where should we hold the next annual company offsite?',
+    options: [
+      { id: 'opt-3-1', text: 'Beach Resort in Goa', votes: 42 },
+      { id: 'opt-3-2', text: 'Mountain Retreat in Himalayas', votes: 25 },
+      { id: 'opt-3-3', text: 'Cultural Trip in Rajasthan', votes: 18 },
+    ],
+    author: { name: 'Dinesh R', avatarUrl: getImageUrl('avatar5') },
+    category: 'Organization',
+    createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+    endDate: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24 * 2).toISOString(), // Expired
+    votedBy: ['user-1', 'user-2'],
   },
 ];
