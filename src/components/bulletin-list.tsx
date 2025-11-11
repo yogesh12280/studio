@@ -52,23 +52,25 @@ export function BulletinList({ bulletins, onSelectBulletin }: BulletinListProps)
               {getBadge(bulletin)}
               <span className="font-medium text-base">{bulletin.title}</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+          </div>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                <Heart className="h-4 w-4"/>
+                <span>{bulletin.likes}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                <MessageCircle className="h-4 w-4"/>
+                <span>{bulletin.comments.length}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4"/>
+                <span>{bulletin.viewers}</span>
+                </div>
+            </div>
+            <p className="text-sm text-muted-foreground text-right">
               By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
             </p>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground self-start">
-            <div className="flex items-center gap-1">
-              <Heart className="h-4 w-4"/>
-              <span>{bulletin.likes}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="h-4 w-4"/>
-              <span>{bulletin.comments.length}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Eye className="h-4 w-4"/>
-              <span>{bulletin.viewers}</span>
-            </div>
           </div>
         </div>
       ))}
