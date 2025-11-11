@@ -7,7 +7,7 @@ import { AppHeader } from '@/components/app-header'
 import { NotificationFeed } from '@/components/notification-feed'
 import { initialNotifications } from '@/lib/data'
 import { useUser } from '@/contexts/user-context'
-import type { Notification } from '@/lib/types'
+import type { Notification, Comment } from '@/lib/types'
 import { NotificationCard } from '@/components/notification-card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -80,7 +80,7 @@ export default function SEMBBlastPage() {
     setNotifications(prevNotifications =>
       prevNotifications.map(b => {
         if (b.id === notificationId) {
-          const newComment = {
+          const newComment: Comment = {
             id: `comment-${Date.now()}`,
             user: {
               name: currentUser.name,
@@ -88,6 +88,7 @@ export default function SEMBBlastPage() {
             },
             text: commentText,
             timestamp: new Date().toISOString(),
+            replies: [],
           }
           const updatedNotification = {
             ...b,
@@ -102,6 +103,41 @@ export default function SEMBBlastPage() {
       })
     )
   }
+  
+  const handleAddReply = (notificationId: string, commentId: string, replyText: string) => {
+    const newNotifications = notifications.map(b => {
+      if (b.id === notificationId) {
+        const newReply: Comment = {
+          id: `reply-${Date.now()}`,
+          user: {
+            name: currentUser.name,
+            avatarUrl: currentUser.avatarUrl,
+          },
+          text: replyText,
+          timestamp: new Date().toISOString(),
+        };
+
+        const updatedComments = b.comments.map(c => {
+          if (c.id === commentId) {
+            return {
+              ...c,
+              replies: [...(c.replies || []), newReply],
+            };
+          }
+          return c;
+        });
+
+        const updatedNotification = { ...b, comments: updatedComments };
+        
+        if (selectedNotification && selectedNotification.id === notificationId) {
+            setSelectedNotification(updatedNotification);
+        }
+        return updatedNotification;
+      }
+      return b;
+    });
+    setNotifications(newNotifications);
+  };
 
   const handleSelectNotification = (notification: Notification) => {
     setSelectedNotification(notification);
@@ -134,6 +170,8 @@ export default function SEMBBlastPage() {
                 onDelete={handleDelete}
                 onAddComment={handleAddComment}
                 onEditNotification={handleEditNotification}
+                onAddReply={handleAddReply}
+                currentUser={currentUser}
               />
             </div>
           ) : (

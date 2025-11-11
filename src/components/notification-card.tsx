@@ -39,16 +39,122 @@ import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { CreateNotificationDialog } from './create-notification-dialog'
 
+
+// Reply Input Component
+interface ReplyInputProps {
+  commentId: string;
+  onAddReply: (commentId: string, replyText: string) => void;
+  currentUser: User;
+}
+
+function ReplyInput({ commentId, onAddReply, currentUser }: ReplyInputProps) {
+  const [replyText, setReplyText] = useState('');
+
+  const handleReplySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (replyText.trim()) {
+      onAddReply(commentId, replyText.trim());
+      setReplyText('');
+    }
+  };
+
+  return (
+    <form onSubmit={handleReplySubmit} className="flex items-center gap-2 mt-2">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+        <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <Input
+        value={replyText}
+        onChange={(e) => setReplyText(e.target.value)}
+        placeholder="Write a reply..."
+        className="flex-1 h-9"
+      />
+      <Button type="submit" size="icon" className="h-9 w-9">
+        <Send className="h-4 w-4" />
+      </Button>
+    </form>
+  );
+}
+
+// Comment with Replies Component
+interface CommentWithRepliesProps {
+  comment: Comment;
+  notificationId: string;
+  onAddReply: (notificationId: string, commentId: string, replyText: string) => void;
+  currentUser: User;
+  isClient: boolean;
+}
+
+function CommentWithReplies({ comment, notificationId, onAddReply, currentUser, isClient }: CommentWithRepliesProps) {
+  const [showReplyInput, setShowReplyInput] = useState(false);
+
+  return (
+    <div key={comment.id} className="flex items-start gap-3">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={comment.user.avatarUrl} alt={comment.user.name} />
+        <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <div className="bg-muted rounded-lg px-3 py-2">
+          <p className="font-semibold text-sm">{comment.user.name}</p>
+          <p className="text-sm text-foreground/90">{comment.text}</p>
+        </div>
+        <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground mt-1">
+            {isClient ? formatDistanceToNow(new Date(comment.timestamp), { addSuffix: true }) : ''}
+            </p>
+            <Button variant="link" size="sm" className="text-xs p-0 h-auto" onClick={() => setShowReplyInput(!showReplyInput)}>
+                Reply
+            </Button>
+        </div>
+
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-3 space-y-3">
+            {comment.replies.map(reply => (
+              <div key={reply.id} className="flex items-start gap-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={reply.user.avatarUrl} alt={reply.user.name} />
+                  <AvatarFallback>{reply.user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="bg-background rounded-lg px-3 py-2 border">
+                    <p className="font-semibold text-sm">{reply.user.name}</p>
+                    <p className="text-sm text-foreground/90">{reply.text}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isClient ? formatDistanceToNow(new Date(reply.timestamp), { addSuffix: true }) : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {showReplyInput && (
+          <ReplyInput
+            commentId={comment.id}
+            onAddReply={(commentId, replyText) => onAddReply(notificationId, commentId, replyText)}
+            currentUser={currentUser}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 interface NotificationCardProps {
   notification: Notification
   onLikeToggle: (notificationId: string) => void
   onDelete: (notificationId: string) => void
   onAddComment: (notificationId: string, commentText: string) => void
   onEditNotification: (notification: Notification) => void
+  onAddReply: (notificationId: string, commentId: string, replyText: string) => void;
+  currentUser: User;
 }
 
-export function NotificationCard({ notification, onLikeToggle, onDelete, onAddComment, onEditNotification }: NotificationCardProps) {
-  const { currentUser, users } = useUser()
+export function NotificationCard({ notification, onLikeToggle, onDelete, onAddComment, onEditNotification, onAddReply, currentUser }: NotificationCardProps) {
+  const { users } = useUser()
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
   const [viewPopoverOpen, setViewPopoverOpen] = useState(false)
@@ -265,21 +371,14 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {notification.comments.length > 0 ? (
                 notification.comments.map((comment: Comment) => (
-                  <div key={comment.id} className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={comment.user.avatarUrl} alt={comment.user.name} />
-                      <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="bg-muted rounded-lg px-3 py-2">
-                        <p className="font-semibold text-sm">{comment.user.name}</p>
-                        <p className="text-sm text-foreground/90">{comment.text}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {isClient ? formatDistanceToNow(new Date(comment.timestamp), { addSuffix: true }) : ''}
-                      </p>
-                    </div>
-                  </div>
+                   <CommentWithReplies
+                    key={comment.id}
+                    comment={comment}
+                    notificationId={notification.id}
+                    onAddReply={onAddReply}
+                    currentUser={currentUser}
+                    isClient={isClient}
+                  />
                 ))
               ) : (
                 <p className="text-muted-foreground text-sm text-center py-4">
