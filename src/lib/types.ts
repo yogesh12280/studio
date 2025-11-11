@@ -81,3 +81,15 @@ export type Poll = {
   endDate?: string;
   votedBy: string[];
 };
+
+export type Suggestion = {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeAvatarUrl: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  upvotes: number;
+  upvotedBy: string[];
+};

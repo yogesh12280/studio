@@ -1,5 +1,5 @@
 
-import type { User, Employee, Notification, Grievance, Poll } from './types';
+import type { User, Employee, Notification, Grievance, Poll, Suggestion } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -168,4 +168,29 @@ export const initialPolls: Poll[] = [
     endDate: new Date(staticNow.getTime() - 1000 * 60 * 60 * 24 * 2).toISOString(), // Expired
     votedBy: ['user-1', 'user-2'],
   },
+];
+
+export const initialSuggestions: Suggestion[] = [
+    {
+        id: 'sugg-1',
+        employeeId: 'user-2',
+        employeeName: 'Yogesh Patel',
+        employeeAvatarUrl: getImageUrl('avatar2'),
+        title: 'Implement a "Focus Friday" initiative',
+        description: 'Designate Fridays as no-meeting days to allow for deep work and reduce weekend overwork. This could improve productivity and employee well-being.',
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+        upvotes: 15,
+        upvotedBy: ['user-1']
+    },
+    {
+        id: 'sugg-2',
+        employeeId: 'emp-1',
+        employeeName: 'Charlie Green',
+        employeeAvatarUrl: getImageUrl('avatar3'),
+        title: 'Mentorship Program',
+        description: 'Establish a formal mentorship program to connect senior and junior employees. This can aid in skill development, career growth, and knowledge transfer.',
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+        upvotes: 22,
+        upvotedBy: []
+    }
 ];

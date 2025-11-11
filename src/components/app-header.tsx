@@ -22,7 +22,7 @@ interface AppHeaderProps {
   setSearchQuery: (query: string) => void
   title: string
   onAddNotification?: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
-  onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy'>) => void;
+  onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
 }
 
 export function AppHeader({
