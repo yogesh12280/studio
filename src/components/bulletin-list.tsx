@@ -1,18 +1,9 @@
 'use client'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, Eye, CalendarOff, Clock } from 'lucide-react'
 import type { Bulletin } from '@/lib/types'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 
 interface BulletinListProps {
   bulletins: Bulletin[]
@@ -49,56 +40,40 @@ export function BulletinList({ bulletins, onSelectBulletin }: BulletinListProps)
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead className="text-center">Likes</TableHead>
-            <TableHead className="text-center">Comments</TableHead>
-            <TableHead className="text-center">Views</TableHead>
-            <TableHead className="text-right">Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {bulletins.map((bulletin) => (
-            <TableRow key={bulletin.id} onClick={() => onSelectBulletin(bulletin)} className="cursor-pointer">
-              <TableCell>
-                <div className="flex flex-col">
-                  <span className="font-medium">{bulletin.title}</span>
-                  <span className="text-sm text-muted-foreground">{bulletin.author.name}</span>
-                </div>
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Heart className="h-4 w-4 text-muted-foreground"/>
-                  <span>{bulletin.likes}</span>
-                </div>
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <MessageCircle className="h-4 w-4 text-muted-foreground"/>
-                  <span>{bulletin.comments.length}</span>
-                </div>
-              </TableCell>
-              <TableCell className="text-center">
-                 <div className="flex items-center justify-center gap-1">
-                  <Eye className="h-4 w-4 text-muted-foreground"/>
-                  <span>{bulletin.viewers}</span>
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex flex-col items-end">
-                    {getBadge(bulletin)}
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
-                    </span>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="space-y-3">
+      {bulletins.map((bulletin) => (
+        <div 
+          key={bulletin.id} 
+          onClick={() => onSelectBulletin(bulletin)} 
+          className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 mb-3 sm:mb-0">
+              <div className="flex items-center gap-2 mb-1">
+                {getBadge(bulletin)}
+                <span className="font-medium text-base">{bulletin.title}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Heart className="h-4 w-4"/>
+                <span>{bulletin.likes}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle className="h-4 w-4"/>
+                <span>{bulletin.comments.length}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4"/>
+                <span>{bulletin.viewers}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
