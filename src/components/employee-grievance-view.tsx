@@ -3,12 +3,10 @@
 import { useMemo } from 'react'
 import { PlusCircle, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import type { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
-import { Separator } from './ui/separator'
 
 interface EmployeeGrievanceViewProps {
   searchQuery: string
@@ -43,14 +41,17 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
           <div
             key={grievance.id}
             onClick={() => onSelectGrievance(grievance)}
-            className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+            className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
           >
-            <div className="flex justify-between items-start mb-2">
-                <span className="font-medium text-base">{grievance.subject}</span>
-                <Badge variant={getStatusVariant(grievance.status)}>
-                    {grievance.status}
-                </Badge>
+            <div className="flex-1 mb-3">
+                <div className="flex justify-between items-start mb-2">
+                    <span className="font-medium text-base">{grievance.subject}</span>
+                    <Badge variant={getStatusVariant(grievance.status)}>
+                        {grievance.status}
+                    </Badge>
+                </div>
             </div>
+
             <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                     <MessageSquare className="h-4 w-4"/>
