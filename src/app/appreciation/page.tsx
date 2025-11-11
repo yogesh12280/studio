@@ -73,7 +73,7 @@ export default function AppreciationPage() {
           onAddAppreciation={handleAddAppreciation}
         />
         <main className="p-4 sm:p-6">
-            <div className="space-y-4 max-w-4xl mx-auto">
+            <div className="space-y-4">
                 {filteredAppreciations.map(appreciation => (
                     <AppreciationCard 
                         key={appreciation.id}
