@@ -3,6 +3,7 @@ export type User = {
   name: string;
   avatarUrl: string;
   role: 'Admin' | 'Employee';
+  birthdate: string;
 };
 
 export type Employee = {
@@ -12,6 +13,7 @@ export type Employee = {
     role: string;
     department: string;
     avatarUrl: string;
+    birthdate: string;
 };
 
 export type Comment = {
