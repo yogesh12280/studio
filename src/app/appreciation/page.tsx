@@ -73,21 +73,19 @@ export default function AppreciationPage() {
           onAddAppreciation={handleAddAppreciation}
         />
         <main className="p-4 sm:p-6">
-            <div className="max-w-4xl mx-auto">
-                <div className="space-y-4">
-                    {filteredAppreciations.map(appreciation => (
-                        <AppreciationCard 
-                            key={appreciation.id}
-                            appreciation={appreciation}
-                            onLikeToggle={handleLikeToggle}
-                        />
-                    ))}
-                    {filteredAppreciations.length === 0 && (
-                        <div className="text-center text-muted-foreground py-12">
-                            No appreciations yet. Be the first to send one!
-                        </div>
-                    )}
-                </div>
+            <div className="space-y-4 max-w-4xl mx-auto">
+                {filteredAppreciations.map(appreciation => (
+                    <AppreciationCard 
+                        key={appreciation.id}
+                        appreciation={appreciation}
+                        onLikeToggle={handleLikeToggle}
+                    />
+                ))}
+                {filteredAppreciations.length === 0 && (
+                    <div className="text-center text-muted-foreground py-12">
+                        No appreciations yet. Be the first to send one!
+                    </div>
+                )}
             </div>
         </main>
       </div>
