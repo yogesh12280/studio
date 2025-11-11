@@ -18,46 +18,52 @@ interface SuggestionListProps {
 export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion, currentUser }: SuggestionListProps) {
   
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-3">
       {suggestions.map((suggestion) => {
         const isUpvoted = suggestion.upvotedBy.includes(currentUser.id);
         return (
-            <Card key={suggestion.id} className="flex flex-col cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => onSelectSuggestion(suggestion)}>
-              <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-                  <Avatar>
-                      <AvatarImage src={suggestion.employeeAvatarUrl} alt={suggestion.employeeName} />
-                      <AvatarFallback>{suggestion.employeeName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{suggestion.employeeName}</p>
-                    <p className="text-xs text-muted-foreground">
-                        Submitted {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <h3 className="font-bold mb-2">{suggestion.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-3">{suggestion.description}</p>
-              </CardContent>
-              <CardFooter className="flex justify-between items-center text-sm text-muted-foreground">
-                 <Button 
-                    variant={'ghost'} 
-                    size="sm" 
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onUpvoteToggle(suggestion.id);
-                    }}
-                    className={cn('text-muted-foreground', isUpvoted && "text-primary")}
-                >
-                    <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-primary")} />
-                    <span>{suggestion.upvotes}</span>
-                </Button>
-                <div className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4"/>
-                    <span>{suggestion.comments.length}</span>
+            <div 
+              key={suggestion.id} 
+              onClick={() => onSelectSuggestion(suggestion)} 
+              className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
+            >
+              <div className="flex-1 mb-3">
+                 <div className="flex items-start gap-3 mb-2">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={suggestion.employeeAvatarUrl} alt={suggestion.employeeName} />
+                        <AvatarFallback>{suggestion.employeeName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold">{suggestion.employeeName}</p>
+                        <p className="text-xs text-muted-foreground">
+                            Submitted {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true })}
+                        </p>
+                    </div>
                 </div>
-              </CardFooter>
-            </Card>
+                <h3 className="font-bold mb-1 ml-12">{suggestion.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 ml-12">{suggestion.description}</p>
+              </div>
+              <div className="flex items-center justify-end text-sm text-muted-foreground">
+                <div className="flex items-center gap-4">
+                    <Button 
+                        variant={'ghost'} 
+                        size="sm" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onUpvoteToggle(suggestion.id);
+                        }}
+                        className={cn('text-muted-foreground', isUpvoted && "text-primary")}
+                    >
+                        <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-primary")} />
+                        <span>{suggestion.upvotes}</span>
+                    </Button>
+                    <div className="flex items-center gap-1">
+                        <MessageSquare className="h-4 w-4"/>
+                        <span>{suggestion.comments.length}</span>
+                    </div>
+                </div>
+              </div>
+            </div>
         )
       })}
        {suggestions.length === 0 && (
