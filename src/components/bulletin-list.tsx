@@ -54,6 +54,9 @@ export function BulletinList({ bulletins, onSelectBulletin }: BulletinListProps)
             </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
+              By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
+            </p>
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                 <Heart className="h-4 w-4"/>
@@ -68,9 +71,6 @@ export function BulletinList({ bulletins, onSelectBulletin }: BulletinListProps)
                 <span>{bulletin.viewers}</span>
                 </div>
             </div>
-            <p className="text-sm text-muted-foreground text-right">
-              By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
-            </p>
           </div>
         </div>
       ))}
