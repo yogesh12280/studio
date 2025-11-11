@@ -31,7 +31,7 @@ export function PollFeed({ polls, onSelectPoll }: PollFeedProps) {
 
   return (
     <Tabs defaultValue="organization" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
         <TabsTrigger value="organization">Organization</TabsTrigger>
         <TabsTrigger value="employee">Employee</TabsTrigger>
       </TabsList>
