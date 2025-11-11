@@ -45,31 +45,29 @@ export function BulletinList({ bulletins, onSelectBulletin }: BulletinListProps)
         <div 
           key={bulletin.id} 
           onClick={() => onSelectBulletin(bulletin)} 
-          className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+          className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex-1 mb-3 sm:mb-0">
-              <div className="flex items-center gap-2 mb-1">
-                {getBadge(bulletin)}
-                <span className="font-medium text-base">{bulletin.title}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
-              </p>
+          <div className="flex-1 mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              {getBadge(bulletin)}
+              <span className="font-medium text-base">{bulletin.title}</span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4"/>
-                <span>{bulletin.likes}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MessageCircle className="h-4 w-4"/>
-                <span>{bulletin.comments.length}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Eye className="h-4 w-4"/>
-                <span>{bulletin.viewers}</span>
-              </div>
+            <p className="text-sm text-muted-foreground">
+              By {bulletin.author.name} &middot; {formatDistanceToNow(new Date(bulletin.createdAt), { addSuffix: true })}
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground self-start">
+            <div className="flex items-center gap-1">
+              <Heart className="h-4 w-4"/>
+              <span>{bulletin.likes}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MessageCircle className="h-4 w-4"/>
+              <span>{bulletin.comments.length}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Eye className="h-4 w-4"/>
+              <span>{bulletin.viewers}</span>
             </div>
           </div>
         </div>
