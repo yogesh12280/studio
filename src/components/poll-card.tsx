@@ -14,10 +14,12 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { formatDistanceToNow, format } from 'date-fns';
-import type { Poll } from '@/lib/types';
+import type { Poll, User } from '@/lib/types';
 import { useUser } from '@/contexts/user-context';
 import { cn } from '@/lib/utils';
 import { Users, CalendarOff } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { employees } from '@/lib/data';
 
 interface PollCardProps {
   poll: Poll;
@@ -25,9 +27,10 @@ interface PollCardProps {
 }
 
 export function PollCard({ poll, onVote }: PollCardProps) {
-  const { currentUser } = useUser();
+  const { currentUser, users } = useUser();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [voterListOpen, setVoterListOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -39,6 +42,13 @@ export function PollCard({ poll, onVote }: PollCardProps) {
     [poll.options]
   );
   
+  const voters = useMemo(() => {
+    const allUsers = [...users, ...employees];
+    return poll.votedBy
+      .map(userId => allUsers.find(u => u.id === userId))
+      .filter((u): u is User => !!u);
+  }, [poll.votedBy, users]);
+
   const now = new Date();
   const endDate = poll.endDate ? new Date(poll.endDate) : undefined;
   const isExpired = endDate && endDate < now;
@@ -119,10 +129,34 @@ export function PollCard({ poll, onVote }: PollCardProps) {
         </div>
       </CardContent>
       <CardFooter className="bg-muted/50 p-4 flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Users className="h-4 w-4" />
-          <span>{totalVotes} total votes</span>
-        </div>
+        <Popover open={voterListOpen} onOpenChange={setVoterListOpen}>
+            <PopoverTrigger
+                onMouseEnter={() => setVoterListOpen(true)}
+                onMouseLeave={() => setVoterListOpen(false)}
+                className="flex items-center gap-2 text-muted-foreground"
+            >
+                <Users className="h-4 w-4" />
+                <span>{totalVotes} total votes</span>
+            </PopoverTrigger>
+            {voters.length > 0 && (
+                <PopoverContent className="w-auto max-w-xs">
+                    <div className="flex flex-col gap-2">
+                    <p className="font-semibold text-sm">Voted by</p>
+                    <div className="flex flex-wrap gap-2">
+                        {voters.map(user => (
+                        <div key={user.id} className="flex items-center gap-2 text-xs">
+                            <Avatar className="h-6 w-6">
+                            <AvatarImage src={user.avatarUrl} alt={user.name} />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span>{user.name}</span>
+                        </div>
+                        ))}
+                    </div>
+                    </div>
+                </PopoverContent>
+            )}
+        </Popover>
         {!hasVoted && !isExpired && (
           <Button onClick={handleVote} disabled={!selectedOption}>
             Submit Vote
