@@ -13,8 +13,11 @@ import {
   Clock,
   CalendarOff,
   Send,
+  Smile,
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+
 
 import {
   Card,
@@ -49,6 +52,12 @@ interface ReplyInputProps {
 
 function ReplyInput({ commentId, onAddReply, currentUser }: ReplyInputProps) {
   const [replyText, setReplyText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setReplyText(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  }
 
   const handleReplySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +79,16 @@ function ReplyInput({ commentId, onAddReply, currentUser }: ReplyInputProps) {
         placeholder="Write a reply..."
         className="flex-1 h-9"
       />
+       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
+            <Smile className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 border-0">
+          <EmojiPicker onEmojiClick={handleEmojiClick} />
+        </PopoverContent>
+      </Popover>
       <Button type="submit" size="icon" className="h-9 w-9">
         <Send className="h-4 w-4" />
       </Button>
@@ -161,7 +180,12 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewComment(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  }
 
   useEffect(() => {
     setIsClient(true)
@@ -397,6 +421,16 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
                 placeholder="Write a comment..."
                 className="flex-1 h-9"
               />
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-0">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </PopoverContent>
+              </Popover>
               <Button type="submit" size="icon" className="h-9 w-9">
                 <Send className="h-4 w-4" />
               </Button>

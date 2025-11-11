@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ThumbsUp, Send, MessageSquare } from 'lucide-react'
+import { ThumbsUp, Send, MessageSquare, Smile } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Separator } from './ui/separator'
 import { Input } from './ui/input'
+import { Popover, PopoverTrigger, PopoverContent } from './ui/popover'
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import type { Suggestion, User, Comment } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { formatDistanceToNow } from 'date-fns'
@@ -25,6 +27,12 @@ interface ReplyInputProps {
 
 function ReplyInput({ commentId, onAddReply, currentUser }: ReplyInputProps) {
   const [replyText, setReplyText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setReplyText(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  }
 
   const handleReplySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +54,16 @@ function ReplyInput({ commentId, onAddReply, currentUser }: ReplyInputProps) {
         placeholder="Write a reply..."
         className="flex-1 h-9"
       />
+       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
+            <Smile className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 border-0">
+          <EmojiPicker onEmojiClick={handleEmojiClick} />
+        </PopoverContent>
+      </Popover>
       <Button type="submit" size="icon" className="h-9 w-9">
         <Send className="h-4 w-4" />
       </Button>
@@ -129,6 +147,12 @@ interface SuggestionCardProps {
 export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, currentUser }: SuggestionCardProps) {
   const [isClient, setIsClient] = useState(false)
   const [newComment, setNewComment] = useState('')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewComment(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  }
 
   useEffect(() => {
     setIsClient(true)
@@ -221,6 +245,16 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
                 placeholder="Write a comment..."
                 className="flex-1 h-9"
               />
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-0">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </PopoverContent>
+              </Popover>
               <Button type="submit" size="icon" className="h-9 w-9">
                 <Send className="h-4 w-4" />
               </Button>
