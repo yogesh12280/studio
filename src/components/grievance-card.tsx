@@ -24,9 +24,8 @@ interface GrievanceCardProps {
 }
 
 export function GrievanceCard({ grievance, onAddComment, getStatusVariant }: GrievanceCardProps) {
-  const { currentUser, users } = useUser()
+  const { currentUser } = useUser()
   const [newComment, setNewComment] = useState('')
-  const adminUser = users.find(u => u.role === 'Admin');
 
 
   const handleCommentSubmit = (e: React.FormEvent) => {
@@ -65,15 +64,6 @@ export function GrievanceCard({ grievance, onAddComment, getStatusVariant }: Gri
       <Separator />
       <div className="p-4 space-y-4">
           <h3 className="font-semibold text-sm">Conversation</h3>
-            {adminUser && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted p-2 rounded-md">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={adminUser.avatarUrl} alt={adminUser.name} />
-                        <AvatarFallback>{adminUser.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span>Comments will be replied to by <strong>{adminUser.name}</strong> (Admin).</span>
-                </div>
-            )}
           {grievance.comments && grievance.comments.length > 0 ? (
             grievance.comments.map(comment => (
                 <div key={comment.id} className="flex items-start gap-3">

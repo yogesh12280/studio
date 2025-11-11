@@ -56,8 +56,6 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
   const [newComment, setNewComment] = useState('')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const adminUser = users.find(u => u.role === 'Admin');
-
 
   useEffect(() => {
     setIsClient(true)
@@ -264,15 +262,6 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
           <Separator />
           <div className="p-4 space-y-4">
             <h3 className="font-semibold text-sm">Comments</h3>
-            {adminUser && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted p-2 rounded-md">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={adminUser.avatarUrl} alt={adminUser.name} />
-                        <AvatarFallback>{adminUser.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span>Comments will be replied to by <strong>{adminUser.name}</strong> (Admin).</span>
-                </div>
-            )}
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {notification.comments.length > 0 ? (
                 notification.comments.map((comment: Comment) => (
