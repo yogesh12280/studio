@@ -29,26 +29,26 @@ export function FeaturedBulletins({ bulletins, onSelectBulletin }: FeaturedBulle
 
     const sortedByDate = [...bulletins].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     const sortedByComments = [...bulletins].sort((a, b) => b.comments.length - a.comments.length);
-    const sortedByLikes = [...bulletins].sort((a, b) => b.likes - a.likes);
+    const sortedByViews = [...bulletins].sort((a, b) => b.viewers - a.viewers);
     
     if (sortedByDate.length > 0) {
         featured.push({ bulletin: sortedByDate[0], title: 'Latest' });
         usedIds.add(sortedByDate[0].id);
     }
 
-    if (sortedByComments.length > 0) {
-        const mostCommented = sortedByComments.find(b => !usedIds.has(b.id));
-        if (mostCommented) {
-            featured.push({ bulletin: mostCommented, title: 'Most Commented' });
-            usedIds.add(mostCommented.id);
+    if (sortedByViews.length > 0) {
+        const mostViewed = sortedByViews.find(b => !usedIds.has(b.id));
+        if (mostViewed) {
+            featured.push({ bulletin: mostViewed, title: 'Most Viewed' });
+            usedIds.add(mostViewed.id);
         }
     }
     
-    if (sortedByLikes.length > 0) {
-        const mostLiked = sortedByLikes.find(b => !usedIds.has(b.id));
-        if (mostLiked && featured.length < 3) {
-            featured.push({ bulletin: mostLiked, title: 'Most Liked' });
-            usedIds.add(mostLiked.id);
+    if (sortedByComments.length > 0) {
+        const mostCommented = sortedByComments.find(b => !usedIds.has(b.id));
+        if (mostCommented && featured.length < 3) {
+            featured.push({ bulletin: mostCommented, title: 'Most Commented' });
+            usedIds.add(mostCommented.id);
         }
     }
     
@@ -111,7 +111,7 @@ export function FeaturedBulletins({ bulletins, onSelectBulletin }: FeaturedBulle
                     <div 
                         key={bulletin.id} 
                         onClick={() => onSelectBulletin(bulletin)} 
-                        className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden"
+                        className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden h-[60%]"
                     >
                         <div className="p-4 flex flex-col flex-1">
                             {bulletin.imageUrl && (
