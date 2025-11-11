@@ -11,6 +11,7 @@ import type { Bulletin } from '@/lib/types'
 import { BulletinCard } from '@/components/bulletin-card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+import { FeaturedBulletins } from '@/components/featured-bulletins'
 
 export default function SEMBBlastPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -136,11 +137,14 @@ export default function SEMBBlastPage() {
               />
             </div>
           ) : (
-            <BulletinFeed 
-              searchQuery={searchQuery}
-              bulletins={bulletins}
-              onSelectBulletin={handleSelectBulletin}
-            />
+            <>
+              <FeaturedBulletins bulletins={bulletins} onSelectBulletin={handleSelectBulletin} />
+              <BulletinFeed 
+                searchQuery={searchQuery}
+                bulletins={bulletins}
+                onSelectBulletin={handleSelectBulletin}
+              />
+            </>
           )}
         </main>
       </div>
