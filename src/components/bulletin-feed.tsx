@@ -2,19 +2,16 @@
 
 import { useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { BulletinCard } from '@/components/bulletin-card'
 import type { Bulletin } from '@/lib/types'
+import { BulletinList } from './bulletin-list'
 
 interface BulletinFeedProps {
   searchQuery: string
   bulletins: Bulletin[]
-  onLikeToggle: (bulletinId: string) => void
-  onDelete: (bulletinId: string) => void
-  onAddComment: (bulletinId: string, commentText: string) => void
-  onEditBulletin: (bulletin: Bulletin) => void
+  onSelectBulletin: (bulletin: Bulletin) => void
 }
 
-export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, onAddComment, onEditBulletin }: BulletinFeedProps) {
+export function BulletinFeed({ searchQuery, bulletins, onSelectBulletin }: BulletinFeedProps) {
 
   const filteredBulletins = useMemo(() => {
     return bulletins
@@ -45,18 +42,7 @@ export function BulletinFeed({ searchQuery, bulletins, onLikeToggle, onDelete, o
       return <p className="text-muted-foreground mt-4 text-center">No bulletins found.</p>
     }
     return (
-      <div className="space-y-6">
-        {bulletinList.map((bulletin) => (
-          <BulletinCard 
-            key={bulletin.id} 
-            bulletin={bulletin} 
-            onLikeToggle={onLikeToggle}
-            onDelete={onDelete}
-            onAddComment={onAddComment}
-            onEditBulletin={onEditBulletin}
-          />
-        ))}
-      </div>
+      <BulletinList bulletins={bulletinList} onSelectBulletin={onSelectBulletin} />
     )
   }
 
