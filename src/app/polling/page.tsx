@@ -8,11 +8,15 @@ import { PollFeed } from '@/components/poll-feed';
 import { initialPolls } from '@/lib/data';
 import { useUser } from '@/contexts/user-context';
 import type { Poll } from '@/lib/types';
+import { PollCard } from '@/components/poll-card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function PollingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [polls, setPolls] = useState<Poll[]>(initialPolls);
   const { currentUser } = useUser();
+  const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
   const handleAddPoll = (newPollData: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => {
     const newPoll: Poll = {
@@ -38,17 +42,30 @@ export default function PollingPage() {
             option.id === optionId ? { ...option, votes: option.votes + 1 } : option
           );
 
-          return {
+          const updatedPoll = {
             ...poll,
             options: updatedOptions,
             votedBy: [...poll.votedBy, currentUser.id],
           };
+
+          if(selectedPoll?.id === pollId) {
+            setSelectedPoll(updatedPoll);
+          }
+          return updatedPoll;
         }
         return poll;
       })
     );
   };
   
+  const handleSelectPoll = (poll: Poll) => {
+    setSelectedPoll(poll);
+  };
+
+  const handleBackToList = () => {
+    setSelectedPoll(null);
+  }
+
   const filteredPolls = useMemo(() => {
     return polls.filter(poll => {
       const searchLower = searchQuery.toLowerCase();
@@ -70,7 +87,20 @@ export default function PollingPage() {
           onAddPoll={handleAddPoll}
         />
         <main className="p-4 sm:p-6">
-          <PollFeed polls={filteredPolls} onVote={handleVote} />
+           {selectedPoll ? (
+            <div className="max-w-2xl mx-auto">
+              <Button variant="ghost" onClick={handleBackToList} className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to all polls
+              </Button>
+              <PollCard 
+                poll={selectedPoll}
+                onVote={handleVote}
+              />
+            </div>
+          ) : (
+            <PollFeed polls={filteredPolls} onSelectPoll={handleSelectPoll} />
+          )}
         </main>
       </div>
     </SidebarProvider>

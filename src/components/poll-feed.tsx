@@ -3,14 +3,14 @@
 import { useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { Poll } from '@/lib/types';
-import { PollCard } from './poll-card';
+import { PollList } from './poll-list';
 
 interface PollFeedProps {
   polls: Poll[];
-  onVote: (pollId: string, optionId: string) => void;
+  onSelectPoll: (poll: Poll) => void;
 }
 
-export function PollFeed({ polls, onVote }: PollFeedProps) {
+export function PollFeed({ polls, onSelectPoll }: PollFeedProps) {
   const organizationPolls = useMemo(
     () => polls.filter((p) => p.category === 'Organization'),
     [polls]
@@ -25,11 +25,7 @@ export function PollFeed({ polls, onVote }: PollFeedProps) {
       return <p className="text-muted-foreground mt-4 text-center">No polls found.</p>;
     }
     return (
-      <div className="space-y-4 max-w-2xl mx-auto">
-        {pollList.map((poll) => (
-          <PollCard key={poll.id} poll={poll} onVote={onVote} />
-        ))}
-      </div>
+      <PollList polls={pollList} onSelectPoll={onSelectPoll} />
     );
   };
 
