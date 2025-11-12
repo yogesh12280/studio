@@ -72,21 +72,19 @@ export default function AppreciationPage() {
           title="Appreciation"
           onAddAppreciation={handleAddAppreciation}
         />
-        <main className="p-4 sm:p-6">
-            <div className="max-w-2xl mx-auto space-y-4">
-                {filteredAppreciations.map(appreciation => (
-                    <AppreciationCard 
-                        key={appreciation.id}
-                        appreciation={appreciation}
-                        onLikeToggle={handleLikeToggle}
-                    />
-                ))}
-                {filteredAppreciations.length === 0 && (
-                    <div className="text-center text-muted-foreground py-12">
-                        No appreciations yet. Be the first to send one!
-                    </div>
-                )}
-            </div>
+        <main className="p-4 sm:p-6 space-y-4">
+            {filteredAppreciations.map(appreciation => (
+                <AppreciationCard 
+                    key={appreciation.id}
+                    appreciation={appreciation}
+                    onLikeToggle={handleLikeToggle}
+                />
+            ))}
+            {filteredAppreciations.length === 0 && (
+                <div className="text-center text-muted-foreground py-12">
+                    No appreciations yet. Be the first to send one!
+                </div>
+            )}
         </main>
       </div>
     </SidebarProvider>
