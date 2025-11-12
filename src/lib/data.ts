@@ -34,7 +34,7 @@ export const initialNotifications: Notification[] = [
     viewers: 58,
     viewedBy: ['user-1', 'user-2'],
     comments: [
-        { id: 'comment-1', user: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString() }
+        { id: 'comment-1', user: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') }, text: 'So excited for this!', timestamp: new Date(staticNow.getTime() - 1000 * 60 * 5).toISOString(), replies: [] }
     ],
     createdAt: new Date(staticNow.getTime() - 1000 * 60 * 60 * 2).toISOString(),
     endDate: new Date(staticNow.getTime() + 1000 * 60 * 60 * 24 * 30).toISOString(),
@@ -47,7 +47,7 @@ export const initialNotifications: Notification[] = [
     content: 'We are thrilled to announce the successful launch of Project Phoenix. This is a huge milestone for our team and the company. A big thank you to everyone in the Technology and Product departments for their hard work and dedication.',
     imageUrl: getImageUrl('postImage2'),
     likes: 25,
-likedBy: ['user-1', 'user-2'],
+    likedBy: ['user-1', 'user-2'],
     viewers: 75,
     viewedBy: ['user-1', 'user-2'],
     comments: [],
@@ -61,6 +61,7 @@ likedBy: ['user-1', 'user-2'],
     title: 'Q3 Financial Results & Town Hall Meeting',
     content: 'Join us for the upcoming town hall where we will discuss our strong Q3 financial results and outline our strategic priorities for Q4. The meeting is scheduled for this Friday at 10:00 AM PST.',
     link: { url: 'https://meeting.example.com/q3-townhall', text: 'Join Town Hall Meeting' },
+    imageUrl: getImageUrl('postImage3'),
     likes: 8,
     likedBy: ['user-2'],
     viewers: 62,
@@ -217,3 +218,5 @@ export const initialAppreciations: Appreciation[] = [
     likedBy: ['user-1', 'user-2'],
   }
 ];
+
+    
