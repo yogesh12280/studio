@@ -213,7 +213,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                   <div className="col-span-3">
                       <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                           <Upload className="mr-2 h-4 w-4" />
-                          Browse Image
+                          Upload Image
                       </Button>
                       <Input 
                           type="file" 
@@ -298,7 +298,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             </div>
           </ScrollArea>
           <DialogFooter className="pt-4 border-t">
-            <Button type="submit">{buttonText}</Button>          </DialogFooter>
+            <Button type="submit">{buttonText}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
