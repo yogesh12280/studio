@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
-import { SembBlastLogo } from '@/components/icons'
+import { SembConnectLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award, LayoutDashboard } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
@@ -27,10 +27,10 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="bg-primary text-primary-foreground rounded-lg p-2">
-            <SembBlastLogo className="h-6 w-6" />
+            <SembConnectLogo className="h-6 w-6" />
           </div>
           <span className="font-headline text-lg font-bold group-data-[collapsible=icon]:hidden">
-            SembBlast
+            SembConnect
           </span>
         </Link>
       </SidebarHeader>

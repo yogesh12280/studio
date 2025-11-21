@@ -10,12 +10,12 @@ export const users: User[] = [
 ];
 
 export const employees: Employee[] = [
-    { id: 'emp-1', name: 'Charlie Green', email: 'charlie@orgablast.com', role: 'Software Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar3'), birthdate: '1990-03-12' },
-    { id: 'emp-2', name: 'Diana Prince', email: 'diana@orgablast.com', role: 'Product Manager', department: 'Product', avatarUrl: getImageUrl('avatar4'), birthdate: '1988-11-25' },
-    { id: 'emp-3', name: 'Dinesh R', email: 'bruce@orgablast.com', role: 'CEO', department: 'Executive', avatarUrl: getImageUrl('avatar5'), birthdate: '1975-01-30' },
-    { id: 'emp-4', name: 'Clark Kent', email: 'clark@orgablast.com', role: 'Marketing Lead', department: 'Marketing', avatarUrl: getImageUrl('avatar6'), birthdate: '1982-06-18' },
-    { id: 'emp-5', name: 'Barry Allen', email: 'barry@orgablast.com', role: 'QA Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar1'), birthdate: '1995-09-01' },
-    { id: 'emp-6', name: 'Hal Jordan', email: 'hal@orgablast.com', role: 'Sales Director', department: 'Sales', avatarUrl: getImageUrl('avatar2'), birthdate: '1980-12-05' },
+    { id: 'emp-1', name: 'Charlie Green', email: 'charlie@sembconnect.com', role: 'Software Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar3'), birthdate: '1990-03-12' },
+    { id: 'emp-2', name: 'Diana Prince', email: 'diana@sembconnect.com', role: 'Product Manager', department: 'Product', avatarUrl: getImageUrl('avatar4'), birthdate: '1988-11-25' },
+    { id: 'emp-3', name: 'Dinesh R', email: 'bruce@sembconnect.com', role: 'CEO', department: 'Executive', avatarUrl: getImageUrl('avatar5'), birthdate: '1975-01-30' },
+    { id: 'emp-4', name: 'Clark Kent', email: 'clark@sembconnect.com', role: 'Marketing Lead', department: 'Marketing', avatarUrl: getImageUrl('avatar6'), birthdate: '1982-06-18' },
+    { id: 'emp-5', name: 'Barry Allen', email: 'barry@sembconnect.com', role: 'QA Engineer', department: 'Technology', avatarUrl: getImageUrl('avatar1'), birthdate: '1995-09-01' },
+    { id: 'emp-6', name: 'Hal Jordan', email: 'hal@sembconnect.com', role: 'Sales Director', department: 'Sales', avatarUrl: getImageUrl('avatar2'), birthdate: '1980-12-05' },
 ];
 
 const now = new Date();
