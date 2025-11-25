@@ -22,6 +22,8 @@ export function AppSidebar() {
   const { currentUser } = useUser()
   const pathname = usePathname()
 
+  if (!currentUser) return null;
+
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="p-4">

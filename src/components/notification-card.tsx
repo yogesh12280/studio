@@ -169,7 +169,7 @@ interface NotificationCardProps {
   onAddComment: (notificationId: string, commentText: string) => void
   onEditNotification: (notification: Notification) => void
   onAddReply: (notificationId: string, commentId: string, replyText: string) => void;
-  currentUser: User;
+  currentUser: User | null;
 }
 
 export function NotificationCard({ notification, onLikeToggle, onDelete, onAddComment, onEditNotification, onAddReply, currentUser }: NotificationCardProps) {
@@ -181,6 +181,8 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
   const [newComment, setNewComment] = useState('')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  if (!currentUser) return null;
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     setNewComment(prev => prev + emojiData.emoji);
@@ -299,7 +301,6 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
               alt={notification.title}
               fill
               className="object-cover"
-              data-ai-hint="business chart"
             />
           </div>
         )}

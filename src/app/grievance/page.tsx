@@ -26,6 +26,8 @@ export default function GrievancePage() {
   const [birthdateInput, setBirthdateInput] = useState('');
   const { toast } = useToast();
 
+  if (!currentUser) return null;
+
 
   const handleAddGrievance = (newGrievanceData: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => {
     const newGrievance: Grievance = {

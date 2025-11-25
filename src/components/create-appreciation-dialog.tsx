@@ -38,9 +38,11 @@ export function CreateAppreciationDialog({ children, onSave, open: openProp, onO
   const onOpenChange = onOpenChangeProp ?? setInternalOpen
 
   const { toast } = useToast()
-  const { users } = useUser()
+  const { users, currentUser } = useUser()
 
-  const allUsers = [...users, ...employees];
+  if (!currentUser) return null;
+
+  const allUsers = [...users, ...employees].filter(u => u.id !== currentUser.id);
 
   // Form state
   const [toUserId, setToUserId] = useState<string>('')
@@ -65,7 +67,7 @@ export function CreateAppreciationDialog({ children, onSave, open: openProp, onO
       return
     }
 
-    const toUser = allUsers.find(u => u.id === toUserId)
+    const toUser = [...users, ...employees].find(u => u.id === toUserId)
     if (!toUser) {
         toast({
             variant: "destructive",

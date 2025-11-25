@@ -5,15 +5,15 @@ import type { User } from '@/lib/types'
 import { users as mockUsers } from '@/lib/data'
 
 type UserContextType = {
-  currentUser: User
-  setCurrentUser: (user: User) => void
+  currentUser: User | null
+  setCurrentUser: (user: User | null) => void
   users: User[]
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]) // Default to admin
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
   const value = useMemo(() => ({
     currentUser,

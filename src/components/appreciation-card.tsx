@@ -28,6 +28,8 @@ export function AppreciationCard({ appreciation, onLikeToggle }: AppreciationCar
     setIsClient(true)
   }, [])
 
+  if (!currentUser) return null;
+
   const isLiked = appreciation.likedBy.includes(currentUser.id)
 
   return (

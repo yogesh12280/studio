@@ -141,13 +141,15 @@ interface SuggestionCardProps {
   onUpvoteToggle: (suggestionId: string) => void
   onAddComment: (suggestionId: string, commentText: string) => void
   onAddReply: (suggestionId: string, commentId: string, replyText: string) => void
-  currentUser: User
+  currentUser: User | null;
 }
 
 export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, currentUser }: SuggestionCardProps) {
   const [isClient, setIsClient] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  if (!currentUser) return null;
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     setNewComment(prev => prev + emojiData.emoji);

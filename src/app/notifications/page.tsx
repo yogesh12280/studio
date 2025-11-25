@@ -19,6 +19,8 @@ export default function NotificationsPage() {
   const { currentUser } = useUser()
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
+  if (!currentUser) return null;
+
   const handleAddNotification = (newNotificationData: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => {
     const newNotification: Notification = {
         id: `notification-${Date.now()}`,

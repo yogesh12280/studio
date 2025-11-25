@@ -47,6 +47,8 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
   const [newComment, setNewComment] = useState<{[key: string]: string}>({})
   const [openCollapsibles, setOpenCollapsibles] = useState<Set<string>>(new Set());
 
+  if (!currentUser) return null;
+
   const toggleCollapsible = (id: string) => {
     setOpenCollapsibles(prev => {
       const newSet = new Set(prev);

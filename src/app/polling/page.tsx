@@ -18,6 +18,8 @@ export default function PollingPage() {
   const { currentUser } = useUser();
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
 
+  if (!currentUser) return null;
+
   const handleAddPoll = (newPollData: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => {
     const newPoll: Poll = {
       id: `poll-${Date.now()}`,

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { Search, PlusCircle, UserCircle, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,7 +17,7 @@ import { useUser } from '@/contexts/user-context'
 import { CreateNotificationDialog } from './create-notification-dialog'
 import { CreatePollDialog } from './create-poll-dialog'
 import { CreateAppreciationDialog } from './create-appreciation-dialog'
-import type { Notification, Poll, Appreciation } from '@/lib/types'
+import type { Notification, Poll, Appreciation, User } from '@/lib/types'
 
 interface AppHeaderProps {
   searchQuery: string
@@ -36,6 +37,14 @@ export function AppHeader({
   onAddAppreciation,
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    setCurrentUser(null)
+    router.push('/login')
+  }
+
+  if (!currentUser) return null;
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
@@ -104,7 +113,7 @@ export function AppHeader({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Switch User</DropdownMenuLabel>
-            {users.map((user) => (
+            {users.map((user: User) => (
               <DropdownMenuItem
                 key={user.id}
                 onClick={() => setCurrentUser(user)}
@@ -121,7 +130,7 @@ export function AppHeader({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

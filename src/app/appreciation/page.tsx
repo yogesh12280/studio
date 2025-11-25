@@ -17,6 +17,8 @@ export default function AppreciationPage() {
   const { currentUser } = useUser()
   const [appreciations, setAppreciations] = useState<Appreciation[]>(initialAppreciations)
 
+  if (!currentUser) return null;
+
   const handleAddAppreciation = (newAppreciationData: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => {
     const newAppreciation: Appreciation = {
       id: `appreciation-${Date.now()}`,

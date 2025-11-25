@@ -27,6 +27,8 @@ export function GrievanceCard({ grievance, onAddComment, getStatusVariant }: Gri
   const { currentUser } = useUser()
   const [newComment, setNewComment] = useState('')
 
+  if (!currentUser) return null;
+
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault()

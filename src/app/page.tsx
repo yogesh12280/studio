@@ -6,8 +6,15 @@ import { AppHeader } from '@/components/app-header'
 import { DashboardStats } from '@/components/dashboard-stats'
 import { RecentActivity } from '@/components/recent-activity'
 import { initialNotifications, initialPolls, initialGrievances, initialSuggestions, initialAppreciations } from '@/lib/data'
+import { useUser } from '@/contexts/user-context'
 
 export default function DashboardPage() {
+  const { currentUser } = useUser();
+
+  if (!currentUser) {
+    return null;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

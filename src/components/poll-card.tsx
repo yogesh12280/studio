@@ -36,6 +36,8 @@ export function PollCard({ poll, onVote }: PollCardProps) {
     setIsClient(true);
   }, []);
 
+  if (!currentUser) return null;
+
   const hasVoted = poll.votedBy.includes(currentUser.id);
   const totalVotes = useMemo(
     () => poll.options.reduce((sum, option) => sum + option.votes, 0),

@@ -19,6 +19,8 @@ export default function SuggestionPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>(initialSuggestions)
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
 
+  if (!currentUser) return null;
+
   const handleAddSuggestion = (newSuggestionData: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => {
     const newSuggestion: Suggestion = {
       id: `suggestion-${Date.now()}`,
