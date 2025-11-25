@@ -52,14 +52,18 @@ export function AppHeader({
         {title}
       </h1>
       <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder={`Search ${title.toLowerCase()}...`}
-          className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        {title !== 'Dashboard' && (
+          <>
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder={`Search ${title.toLowerCase()}...`}
+              className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </>
+        )}
       </div>
       <div className="flex items-center gap-2">
         {title === 'Notifications' && onAddNotification && (
