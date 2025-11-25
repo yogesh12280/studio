@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Search, PlusCircle, UserCircle, Users } from 'lucide-react'
+import { Search, PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -115,24 +115,6 @@ export function AppHeader({
                 </p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Switch User</DropdownMenuLabel>
-            {users.map((user: User) => (
-              <DropdownMenuItem
-                key={user.id}
-                onClick={() => setCurrentUser(user)}
-                disabled={user.id === currentUser.id}
-              >
-                {user.role === 'Admin' ? (
-                  <UserCircle className="mr-2 h-4 w-4" />
-                ) : (
-                  <Users className="mr-2 h-4 w-4" />
-                )}
-                <span>
-                  {user.name} ({user.role})
-                </span>
-              </DropdownMenuItem>
-            ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
