@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SembConnectLogo } from '@/components/icons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function LoginPage() {
-  const { users, setCurrentUser } = useUser()
+  const { users, setCurrentUser, loading } = useUser()
   const router = useRouter()
 
   const handleLogin = (user: any) => {
@@ -28,24 +29,49 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {users.map(user => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">{user.role}</p>
+            {loading ? (
+              <>
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[100px]" />
+                      <Skeleton className="h-4 w-[70px]" />
+                    </div>
                   </div>
+                  <Skeleton className="h-10 w-[70px]" />
                 </div>
-                <Button onClick={() => handleLogin(user)}>Login</Button>
-              </div>
-            ))}
+                 <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[100px]" />
+                      <Skeleton className="h-4 w-[70px]" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-[70px]" />
+                </div>
+              </>
+            ) : (
+              users.map(user => (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.role}</p>
+                    </div>
+                  </div>
+                  <Button onClick={() => handleLogin(user)}>Login</Button>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

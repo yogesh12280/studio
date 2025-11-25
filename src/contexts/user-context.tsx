@@ -1,25 +1,44 @@
 'use client'
 
-import { createContext, useState, useContext, ReactNode, useMemo } from 'react'
+import { createContext, useState, useContext, ReactNode, useMemo, useEffect } from 'react'
 import type { User } from '@/lib/types'
-import { users as mockUsers } from '@/lib/data'
 
 type UserContextType = {
   currentUser: User | null
   setCurrentUser: (user: User | null) => void
   users: User[]
+  loading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const value = useMemo(() => ({
     currentUser,
     setCurrentUser,
-    users: mockUsers,
-  }), [currentUser]);
+    users,
+    loading,
+  }), [currentUser, users, loading]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
