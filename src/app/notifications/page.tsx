@@ -13,6 +13,7 @@ import { ArrowLeft } from 'lucide-react'
 import { FeaturedNotifications } from '@/components/featured-notifications'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { useToast } from '@/hooks/use-toast'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,6 +21,7 @@ export default function NotificationsPage() {
   const { currentUser } = useUser()
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -93,23 +95,55 @@ export default function NotificationsPage() {
 
 
   const handleLikeToggle = (notificationId: string) => {
-    setNotifications(prevNotifications => 
-      prevNotifications.map(b => {
+    const originalNotifications = [...notifications];
+    
+    const updatedNotifications = notifications.map(b => {
         if (b.id === notificationId) {
           const isLiked = b.likedBy.includes(currentUser.id)
-          const updatedNotification = {
+          return {
             ...b,
             likes: isLiked ? b.likes - 1 : b.likes + 1,
             likedBy: isLiked ? b.likedBy.filter(id => id !== currentUser.id) : [...b.likedBy, currentUser.id]
           };
-          if (selectedNotification && selectedNotification.id === notificationId) {
-            setSelectedNotification(updatedNotification);
-          }
-          return updatedNotification;
         }
         return b
-      })
-    )
+      });
+
+    setNotifications(updatedNotifications);
+     if (selectedNotification && selectedNotification.id === notificationId) {
+        setSelectedNotification(updatedNotifications.find(n => n.id === notificationId) || null);
+    }
+
+    fetch(`/api/notifications/${notificationId}/like`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: currentUser.id }),
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Failed to update like status");
+        }
+        return res.json();
+    })
+    .then(updatedNotificationFromServer => {
+        // Sync with server state
+        const finalNotifications = originalNotifications.map(n => n.id === updatedNotificationFromServer.id ? updatedNotificationFromServer : n);
+        setNotifications(finalNotifications);
+        if (selectedNotification && selectedNotification.id === updatedNotificationFromServer.id) {
+            setSelectedNotification(updatedNotificationFromServer);
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        setNotifications(originalNotifications); // Revert on error
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not update your like. Please try again.",
+        });
+    });
   }
 
   const handleDelete = (notificationId: string) => {
