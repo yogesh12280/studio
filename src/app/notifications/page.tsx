@@ -129,8 +129,9 @@ export default function NotificationsPage() {
     })
     .then(updatedNotificationFromServer => {
         // Sync with server state
-        const finalNotifications = originalNotifications.map(n => n.id === updatedNotificationFromServer.id ? updatedNotificationFromServer : n);
-        setNotifications(finalNotifications);
+        setNotifications(prev => 
+          prev.map(n => n.id === updatedNotificationFromServer.id ? updatedNotificationFromServer : n)
+        );
         if (selectedNotification && selectedNotification.id === updatedNotificationFromServer.id) {
             setSelectedNotification(updatedNotificationFromServer);
         }
@@ -154,66 +155,124 @@ export default function NotificationsPage() {
   }
   
   const handleAddComment = (notificationId: string, commentText: string) => {
-    setNotifications(prevNotifications =>
-      prevNotifications.map(b => {
-        if (b.id === notificationId) {
-          const newComment: Comment = {
-            id: `comment-${Date.now()}`,
-            user: {
-              name: currentUser.name,
-              avatarUrl: currentUser.avatarUrl,
-            },
-            text: commentText,
-            timestamp: new Date().toISOString(),
-            replies: [],
-          }
-          const updatedNotification = {
-            ...b,
-            comments: [...b.comments, newComment],
-          };
-          if (selectedNotification && selectedNotification.id === notificationId) {
-            setSelectedNotification(updatedNotification);
-          }
-          return updatedNotification;
-        }
-        return b
-      })
-    )
+    const tempId = `temp-comment-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: tempId,
+      user: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
+      text: commentText,
+      timestamp: new Date().toISOString(),
+      replies: [],
+    };
+
+    const updateUI = (updater: (prev: Notification[]) => Notification[]) => {
+      setNotifications(updater);
+      if (selectedNotification) {
+        setSelectedNotification(prev => prev ? {...prev, comments: updater([prev])[0].comments} : null);
+      }
+    };
+
+    updateUI(prev => prev.map(n => 
+      n.id === notificationId ? { ...n, comments: [...n.comments, optimisticComment] } : n
+    ));
+
+    fetch(`/api/notifications/${notificationId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commentText, user: currentUser }),
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to save comment');
+      return res.json();
+    })
+    .then(savedComment => {
+      updateUI(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, comments: n.comments.map(c => c.id === tempId ? savedComment : c) } : n
+      ));
+    })
+    .catch(error => {
+      console.error(error);
+      updateUI(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, comments: n.comments.filter(c => c.id !== tempId) } : n
+      ));
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not add your comment. Please try again.",
+      });
+    });
   }
   
   const handleAddReply = (notificationId: string, commentId: string, replyText: string) => {
-    const newNotifications = notifications.map(b => {
-      if (b.id === notificationId) {
-        const newReply: Comment = {
-          id: `reply-${Date.now()}`,
-          user: {
-            name: currentUser.name,
-            avatarUrl: currentUser.avatarUrl,
-          },
-          text: replyText,
-          timestamp: new Date().toISOString(),
-        };
+    const tempId = `temp-reply-${Date.now()}`;
+    const optimisticReply: Comment = {
+      id: tempId,
+      user: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
+      text: replyText,
+      timestamp: new Date().toISOString(),
+    };
 
-        const updatedComments = b.comments.map(c => {
-          if (c.id === commentId) {
-            return {
-              ...c,
-              replies: [...(c.replies || []), newReply],
-            };
-          }
-          return c;
-        });
-
-        const updatedNotification = { ...b, comments: updatedComments };
-        
-        if (selectedNotification && selectedNotification.id === notificationId) {
-            setSelectedNotification(updatedNotification);
-        }
-        return updatedNotification;
+    const updateUI = (updater: (prev: Notification[]) => Notification[]) => {
+      setNotifications(updater);
+      if (selectedNotification) {
+        const updatedSelected = updater([selectedNotification])[0];
+        setSelectedNotification(updatedSelected);
       }
-      return b;
+    };
+    
+    const originalNotifications = JSON.parse(JSON.stringify(notifications));
+
+    updateUI(prev => prev.map(n => {
+      if (n.id === notificationId) {
+        return {
+          ...n,
+          comments: n.comments.map(c => {
+            if (c.id === commentId) {
+              return { ...c, replies: [...(c.replies || []), optimisticReply] };
+            }
+            return c;
+          })
+        };
+      }
+      return n;
+    }));
+
+    fetch(`/api/notifications/${notificationId}/comments/${commentId}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ replyText, user: currentUser }),
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to save reply');
+      return res.json();
+    })
+    .then(savedReply => {
+      updateUI(prev => prev.map(n => {
+        if (n.id === notificationId) {
+          return {
+            ...n,
+            comments: n.comments.map(c => {
+              if (c.id === commentId) {
+                return { ...c, replies: (c.replies || []).map(r => r.id === tempId ? savedReply : r) };
+              }
+              return c;
+            })
+          };
+        }
+        return n;
+      }));
+    })
+    .catch(error => {
+      console.error(error);
+      setNotifications(originalNotifications);
+      if (selectedNotification) {
+        setSelectedNotification(originalNotifications.find((n: Notification) => n.id === selectedNotification.id) || null);
+      }
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not add your reply. Please try again.",
+      });
     });
-    setNotifications(newNotifications);
   };
 
   const handleSelectNotification = (notification: Notification) => {
