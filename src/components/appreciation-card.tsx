@@ -1,13 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Heart, ArrowRight } from 'lucide-react'
+import { Heart, ArrowRight, MoreVertical, Edit, Trash2 } from 'lucide-react'
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
 } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { Appreciation } from '@/lib/types'
@@ -18,9 +24,11 @@ import { cn } from '@/lib/utils'
 interface AppreciationCardProps {
   appreciation: Appreciation
   onLikeToggle: (appreciationId: string) => void
+  onEdit: () => void
+  onDelete: () => void
 }
 
-export function AppreciationCard({ appreciation, onLikeToggle }: AppreciationCardProps) {
+export function AppreciationCard({ appreciation, onLikeToggle, onEdit, onDelete }: AppreciationCardProps) {
   const { currentUser } = useUser()
   const [isClient, setIsClient] = useState(false)
 
@@ -31,10 +39,11 @@ export function AppreciationCard({ appreciation, onLikeToggle }: AppreciationCar
   if (!currentUser) return null;
 
   const isLiked = appreciation.likedBy.includes(currentUser.id)
+  const canModify = appreciation.fromUser.id === currentUser.id
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="p-4">
+      <CardHeader className="p-4 flex flex-row items-center justify-between">
         <div className="flex items-center justify-center gap-4">
           <div className="flex flex-col items-center text-center">
             <Avatar className="h-12 w-12 mb-2">
@@ -58,6 +67,28 @@ export function AppreciationCard({ appreciation, onLikeToggle }: AppreciationCar
             <p className="font-semibold text-sm">{appreciation.toUser.name}</p>
           </div>
         </div>
+         {canModify && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={onEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={onDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="bg-muted p-4 rounded-lg text-center">

@@ -25,17 +25,32 @@ import type { Appreciation, User } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { employees } from '@/lib/data'
 
-interface CreateAppreciationDialogProps {
+type CreateAppreciationDialogProps = {
   children: React.ReactNode;
+  mode: 'create';
   onSave: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateAppreciationDialog({ children, onSave, open: openProp, onOpenChange: onOpenChangeProp }: CreateAppreciationDialogProps) {
+type EditAppreciationDialogProps = {
+  mode: 'edit';
+  appreciationToEdit: Appreciation;
+  onSave: (appreciation: Appreciation) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+}
+
+type AppreciationDialogProps = CreateAppreciationDialogProps | EditAppreciationDialogProps;
+
+export function CreateAppreciationDialog(props: AppreciationDialogProps) {
+  const { mode } = props;
+  const isEditMode = mode === 'edit';
+
   const [internalOpen, setInternalOpen] = useState(false)
-  const open = openProp ?? internalOpen
-  const onOpenChange = onOpenChangeProp ?? setInternalOpen
+  const open = props.open ?? internalOpen
+  const onOpenChange = props.onOpenChange ?? setInternalOpen
 
   const { toast } = useToast()
   const { users, currentUser } = useUser()
@@ -47,13 +62,20 @@ export function CreateAppreciationDialog({ children, onSave, open: openProp, onO
   // Form state
   const [toUserId, setToUserId] = useState<string>('')
   const [message, setMessage] = useState('')
+  
+  const appreciationToEdit = isEditMode ? props.appreciationToEdit : undefined;
 
   useEffect(() => {
     if (open) {
-      setToUserId('')
-      setMessage('')
+      if (isEditMode && appreciationToEdit) {
+        setToUserId(appreciationToEdit.toUser.id);
+        setMessage(appreciationToEdit.message);
+      } else {
+        setToUserId('')
+        setMessage('')
+      }
     }
-  }, [open])
+  }, [open, isEditMode, appreciationToEdit])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,31 +99,51 @@ export function CreateAppreciationDialog({ children, onSave, open: openProp, onO
         return
     }
 
-    onSave({
-      toUser: {
-        id: toUser.id,
-        name: toUser.name,
-        avatarUrl: toUser.avatarUrl,
-      },
-      message,
-    })
-
-    toast({
-      title: 'Appreciation Sent!',
-      description: 'Your message has been shared with the team.',
-    })
+    if (isEditMode && appreciationToEdit) {
+      const updatedAppreciation: Appreciation = {
+        ...appreciationToEdit,
+        toUser: {
+          id: toUser.id,
+          name: toUser.name,
+          avatarUrl: toUser.avatarUrl,
+        },
+        message,
+      };
+      (props.onSave as (appreciation: Appreciation) => void)(updatedAppreciation);
+      toast({
+        title: 'Appreciation Updated!',
+        description: 'Your message has been successfully updated.',
+      })
+    } else {
+      (props.onSave as (appreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void)({
+        toUser: {
+          id: toUser.id,
+          name: toUser.name,
+          avatarUrl: toUser.avatarUrl,
+        },
+        message,
+      })
+      toast({
+        title: 'Appreciation Sent!',
+        description: 'Your message has been shared with the team.',
+      })
+    }
 
     onOpenChange(false)
   }
+  
+  const dialogTitle = isEditMode ? 'Edit Appreciation' : 'Send Appreciation';
+  const dialogDescription = isEditMode ? 'Make changes to your message of appreciation.' : 'Recognize a colleague for their hard work and positive impact.';
+  const buttonText = isEditMode ? 'Save Changes' : 'Send Appreciation';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Send Appreciation</DialogTitle>
+          <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Recognize a colleague for their hard work and positive impact.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -138,7 +180,7 @@ export function CreateAppreciationDialog({ children, onSave, open: openProp, onO
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Send Appreciation</Button>
+            <Button type="submit">{buttonText}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

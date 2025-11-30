@@ -83,7 +83,7 @@ export function AppHeader({
           </CreatePollDialog>
         )}
         {title === 'Appreciation' && onAddAppreciation && (
-            <CreateAppreciationDialog onSave={onAddAppreciation}>
+            <CreateAppreciationDialog onSave={onAddAppreciation} mode="create">
                 <Button size="sm" className="gap-1">
                 <PlusCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Send Appreciation</span>

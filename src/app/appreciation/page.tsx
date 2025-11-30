@@ -11,11 +11,16 @@ import { AppreciationCard } from '@/components/appreciation-card'
 import { PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateAppreciationDialog } from '@/components/create-appreciation-dialog'
+import { DeleteAppreciationDialog } from '@/components/delete-appreciation-dialog'
 
 export default function AppreciationPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { currentUser } = useUser()
   const [appreciations, setAppreciations] = useState<Appreciation[]>(initialAppreciations)
+  const [appreciationToEdit, setAppreciationToEdit] = useState<Appreciation | null>(null)
+  const [appreciationToDelete, setAppreciationToDelete] = useState<Appreciation | null>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
   if (!currentUser) return null;
 
@@ -34,6 +39,18 @@ export default function AppreciationPage() {
     }
     setAppreciations(prev => [newAppreciation, ...prev])
   }
+  
+  const handleEditAppreciation = (updatedAppreciation: Appreciation) => {
+    setAppreciations(prev => prev.map(a => a.id === updatedAppreciation.id ? updatedAppreciation : a));
+    setAppreciationToEdit(null);
+    setIsEditOpen(false);
+  }
+
+  const handleDeleteAppreciation = (appreciationId: string) => {
+    setAppreciations(prev => prev.filter(a => a.id !== appreciationId));
+    setAppreciationToDelete(null);
+    setIsDeleteOpen(false);
+  }
 
   const handleLikeToggle = (appreciationId: string) => {
     setAppreciations(prevAppreciations =>
@@ -49,6 +66,16 @@ export default function AppreciationPage() {
         return a
       })
     )
+  }
+  
+  const openEditDialog = (appreciation: Appreciation) => {
+    setAppreciationToEdit(appreciation);
+    setIsEditOpen(true);
+  }
+
+  const openDeleteDialog = (appreciation: Appreciation) => {
+    setAppreciationToDelete(appreciation);
+    setIsDeleteOpen(true);
   }
 
   const filteredAppreciations = useMemo(() => {
@@ -80,6 +107,8 @@ export default function AppreciationPage() {
                     key={appreciation.id}
                     appreciation={appreciation}
                     onLikeToggle={handleLikeToggle}
+                    onEdit={() => openEditDialog(appreciation)}
+                    onDelete={() => openDeleteDialog(appreciation)}
                 />
             ))}
             {filteredAppreciations.length === 0 && (
@@ -88,6 +117,23 @@ export default function AppreciationPage() {
                 </div>
             )}
         </main>
+        {appreciationToEdit && (
+          <CreateAppreciationDialog
+            mode="edit"
+            appreciationToEdit={appreciationToEdit}
+            onSave={handleEditAppreciation}
+            open={isEditOpen}
+            onOpenChange={setIsEditOpen}
+          />
+        )}
+        {appreciationToDelete && (
+          <DeleteAppreciationDialog
+            open={isDeleteOpen}
+            onOpenChange={setIsDeleteOpen}
+            onConfirm={() => handleDeleteAppreciation(appreciationToDelete.id)}
+            appreciation={appreciationToDelete}
+          />
+        )}
       </div>
     </SidebarProvider>
   )
