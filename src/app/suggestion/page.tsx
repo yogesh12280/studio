@@ -181,14 +181,12 @@ export default function SuggestionPage() {
                 <>
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold font-headline">Suggestion Box</h2>
-                        {currentUser.role === 'Employee' && (
-                            <CreateSuggestionDialog mode="create" onSuggestionSubmit={handleAddSuggestion}>
-                                <Button>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Add Suggestion
-                                </Button>
-                            </CreateSuggestionDialog>
-                        )}
+                        <CreateSuggestionDialog mode="create" onSuggestionSubmit={handleAddSuggestion}>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Suggestion
+                            </Button>
+                        </CreateSuggestionDialog>
                     </div>
                     <SuggestionList 
                         suggestions={filteredSuggestions} 
