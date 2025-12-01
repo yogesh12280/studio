@@ -18,6 +18,9 @@ export default function SuggestionPage() {
   const { currentUser } = useUser()
   const [suggestions, setSuggestions] = useState<Suggestion[]>(initialSuggestions)
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const [suggestionToEdit, setSuggestionToEdit] = useState<Suggestion | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
 
   if (!currentUser) return null;
 
@@ -34,6 +37,15 @@ export default function SuggestionPage() {
       ...newSuggestionData,
     }
     setSuggestions(prev => [newSuggestion, ...prev])
+  }
+  
+  const handleEditSuggestion = (updatedSuggestion: Suggestion) => {
+    setSuggestions(prev => prev.map(s => (s.id === updatedSuggestion.id ? updatedSuggestion : s)));
+    if (selectedSuggestion?.id === updatedSuggestion.id) {
+        setSelectedSuggestion(updatedSuggestion);
+    }
+    setSuggestionToEdit(null);
+    setIsEditOpen(false);
   }
 
   const handleUpvoteToggle = (suggestionId: string) => {
@@ -121,6 +133,11 @@ export default function SuggestionPage() {
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
   };
+  
+  const openEditDialog = (suggestion: Suggestion) => {
+    setSuggestionToEdit(suggestion);
+    setIsEditOpen(true);
+  }
 
   const handleBackToList = () => {
     setSelectedSuggestion(null);
@@ -156,6 +173,7 @@ export default function SuggestionPage() {
                         onUpvoteToggle={handleUpvoteToggle}
                         onAddComment={handleAddComment}
                         onAddReply={handleAddReply}
+                        onEdit={() => openEditDialog(selectedSuggestion)}
                         currentUser={currentUser}
                     />
                 </div>
@@ -164,7 +182,7 @@ export default function SuggestionPage() {
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold font-headline">Suggestion Box</h2>
                         {currentUser.role === 'Employee' && (
-                            <CreateSuggestionDialog onSuggestionSubmit={handleAddSuggestion}>
+                            <CreateSuggestionDialog mode="create" onSuggestionSubmit={handleAddSuggestion}>
                                 <Button>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Add Suggestion
@@ -181,6 +199,15 @@ export default function SuggestionPage() {
                 </>
             )}
         </main>
+        {suggestionToEdit && (
+            <CreateSuggestionDialog
+                mode="edit"
+                suggestionToEdit={suggestionToEdit}
+                onSuggestionSubmit={handleEditSuggestion}
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+            />
+        )}
       </div>
     </SidebarProvider>
   )

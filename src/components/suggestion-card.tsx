@@ -1,13 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ThumbsUp, Send, MessageSquare, Smile } from 'lucide-react'
+import { ThumbsUp, Send, MessageSquare, Smile, MoreVertical, Edit } from 'lucide-react'
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
 } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Separator } from './ui/separator'
@@ -18,6 +24,7 @@ import type { Suggestion, User, Comment } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { employees } from '@/lib/data'
 
 interface ReplyInputProps {
   commentId: string;
@@ -141,13 +148,17 @@ interface SuggestionCardProps {
   onUpvoteToggle: (suggestionId: string) => void
   onAddComment: (suggestionId: string, commentText: string) => void
   onAddReply: (suggestionId: string, commentId: string, replyText: string) => void
-  currentUser: User | null;
+  onEdit: () => void;
+  currentUser: User;
 }
 
-export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, currentUser }: SuggestionCardProps) {
+export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, onEdit, currentUser }: SuggestionCardProps) {
   const [isClient, setIsClient] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [upvotePopoverOpen, setUpvotePopoverOpen] = useState(false);
+  const { users } = useUser();
+
 
   if (!currentUser) return null;
 
@@ -161,6 +172,12 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
   }, [])
   
   const isUpvoted = suggestion.upvotedBy.includes(currentUser.id)
+  const canModify = suggestion.employeeId === currentUser.id;
+
+  const allUsers = [...users, ...employees];
+  const upvoters = suggestion.upvotedBy
+    .map(userId => allUsers.find(u => u.id === userId))
+    .filter((u): u is User => !!u);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,6 +211,21 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
             </p>
           </div>
         </div>
+        {canModify && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={onEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <h2 className="text-xl font-bold font-headline mb-2">{suggestion.title}</h2>
@@ -203,15 +235,39 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
       </CardContent>
       <Separator />
       <CardFooter className="p-2">
-        <Button 
-            variant={isUpvoted ? 'default' : 'ghost'} 
-            size="sm" 
-            onClick={() => onUpvoteToggle(suggestion.id)}
-            className="flex-1"
-        >
-            <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-current")} />
-            <span>Upvote ({suggestion.upvotes})</span>
-        </Button>
+        <Popover open={upvotePopoverOpen} onOpenChange={setUpvotePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={isUpvoted ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onUpvoteToggle(suggestion.id)}
+              onMouseEnter={() => setUpvotePopoverOpen(true)}
+              onMouseLeave={() => setUpvotePopoverOpen(false)}
+              className="flex-1"
+            >
+              <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && 'fill-current')} />
+              <span>Upvote ({suggestion.upvotes})</span>
+            </Button>
+          </PopoverTrigger>
+          {upvoters.length > 0 && (
+            <PopoverContent className="w-auto max-w-xs">
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold text-sm">Upvoted by</p>
+                <div className="flex flex-wrap gap-2">
+                  {upvoters.map(user => (
+                    <div key={user.id} className="flex items-center gap-2 text-xs">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>{user.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          )}
+        </Popover>
       </CardFooter>
       
         <>

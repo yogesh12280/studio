@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -17,16 +17,51 @@ import { Textarea } from './ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import type { Suggestion } from '@/lib/types'
 
-interface CreateSuggestionDialogProps {
-  children: React.ReactNode
-  onSuggestionSubmit: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void
+type CreateSuggestionDialogProps = {
+  children: React.ReactNode;
+  mode: 'create';
+  onSuggestionSubmit: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateSuggestionDialog({ children, onSuggestionSubmit }: CreateSuggestionDialogProps) {
-  const [open, setOpen] = useState(false)
+type EditSuggestionDialogProps = {
+  mode: 'edit';
+  suggestionToEdit: Suggestion;
+  onSuggestionSubmit: (suggestion: Suggestion) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+}
+
+type SuggestionDialogProps = CreateSuggestionDialogProps | EditSuggestionDialogProps;
+
+
+export function CreateSuggestionDialog(props: SuggestionDialogProps) {
+  const { mode } = props;
+  const isEditMode = mode === 'edit';
+
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = props.open ?? internalOpen
+  const onOpenChange = props.onOpenChange ?? setInternalOpen
+
   const { toast } = useToast()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+
+  const suggestionToEdit = isEditMode ? props.suggestionToEdit : undefined;
+
+  useEffect(() => {
+    if (open) {
+        if (isEditMode && suggestionToEdit) {
+            setTitle(suggestionToEdit.title);
+            setDescription(suggestionToEdit.description);
+        } else {
+            setTitle('');
+            setDescription('');
+        }
+    }
+  }, [open, isEditMode, suggestionToEdit]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,29 +75,45 @@ export function CreateSuggestionDialog({ children, onSuggestionSubmit }: CreateS
         return
     }
     
-    onSuggestionSubmit({
-      title,
-      description,
-    })
-
-    toast({
-      title: 'Suggestion Submitted!',
-      description: 'Thank you for your feedback.',
-    })
+    if (isEditMode && suggestionToEdit) {
+        const updatedSuggestion: Suggestion = {
+            ...suggestionToEdit,
+            title,
+            description,
+        };
+        (props.onSuggestionSubmit as (suggestion: Suggestion) => void)(updatedSuggestion);
+        toast({
+            title: 'Suggestion Updated!',
+            description: 'Your suggestion has been successfully updated.',
+        });
+    } else {
+        (props.onSuggestionSubmit as (suggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void)({
+          title,
+          description,
+        })
+        toast({
+          title: 'Suggestion Submitted!',
+          description: 'Thank you for your feedback.',
+        })
+    }
     
     setTitle('')
     setDescription('')
-    setOpen(false)
+    onOpenChange(false)
   }
+  
+  const dialogTitle = isEditMode ? 'Edit Suggestion' : 'Submit a Suggestion';
+  const dialogDescription = isEditMode ? 'Make changes to your suggestion.' : 'Have an idea to improve our workplace? Share it with us!';
+  const buttonText = isEditMode ? 'Save Changes' : 'Submit Suggestion';
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Submit a Suggestion</DialogTitle>
+          <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Have an idea to improve our workplace? Share it with us!
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -95,7 +146,7 @@ export function CreateSuggestionDialog({ children, onSuggestionSubmit }: CreateS
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Submit Suggestion</Button>
+            <Button type="submit">{buttonText}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
