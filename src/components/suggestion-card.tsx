@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ThumbsUp, Send, MessageSquare, Smile, MoreVertical, Edit } from 'lucide-react'
+import { ThumbsUp, Send, MessageSquare, Smile, MoreVertical, Edit, Trash2 } from 'lucide-react'
 import {
   Card,
   CardHeader,
@@ -142,23 +142,22 @@ function CommentWithReplies({ comment, suggestionId, onAddReply, currentUser, is
   );
 }
 
-
 interface SuggestionCardProps {
   suggestion: Suggestion
   onUpvoteToggle: (suggestionId: string) => void
   onAddComment: (suggestionId: string, commentText: string) => void
   onAddReply: (suggestionId: string, commentId: string, replyText: string) => void
   onEdit: () => void;
+  onDelete: () => void;
   currentUser: User;
 }
 
-export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, onEdit, currentUser }: SuggestionCardProps) {
+export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAddReply, onEdit, onDelete, currentUser }: SuggestionCardProps) {
   const [isClient, setIsClient] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [upvotePopoverOpen, setUpvotePopoverOpen] = useState(false);
   const { users } = useUser();
-
 
   if (!currentUser) return null;
 
@@ -172,7 +171,9 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
   }, [])
   
   const isUpvoted = suggestion.upvotedBy.includes(currentUser.id)
-  const canModify = suggestion.employeeId === currentUser.id;
+  const isCreator = suggestion.employeeId === currentUser.id;
+  const isAdmin = currentUser.role === 'Admin';
+  const canModify = isCreator || isAdmin;
 
   const allUsers = [...users, ...employees];
   const upvoters = suggestion.upvotedBy
@@ -219,9 +220,18 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={onEdit}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Edit</span>
+              {isCreator && (
+                <DropdownMenuItem onSelect={onEdit}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  <span>Edit</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={onDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

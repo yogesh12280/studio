@@ -12,6 +12,7 @@ import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 import { Button } from '@/components/ui/button'
 import { PlusCircle, ArrowLeft } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
+import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -19,8 +20,9 @@ export default function SuggestionPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>(initialSuggestions)
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
   const [suggestionToEdit, setSuggestionToEdit] = useState<Suggestion | null>(null);
+  const [suggestionToDelete, setSuggestionToDelete] = useState<Suggestion | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
-
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   if (!currentUser) return null;
 
@@ -46,6 +48,15 @@ export default function SuggestionPage() {
     }
     setSuggestionToEdit(null);
     setIsEditOpen(false);
+  }
+
+  const handleDeleteSuggestion = (suggestionId: string) => {
+    setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+    setSuggestionToDelete(null);
+    setIsDeleteOpen(false);
+    if (selectedSuggestion?.id === suggestionId) {
+        setSelectedSuggestion(null);
+    }
   }
 
   const handleUpvoteToggle = (suggestionId: string) => {
@@ -129,7 +140,6 @@ export default function SuggestionPage() {
     setSuggestions(newSuggestions);
   };
 
-
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     setSelectedSuggestion(suggestion);
   };
@@ -139,10 +149,14 @@ export default function SuggestionPage() {
     setIsEditOpen(true);
   }
 
+  const openDeleteDialog = (suggestion: Suggestion) => {
+    setSuggestionToDelete(suggestion);
+    setIsDeleteOpen(true);
+  }
+
   const handleBackToList = () => {
     setSelectedSuggestion(null);
   };
-
 
   const filteredSuggestions = useMemo(() => {
     return suggestions.filter(suggestion => 
@@ -174,6 +188,7 @@ export default function SuggestionPage() {
                         onAddComment={handleAddComment}
                         onAddReply={handleAddReply}
                         onEdit={() => openEditDialog(selectedSuggestion)}
+                        onDelete={() => openDeleteDialog(selectedSuggestion)}
                         currentUser={currentUser}
                     />
                 </div>
@@ -205,6 +220,14 @@ export default function SuggestionPage() {
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
             />
+        )}
+        {suggestionToDelete && (
+          <DeleteSuggestionDialog
+            open={isDeleteOpen}
+            onOpenChange={setIsDeleteOpen}
+            onConfirm={() => handleDeleteSuggestion(suggestionToDelete.id)}
+            suggestion={suggestionToDelete}
+          />
         )}
       </div>
     </SidebarProvider>
