@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -58,8 +59,11 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
       setOptions(['', ''])
       setCategory(undefined)
       setEndDate(undefined)
+       if (currentUser?.role === 'Employee') {
+        setCategory('Employee')
+      }
     }
-  }, [open])
+  }, [open, currentUser])
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
@@ -111,6 +115,8 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
     onOpenChange(false)
   }
   
+  if (!currentUser) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
@@ -156,21 +162,26 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
                     </Button>
                 </div>
               </div>
+              
+              {currentUser.role === 'Admin' ? (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    Category
+                  </Label>
+                  <Select required value={category} onValueChange={(value: 'Organization' | 'Employee') => setCategory(value)}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Organization">Organization</SelectItem>
+                      <SelectItem value="Employee">Employee</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <Input type="hidden" value="Employee" name="category" />
+              )}
 
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Category
-                </Label>
-                <Select required value={category} onValueChange={(value: 'Organization' | 'Employee') => setCategory(value)}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Organization">Organization</SelectItem>
-                    <SelectItem value="Employee">Employee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="end-date" className="text-right">
