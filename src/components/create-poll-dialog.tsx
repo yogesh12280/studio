@@ -29,17 +29,32 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
-import type { Poll } from '@/lib/types'
+import type { Poll, PollOption } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
 
 type CreatePollDialogProps = {
-    children: React.ReactNode;
-    onSave: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
+  mode?: 'create';
+  onSave: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
 }
 
-export function CreatePollDialog(props: CreatePollDialogProps) {
+type EditPollDialogProps = {
+  mode: 'edit';
+  pollToEdit: Poll;
+  onSave: (poll: Poll) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
+}
+
+type PollDialogProps = CreatePollDialogProps | EditPollDialogProps;
+
+export function CreatePollDialog(props: PollDialogProps) {
+  const { mode = 'create' } = props;
+  const isEditMode = mode === 'edit';
+
   const [internalOpen, setInternalOpen] = useState(false);
   const open = props.open ?? internalOpen;
   const onOpenChange = props.onOpenChange ?? setInternalOpen;
@@ -49,30 +64,36 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
 
   // Form state
   const [question, setQuestion] = useState('')
-  const [options, setOptions] = useState(['', ''])
+  const [options, setOptions] = useState<Array<{id?: string, text: string}>>([{text: ''}, {text: ''}]);
   const [category, setCategory] = useState<'Organization' | 'Employee' | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
   
+  const pollToEdit = isEditMode ? props.pollToEdit : undefined;
+
   useEffect(() => {
     if (open) {
-      setQuestion('')
-      setOptions(['', ''])
-      setCategory(undefined)
-      setEndDate(undefined)
-       if (currentUser?.role === 'Employee') {
-        setCategory('Employee')
+      if (isEditMode && pollToEdit) {
+        setQuestion(pollToEdit.question);
+        setOptions(pollToEdit.options.map(opt => ({ id: opt.id, text: opt.text })));
+        setCategory(pollToEdit.category);
+        setEndDate(pollToEdit.endDate ? new Date(pollToEdit.endDate) : undefined);
+      } else {
+        setQuestion('');
+        setOptions([{text: ''}, {text: ''}]);
+        setCategory(currentUser?.role === 'Employee' ? 'Employee' : undefined);
+        setEndDate(undefined);
       }
     }
-  }, [open, currentUser])
+  }, [open, isEditMode, pollToEdit, currentUser]);
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
-    newOptions[index] = value;
+    newOptions[index].text = value;
     setOptions(newOptions);
   }
 
   const addOption = () => {
-    setOptions([...options, '']);
+    setOptions([...options, { text: '' }]);
   }
   
   const removeOption = (index: number) => {
@@ -90,7 +111,7 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!question || !category || options.some(opt => !opt.trim())) {
+    if (!question || !category || options.some(opt => !opt.text.trim())) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
@@ -99,32 +120,54 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
         return
     }
 
-    const newPollData = {
-        question,
-        options: options.map((opt, i) => ({ id: `opt-${Date.now()}-${i}`, text: opt, votes: 0 })),
-        category,
-        endDate: endDate?.toISOString(),
-    };
-    props.onSave(newPollData);
-
-    toast({
-      title: 'Poll Created!',
-      description: 'Your poll has been successfully created and is now live.',
-    })
+    if (isEditMode && pollToEdit) {
+        const updatedPoll: Poll = {
+            ...pollToEdit,
+            question,
+            options: options.map((opt, i) => ({
+                id: opt.id || `opt-${pollToEdit.id}-${i}`,
+                text: opt.text,
+                votes: pollToEdit.options.find(o => o.id === opt.id)?.votes ?? 0,
+            })),
+            category,
+            endDate: endDate?.toISOString(),
+        };
+        (props.onSave as (poll: Poll) => void)(updatedPoll);
+        toast({
+            title: 'Poll Updated!',
+            description: 'Your poll has been successfully updated.',
+        });
+    } else {
+        const newPollData = {
+            question,
+            options: options.map((opt, i) => ({ id: `opt-${Date.now()}-${i}`, text: opt.text, votes: 0 })),
+            category,
+            endDate: endDate?.toISOString(),
+        };
+        (props.onSave as (poll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void)(newPollData);
+        toast({
+          title: 'Poll Created!',
+          description: 'Your poll has been successfully created and is now live.',
+        });
+    }
 
     onOpenChange(false)
   }
   
   if (!currentUser) return null;
 
+  const dialogTitle = isEditMode ? 'Edit Poll' : 'Create a New Poll';
+  const dialogDescription = isEditMode ? 'Make changes to your poll.' : 'Gather feedback and opinions from your organization with a new poll.';
+  const buttonText = isEditMode ? 'Save Changes' : 'Create Poll';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{props.children}</DialogTrigger>
+      {!isEditMode && props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[625px] grid-rows-[auto,1fr,auto] max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Create a New Poll</DialogTitle>
+          <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Gather feedback and opinions from your organization with a new poll.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid-rows-[1fr,auto] grid gap-4 overflow-hidden">
@@ -146,7 +189,7 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
                         <div key={index} className="flex items-center gap-2">
                             <Input
                                 type="text"
-                                value={option}
+                                value={option.text}
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
                                 placeholder={`Option ${index + 1}`}
                                 required
@@ -213,7 +256,7 @@ export function CreatePollDialog(props: CreatePollDialogProps) {
             </div>
           </ScrollArea>
           <DialogFooter className="pt-4 border-t">
-            <Button type="submit">Create Poll</Button>
+            <Button type="submit">{buttonText}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

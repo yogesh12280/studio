@@ -17,16 +17,24 @@ import { formatDistanceToNow, format } from 'date-fns';
 import type { Poll, User } from '@/lib/types';
 import { useUser } from '@/contexts/user-context';
 import { cn } from '@/lib/utils';
-import { Users, CalendarOff } from 'lucide-react';
+import { Users, CalendarOff, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { employees } from '@/lib/data';
 
 interface PollCardProps {
   poll: Poll;
   onVote: (pollId: string, optionId: string) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function PollCard({ poll, onVote }: PollCardProps) {
+export function PollCard({ poll, onVote, onEdit, onDelete }: PollCardProps) {
   const { currentUser, users } = useUser();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -54,6 +62,11 @@ export function PollCard({ poll, onVote }: PollCardProps) {
   const now = new Date();
   const endDate = poll.endDate ? new Date(poll.endDate) : undefined;
   const isExpired = endDate && endDate < now;
+  
+  const isCreator = poll.author.name === currentUser.name; // This is a simplification. In a real app, you'd use author IDs.
+  const isAdmin = currentUser.role === 'Admin';
+  const canDelete = isCreator || isAdmin;
+  const canEdit = isCreator;
 
   const handleVote = () => {
     if (selectedOption) {
@@ -87,9 +100,37 @@ export function PollCard({ poll, onVote }: PollCardProps) {
             {isClient ? <time dateTime={createdAtDate.toISOString()}>{formattedCreatedAt}</time> : <span>&nbsp;</span>}
           </p>
         </div>
-        <Badge variant={poll.category === 'Organization' ? 'default' : 'secondary'}>
-          {poll.category}
-        </Badge>
+        <div className="flex items-center gap-2">
+            <Badge variant={poll.category === 'Organization' ? 'default' : 'secondary'}>
+            {poll.category}
+            </Badge>
+            {(canEdit || canDelete) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <DropdownMenuItem onSelect={onEdit}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={onDelete}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+        </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <h3 className="text-lg font-bold mb-4">{poll.question}</h3>

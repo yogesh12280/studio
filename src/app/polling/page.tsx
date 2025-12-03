@@ -11,12 +11,18 @@ import type { Poll } from '@/lib/types';
 import { PollCard } from '@/components/poll-card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { CreatePollDialog } from '@/components/create-poll-dialog';
+import { DeletePollDialog } from '@/components/delete-poll-dialog';
 
 export default function PollingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [polls, setPolls] = useState<Poll[]>(initialPolls);
   const { currentUser } = useUser();
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
+  const [pollToEdit, setPollToEdit] = useState<Poll | null>(null);
+  const [pollToDelete, setPollToDelete] = useState<Poll | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   if (!currentUser) return null;
 
@@ -33,6 +39,24 @@ export default function PollingPage() {
     };
     setPolls((prev) => [newPoll, ...prev]);
   };
+  
+  const handleEditPoll = (updatedPoll: Poll) => {
+    setPolls(prev => prev.map(p => p.id === updatedPoll.id ? updatedPoll : p));
+    if (selectedPoll?.id === updatedPoll.id) {
+        setSelectedPoll(updatedPoll);
+    }
+    setPollToEdit(null);
+    setIsEditOpen(false);
+  }
+  
+  const handleDeletePoll = (pollId: string) => {
+    setPolls(prev => prev.filter(p => p.id !== pollId));
+    if (selectedPoll?.id === pollId) {
+        setSelectedPoll(null);
+    }
+    setPollToDelete(null);
+    setIsDeleteOpen(false);
+  }
 
   const handleVote = (pollId: string, optionId: string) => {
     setPolls((prevPolls) =>
@@ -59,6 +83,16 @@ export default function PollingPage() {
       })
     );
   };
+  
+  const openEditDialog = (poll: Poll) => {
+    setPollToEdit(poll);
+    setIsEditOpen(true);
+  }
+
+  const openDeleteDialog = (poll: Poll) => {
+    setPollToDelete(poll);
+    setIsDeleteOpen(true);
+  }
   
   const handleSelectPoll = (poll: Poll) => {
     setSelectedPoll(poll);
@@ -98,12 +132,31 @@ export default function PollingPage() {
               <PollCard 
                 poll={selectedPoll}
                 onVote={handleVote}
+                onEdit={() => openEditDialog(selectedPoll)}
+                onDelete={() => openDeleteDialog(selectedPoll)}
               />
             </div>
           ) : (
             <PollFeed polls={filteredPolls} onSelectPoll={handleSelectPoll} />
           )}
         </main>
+        {pollToEdit && (
+            <CreatePollDialog
+                mode="edit"
+                pollToEdit={pollToEdit}
+                onSave={handleEditPoll}
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+            />
+        )}
+        {pollToDelete && (
+          <DeletePollDialog
+            open={isDeleteOpen}
+            onOpenChange={setIsDeleteOpen}
+            onConfirm={() => handleDeletePoll(pollToDelete.id)}
+            poll={pollToDelete}
+          />
+        )}
       </div>
     </SidebarProvider>
   );
