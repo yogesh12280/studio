@@ -74,7 +74,7 @@ export function AppHeader({
             </Button>
           </CreateNotificationDialog>
         )}
-        {title === 'Polling' && onAddPoll && currentUser.role === 'Admin' && (
+        {title === 'Polling' && onAddPoll && (
           <CreatePollDialog onSave={onAddPoll}>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
