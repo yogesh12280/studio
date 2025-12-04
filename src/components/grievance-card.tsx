@@ -222,7 +222,7 @@ export function GrievanceCard({ grievance, onAddComment, onAddReply, getStatusVa
             <Input
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a reply..."
+              placeholder="Add to the conversation..."
               className="flex-1 h-9"
             />
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -243,3 +243,5 @@ export function GrievanceCard({ grievance, onAddComment, onAddReply, getStatusVa
     </Card>
   )
 }
+
+    

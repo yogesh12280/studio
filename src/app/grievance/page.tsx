@@ -271,28 +271,32 @@ export default function GrievancePage() {
       parentId: commentId,
       replies: [],
     };
-    
+
     const originalGrievances = JSON.parse(JSON.stringify(grievances));
 
-    const updateUI = (updater: (prev: Grievance[]) => Grievance[]) => {
-        setGrievances(updater);
-        if (selectedGrievance?.id === grievanceId) {
-            setSelectedGrievance(prev => prev ? {...updater([prev])[0]} : null);
-        }
+    const updateUI = (grievance: Grievance) => {
+      const newGrievances = grievances.map(g => g.id === grievance.id ? grievance : g);
+      setGrievances(newGrievances);
+      if(selectedGrievance?.id === grievance.id) {
+        setSelectedGrievance(grievance);
+      }
     };
 
-    updateUI(prev => prev.map(g => {
-        if (g.id === grievanceId) {
-            const comments = (g.comments || []).map(c => {
-                if (c.id === commentId) {
-                    return { ...c, replies: [...(c.replies || []), optimisticReply] };
-                }
-                return c;
-            });
-            return { ...g, comments };
+    const grievanceToUpdate = grievances.find(g => g.id === grievanceId);
+    if (!grievanceToUpdate) return;
+    
+    const updatedGrievance = {
+      ...grievanceToUpdate,
+      comments: (grievanceToUpdate.comments || []).map(c => {
+        if (c.id === commentId) {
+          return { ...c, replies: [...(c.replies || []), optimisticReply] };
         }
-        return g;
-    }));
+        // This is for nested replies, but we'll stick to one level for now.
+        // if (c.replies) { ... }
+        return c;
+      })
+    };
+    updateUI(updatedGrievance);
 
     try {
         const response = await fetch(`/api/grievances/${grievanceId}/comments/${commentId}/replies`, {
@@ -302,8 +306,10 @@ export default function GrievancePage() {
         });
         if (!response.ok) throw new Error('Failed to add reply');
         const updatedGrievanceFromServer = await response.json();
-
-        setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
+        
+        // This replaces the entire grievance with the server version, which now contains the real reply
+        const newGrievances = grievances.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g);
+        setGrievances(newGrievances);
         if (selectedGrievance?.id === grievanceId) {
             setSelectedGrievance(updatedGrievanceFromServer);
         }

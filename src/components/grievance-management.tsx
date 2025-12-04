@@ -352,7 +352,7 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
                           <Input
                             value={newComment[grievance.id] || ''}
                             onChange={(e) => setNewComment(prev => ({...prev, [grievance.id]: e.target.value}))}
-                            placeholder="Write a reply..."
+                            placeholder="Add to the conversation..."
                             className="flex-1 h-9 bg-background"
                           />
                           <Popover open={showEmojiPicker[grievance.id]} onOpenChange={(isOpen) => setShowEmojiPicker(prev => ({...prev, [grievance.id]: isOpen}))}>
@@ -388,3 +388,5 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
     </div>
   )
 }
+
+    
