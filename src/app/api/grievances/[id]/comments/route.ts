@@ -29,11 +29,16 @@ export async function POST(
   const newComment: GrievanceComment = {
     id: `g-comment-${Date.now()}`,
     text: commentText,
+    user: {
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+    },
     author: {
         name: user.name,
         avatarUrl: user.avatarUrl,
     },
     createdAt: new Date().toISOString(),
+    replies: [],
   };
 
   if (!grievances[grievanceIndex].comments) {

@@ -24,33 +24,15 @@ export type Comment = {
   replies?: Comment[];
 }
 
-export type Notification = {
-  id: string;
-  author: Pick<User, 'name' | 'avatarUrl'>;
-  category: 'Organization' | 'Employee';
-  title: string;
-  content: string;
-  imageUrl?: string;
-  link?: {
-    url: string,
-    text: string
-  };
-  likes: number;
-  likedBy: string[];
-  viewers: number;
-  viewedBy: string[];
-  comments: Comment[];
-  createdAt: string;
-  scheduledFor?: string;
-  endDate?: string;
-};
-
 export type GrievanceComment = {
   id: string;
   text: string;
-  author: Pick<User, 'name' | 'avatarUrl'>;
+  user: Pick<User, 'name' | 'avatarUrl'>;
+  author: Pick<User, 'name' | 'avatarUrl'>; // for backwards compatibility
   createdAt: string;
   status?: Grievance['status'];
+  parentId?: string;
+  replies?: GrievanceComment[];
 }
 
 export type Grievance = {

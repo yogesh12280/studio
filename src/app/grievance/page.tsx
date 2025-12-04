@@ -162,12 +162,14 @@ export default function GrievancePage() {
     
     updateUI(prev => prev.map(g => {
         if (g.id === grievanceId) {
-          const newCommentEntry = comment ? {
+          const newCommentEntry: GrievanceComment | undefined = comment ? {
             id: `g-comment-temp-${Date.now()}`,
             text: comment,
+            user: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
             author: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
             createdAt: new Date().toISOString(),
             status: newStatus,
+            replies: [],
           } : undefined;
           return {
             ...g,
@@ -212,8 +214,10 @@ export default function GrievancePage() {
     const optimisticComment: GrievanceComment = {
       id: `g-comment-temp-${Date.now()}`,
       text: commentText,
+      user: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
       author: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
       createdAt: new Date().toISOString(),
+      replies: [],
     };
     
     const originalGrievances = JSON.parse(JSON.stringify(grievances));
@@ -253,6 +257,66 @@ export default function GrievancePage() {
             variant: "destructive",
             title: "Error",
             description: "Could not add comment. Please try again.",
+        });
+    }
+  };
+
+  const handleAddReply = async (grievanceId: string, commentId: string, replyText: string) => {
+    const optimisticReply: GrievanceComment = {
+      id: `g-reply-temp-${Date.now()}`,
+      text: replyText,
+      user: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
+      author: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
+      createdAt: new Date().toISOString(),
+      parentId: commentId,
+      replies: [],
+    };
+    
+    const originalGrievances = JSON.parse(JSON.stringify(grievances));
+
+    const updateUI = (updater: (prev: Grievance[]) => Grievance[]) => {
+        setGrievances(updater);
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(prev => prev ? {...updater([prev])[0]} : null);
+        }
+    };
+
+    updateUI(prev => prev.map(g => {
+        if (g.id === grievanceId) {
+            const comments = (g.comments || []).map(c => {
+                if (c.id === commentId) {
+                    return { ...c, replies: [...(c.replies || []), optimisticReply] };
+                }
+                return c;
+            });
+            return { ...g, comments };
+        }
+        return g;
+    }));
+
+    try {
+        const response = await fetch(`/api/grievances/${grievanceId}/comments/${commentId}/replies`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ replyText, user: currentUser }),
+        });
+        if (!response.ok) throw new Error('Failed to add reply');
+        const updatedGrievanceFromServer = await response.json();
+
+        setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(updatedGrievanceFromServer);
+        }
+    } catch (error) {
+        console.error(error);
+        setGrievances(originalGrievances);
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(originalGrievances.find((g: Grievance) => g.id === grievanceId) || null);
+        }
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not add reply. Please try again.",
         });
     }
   };
@@ -368,6 +432,7 @@ export default function GrievancePage() {
                 <GrievanceCard 
                     grievance={selectedGrievance} 
                     onAddComment={handleAddComment}
+                    onAddReply={handleAddReply}
                     getStatusVariant={getBadgeVariant}
                 />
              </div>
@@ -410,6 +475,7 @@ export default function GrievancePage() {
               grievances={grievances}
               onStatusChange={handleStatusChange}
               onAddComment={handleAddComment}
+              onAddReply={handleAddReply}
             />
           ) : (
              renderEmployeeView()
