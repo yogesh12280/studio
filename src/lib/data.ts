@@ -1,4 +1,3 @@
-
 import type { User, Employee, Notification, Grievance, Poll, Suggestion, Appreciation } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -73,7 +72,7 @@ export const initialNotifications: Notification[] = [
   },
 ];
 
-export const initialGrievances: Grievance[] = [
+export let grievances: Grievance[] = [
   {
     id: 'grievance-1',
     employeeId: 'user-2',
@@ -125,6 +124,7 @@ export const initialGrievances: Grievance[] = [
     ],
   },
 ];
+export const initialGrievances = grievances;
 
 export const initialPolls: Poll[] = [
   {

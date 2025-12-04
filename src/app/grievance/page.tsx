@@ -7,8 +7,7 @@ import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { GrievanceManagement } from '@/components/grievance-management'
 import { EmployeeGrievanceView } from '@/components/employee-grievance-view'
-import { initialGrievances } from '@/lib/data'
-import type { Grievance } from '@/lib/types'
+import type { Grievance, GrievanceComment } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { GrievanceCard } from '@/components/grievance-card'
@@ -36,40 +35,105 @@ export default function GrievancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate fetching data
-    setTimeout(() => {
-      setGrievances(initialGrievances);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const fetchGrievances = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/grievances');
+        if (!response.ok) throw new Error("Failed to fetch grievances");
+        const data = await response.json();
+        setGrievances(data);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'Error fetching grievances',
+          description: (error as Error).message
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGrievances();
+  }, [toast]);
 
   if (!currentUser) return null;
 
 
-  const handleAddGrievance = (newGrievanceData: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => {
-    const newGrievance: Grievance = {
-      id: `grievance-${Date.now()}`,
-      employeeId: currentUser.id,
-      employeeName: currentUser.name,
-      employeeAvatarUrl: currentUser.avatarUrl,
+  const handleAddGrievance = async (newGrievanceData: Omit<Grievance, 'id' | 'createdAt' | 'comments'>) => {
+    const optimisticGrievance: Grievance = {
+      ...newGrievanceData,
+      id: `temp-${Date.now()}`,
       createdAt: new Date().toISOString(),
       comments: [],
-      ...newGrievanceData,
+    };
+    setGrievances(prev => [optimisticGrievance, ...prev]);
+
+    try {
+      const response = await fetch('/api/grievances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGrievanceData),
+      });
+      if (!response.ok) throw new Error('Failed to save grievance');
+      const savedGrievance = await response.json();
+      setGrievances(prev => prev.map(g => (g.id === optimisticGrievance.id ? savedGrievance : g)));
+    } catch (error) {
+      console.error(error);
+      setGrievances(prev => prev.filter(g => g.id !== optimisticGrievance.id));
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not save grievance. Please try again.',
+      });
     }
-    setGrievances(prev => [newGrievance, ...prev])
   }
   
-  const handleEditGrievance = (updatedGrievance: Grievance) => {
+  const handleEditGrievance = async (updatedGrievance: Grievance) => {
+    const originalGrievances = [...grievances];
     setGrievances(prev => prev.map(g => (g.id === updatedGrievance.id ? updatedGrievance : g)));
     setGrievanceToEdit(null);
     setIsEditOpen(false);
+
+    try {
+      const response = await fetch(`/api/grievances/${updatedGrievance.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedGrievance),
+      });
+      if (!response.ok) throw new Error('Failed to update grievance');
+      const savedGrievance = await response.json();
+      setGrievances(prev => prev.map(g => (g.id === savedGrievance.id ? savedGrievance : g)));
+    } catch (error) {
+      console.error(error);
+      setGrievances(originalGrievances);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not update grievance. Please try again.',
+      });
+    }
   };
   
-  const handleDeleteGrievance = (grievanceId: string) => {
+  const handleDeleteGrievance = async (grievanceId: string) => {
+    const originalGrievances = [...grievances];
     setGrievances(prev => prev.filter(g => g.id !== grievanceId));
     setGrievanceToDelete(null);
     setIsDeleteOpen(false);
+
+    try {
+      const response = await fetch(`/api/grievances/${grievanceId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete grievance');
+    } catch (error) {
+      console.error(error);
+      setGrievances(originalGrievances);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not delete grievance. Please try again.',
+      });
+    }
   };
 
   const openEditDialog = (grievance: Grievance) => {
@@ -83,71 +147,114 @@ export default function GrievancePage() {
   };
 
 
-  const handleStatusChange = (
+  const handleStatusChange = async (
     grievanceId: string,
     newStatus: Grievance['status'],
     comment?: string
   ) => {
-    setGrievances((prev) =>
-      prev.map((g) => {
+    const originalGrievances = [...grievances];
+    const updateUI = (updater: (prev: Grievance[]) => Grievance[]) => {
+      setGrievances(updater);
+      if (selectedGrievance?.id === grievanceId) {
+        setSelectedGrievance(prev => prev ? {...updater([prev])[0]} : null);
+      }
+    };
+    
+    updateUI(prev => prev.map(g => {
         if (g.id === grievanceId) {
-          const newComment = comment ? {
-            id: `g-comment-${Date.now()}`,
+          const newCommentEntry = comment ? {
+            id: `g-comment-temp-${Date.now()}`,
             text: comment,
-            author: {
-              name: currentUser.name,
-              avatarUrl: currentUser.avatarUrl,
-            },
+            author: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
             createdAt: new Date().toISOString(),
             status: newStatus,
           } : undefined;
-
-          const updatedComments = newComment ? [...(g.comments || []), newComment] : g.comments;
-
-          const updatedGrievance = {
-              ...g,
-              status: newStatus,
-              resolvedAt: newStatus === 'Resolved' ? new Date().toISOString() : g.resolvedAt,
-              comments: updatedComments,
-            };
-            if(selectedGrievance?.id === grievanceId) {
-                setSelectedGrievance(updatedGrievance);
-            }
-            return updatedGrievance;
-        }
-        return g
-      }
-      )
-    )
-  }
-
-  const handleAddComment = (grievanceId: string, commentText: string) => {
-    setGrievances(prevGrievances =>
-      prevGrievances.map(g => {
-        if (g.id === grievanceId) {
-          const newComment = {
-            id: `g-comment-${Date.now()}`,
-            text: commentText,
-            author: {
-              name: currentUser.name,
-              avatarUrl: currentUser.avatarUrl,
-            },
-            createdAt: new Date().toISOString(),
-          };
-          const updatedGrievance = {
+          return {
             ...g,
-            comments: [...(g.comments || []), newComment],
+            status: newStatus,
+            resolvedAt: newStatus === 'Resolved' ? new Date().toISOString() : g.resolvedAt,
+            comments: newCommentEntry ? [...(g.comments || []), newCommentEntry] : g.comments,
           };
-
-          if(selectedGrievance?.id === grievanceId) {
-            setSelectedGrievance(updatedGrievance);
-          }
-
-          return updatedGrievance;
         }
         return g;
       })
     );
+
+    try {
+        const response = await fetch(`/api/grievances/${grievanceId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newStatus, comment, user: currentUser }),
+        });
+        if (!response.ok) throw new Error('Failed to update status');
+        const updatedGrievanceFromServer = await response.json();
+        
+        setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
+         if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(updatedGrievanceFromServer);
+        }
+
+    } catch (error) {
+        console.error(error);
+        setGrievances(originalGrievances);
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(originalGrievances.find(g => g.id === grievanceId) || null);
+        }
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not update status. Please try again.",
+        });
+    }
+  }
+
+  const handleAddComment = async (grievanceId: string, commentText: string) => {
+    const optimisticComment: GrievanceComment = {
+      id: `g-comment-temp-${Date.now()}`,
+      text: commentText,
+      author: { name: currentUser.name, avatarUrl: currentUser.avatarUrl },
+      createdAt: new Date().toISOString(),
+    };
+    
+    const originalGrievances = JSON.parse(JSON.stringify(grievances));
+
+    const updateUI = (updater: (prev: Grievance[]) => Grievance[]) => {
+        setGrievances(updater);
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(prev => prev ? {...updater([prev])[0]} : null);
+        }
+    };
+    
+    updateUI(prev => prev.map(g => 
+        g.id === grievanceId ? { ...g, comments: [...(g.comments || []), optimisticComment] } : g
+    ));
+
+    try {
+        const response = await fetch(`/api/grievances/${grievanceId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commentText, user: currentUser }),
+        });
+        if (!response.ok) throw new Error('Failed to add comment');
+        const updatedGrievanceFromServer = await response.json();
+
+        setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(updatedGrievanceFromServer);
+        }
+
+    } catch (error) {
+        console.error(error);
+        setGrievances(originalGrievances);
+        if (selectedGrievance?.id === grievanceId) {
+            setSelectedGrievance(originalGrievances.find((g: Grievance) => g.id === grievanceId) || null);
+        }
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not add comment. Please try again.",
+        });
+    }
   };
 
   const handleSelectGrievance = (grievance: Grievance) => {
@@ -272,7 +379,12 @@ export default function GrievancePage() {
         <EmployeeGrievanceView 
           searchQuery={searchQuery} 
           grievances={grievances.filter(g => g.employeeId === currentUser.id)}
-          onAddGrievance={handleAddGrievance}
+          onAddGrievance={(data) => handleAddGrievance({
+            ...data,
+            employeeId: currentUser.id,
+            employeeName: currentUser.name,
+            employeeAvatarUrl: currentUser.avatarUrl,
+          })}
           onSelectGrievance={handleSelectGrievance}
           onEdit={openEditDialog}
           onDelete={openDeleteDialog}
