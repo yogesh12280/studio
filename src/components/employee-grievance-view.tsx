@@ -48,13 +48,13 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
         {filteredGrievances.map((grievance) => (
           <div
             key={grievance.id}
-            className="border rounded-lg p-4 flex flex-col"
+            className="border rounded-lg p-4 flex flex-col cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onSelectGrievance(grievance)}
           >
             <div className="flex-1 mb-3">
                 <div className="flex justify-between items-start mb-2">
                     <div 
-                      className="font-medium text-base cursor-pointer hover:underline"
-                      onClick={() => onSelectGrievance(grievance)}
+                      className="font-medium text-base hover:underline"
                     >
                       {grievance.subject}
                     </div>
@@ -65,11 +65,16 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
                         {grievance.status === 'Pending' && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenuItem onSelect={() => onEdit(grievance)}>
                                     <Edit className="mr-2 h-4 w-4" />
                                     <span>Edit</span>
@@ -89,8 +94,7 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
             </div>
 
             <div 
-                className="flex items-center justify-between text-sm text-muted-foreground cursor-pointer"
-                onClick={() => onSelectGrievance(grievance)}
+                className="flex items-center justify-between text-sm text-muted-foreground"
             >
                 <div className="flex items-center gap-1">
                     <MessageSquare className="h-4 w-4"/>
