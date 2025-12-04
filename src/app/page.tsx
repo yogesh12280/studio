@@ -8,7 +8,7 @@ import { RecentActivity } from '@/components/recent-activity'
 import { initialNotifications, initialPolls, initialGrievances, initialSuggestions, initialAppreciations } from '@/lib/data'
 import { useUser } from '@/contexts/user-context'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import type { Notification, Poll, Grievance, Suggestion, Appreciation } from '@/lib/types'
 
 
@@ -35,6 +35,18 @@ export default function DashboardPage() {
       setLoading(false);
     }, 1000);
   }, []);
+
+  const userGrievances = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'Admin') {
+      return grievances;
+    }
+    return grievances.filter(g => g.employeeId === currentUser.id);
+  }, [grievances, currentUser]);
+
+  const openGrievancesCount = useMemo(() => {
+    return userGrievances.filter(g => g.status !== 'Resolved').length;
+  }, [userGrievances]);
 
   if (!currentUser) {
     return null;
@@ -72,13 +84,13 @@ export default function DashboardPage() {
               <DashboardStats 
                 notifications={notifications.length}
                 polls={polls.length}
-                grievances={grievances.length}
+                grievances={openGrievancesCount}
                 suggestions={suggestions.length}
               />
               <RecentActivity 
                 notifications={notifications}
                 polls={polls}
-                grievances={grievances}
+                grievances={userGrievances}
                 suggestions={suggestions}
                 appreciations={appreciations}
               />
