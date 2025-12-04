@@ -54,7 +54,7 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
             <div className="flex-1 mb-3">
                 <div className="flex justify-between items-start mb-2">
                     <div 
-                      className="font-medium text-base hover:underline"
+                      className="font-medium text-base"
                     >
                       {grievance.subject}
                     </div>
