@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
@@ -13,16 +13,27 @@ import { Button } from '@/components/ui/button'
 import { PlusCircle, ArrowLeft } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { currentUser } = useUser()
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(initialSuggestions)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
   const [suggestionToEdit, setSuggestionToEdit] = useState<Suggestion | null>(null);
   const [suggestionToDelete, setSuggestionToDelete] = useState<Suggestion | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    // Simulate fetching data
+    setTimeout(() => {
+      setSuggestions(initialSuggestions);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -166,6 +177,27 @@ export default function SuggestionPage() {
     ).sort((a, b) => b.upvotes - a.upvotes)
   }, [suggestions, searchQuery]);
 
+  const renderLoadingState = () => (
+    <div className="space-y-3">
+      {[...Array(3)].map((_, i) => (
+         <div key={i} className="border rounded-lg p-4">
+            <div className="flex items-start gap-3 mb-2">
+                <Skeleton className="h-9 w-9 rounded-full" />
+                <div className="w-full">
+                    <Skeleton className="h-4 w-1/4 mb-1" />
+                    <Skeleton className="h-3 w-1/5" />
+                </div>
+            </div>
+            <Skeleton className="h-5 w-3/4 mb-1 ml-12" />
+            <Skeleton className="h-4 w-full ml-12 mb-3" />
+            <div className="flex justify-end">
+              <Skeleton className="h-8 w-24" />
+            </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -203,12 +235,14 @@ export default function SuggestionPage() {
                             </Button>
                         </CreateSuggestionDialog>
                     </div>
-                    <SuggestionList 
-                        suggestions={filteredSuggestions} 
-                        onUpvoteToggle={handleUpvoteToggle}
-                        onSelectSuggestion={handleSelectSuggestion}
-                        currentUser={currentUser}
-                    />
+                    {loading ? renderLoadingState() : (
+                      <SuggestionList 
+                          suggestions={filteredSuggestions} 
+                          onUpvoteToggle={handleUpvoteToggle}
+                          onSelectSuggestion={handleSelectSuggestion}
+                          currentUser={currentUser}
+                      />
+                    )}
                 </>
             )}
         </main>

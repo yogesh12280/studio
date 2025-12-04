@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
@@ -13,16 +13,27 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { CreatePollDialog } from '@/components/create-poll-dialog';
 import { DeletePollDialog } from '@/components/delete-poll-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PollingPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [polls, setPolls] = useState<Poll[]>(initialPolls);
+  const [polls, setPolls] = useState<Poll[]>([]);
   const { currentUser } = useUser();
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
   const [pollToEdit, setPollToEdit] = useState<Poll | null>(null);
   const [pollToDelete, setPollToDelete] = useState<Poll | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    // Simulate fetching data
+    setTimeout(() => {
+      setPolls(initialPolls);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -112,6 +123,24 @@ export default function PollingPage() {
     }).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [polls, searchQuery]);
 
+  const renderLoadingState = () => (
+    <div className="space-y-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="border rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-1/4" />
+          </div>
+          <Skeleton className="h-6 w-3/4 mb-4" />
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-1/4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -123,21 +152,23 @@ export default function PollingPage() {
           onAddPoll={handleAddPoll}
         />
         <main className="p-4 sm:p-6">
-           {selectedPoll ? (
-            <div className="max-w-2xl mx-auto">
-              <Button variant="ghost" onClick={handleBackToList} className="mb-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to all polls
-              </Button>
-              <PollCard 
-                poll={selectedPoll}
-                onVote={handleVote}
-                onEdit={() => openEditDialog(selectedPoll)}
-                onDelete={() => openDeleteDialog(selectedPoll)}
-              />
-            </div>
-          ) : (
-            <PollFeed polls={filteredPolls} onSelectPoll={handleSelectPoll} />
+          {loading ? renderLoadingState() : (
+            selectedPoll ? (
+              <div className="max-w-2xl mx-auto">
+                <Button variant="ghost" onClick={handleBackToList} className="mb-4">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to all polls
+                </Button>
+                <PollCard 
+                  poll={selectedPoll}
+                  onVote={handleVote}
+                  onEdit={() => openEditDialog(selectedPoll)}
+                  onDelete={() => openDeleteDialog(selectedPoll)}
+                />
+              </div>
+            ) : (
+              <PollFeed polls={filteredPolls} onSelectPoll={handleSelectPoll} />
+            )
           )}
         </main>
         {pollToEdit && (

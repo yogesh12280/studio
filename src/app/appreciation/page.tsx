@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
@@ -12,15 +12,26 @@ import { PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateAppreciationDialog } from '@/components/create-appreciation-dialog'
 import { DeleteAppreciationDialog } from '@/components/delete-appreciation-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AppreciationPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { currentUser } = useUser()
-  const [appreciations, setAppreciations] = useState<Appreciation[]>(initialAppreciations)
+  const [appreciations, setAppreciations] = useState<Appreciation[]>([])
   const [appreciationToEdit, setAppreciationToEdit] = useState<Appreciation | null>(null)
   const [appreciationToDelete, setAppreciationToDelete] = useState<Appreciation | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true);
+    // Simulate fetching data
+    setTimeout(() => {
+      setAppreciations(initialAppreciations);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -91,6 +102,27 @@ export default function AppreciationPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [appreciations, searchQuery])
 
+  const renderLoadingState = () => (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <Skeleton className="h-8 w-8" />
+          </div>
+          <Skeleton className="h-16 w-full mt-4" />
+          <div className="flex justify-between items-center mt-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -102,19 +134,23 @@ export default function AppreciationPage() {
           onAddAppreciation={handleAddAppreciation}
         />
         <main className="p-4 sm:p-6 space-y-4">
-            {filteredAppreciations.map(appreciation => (
-                <AppreciationCard 
-                    key={appreciation.id}
-                    appreciation={appreciation}
-                    onLikeToggle={handleLikeToggle}
-                    onEdit={() => openEditDialog(appreciation)}
-                    onDelete={() => openDeleteDialog(appreciation)}
-                />
-            ))}
-            {filteredAppreciations.length === 0 && (
-                <div className="text-center text-muted-foreground py-12">
-                    No appreciations yet. Be the first to send one!
-                </div>
+            {loading ? renderLoadingState() : (
+              <>
+                {filteredAppreciations.map(appreciation => (
+                    <AppreciationCard 
+                        key={appreciation.id}
+                        appreciation={appreciation}
+                        onLikeToggle={handleLikeToggle}
+                        onEdit={() => openEditDialog(appreciation)}
+                        onDelete={() => openDeleteDialog(appreciation)}
+                    />
+                ))}
+                {filteredAppreciations.length === 0 && !loading && (
+                    <div className="text-center text-muted-foreground py-12">
+                        No appreciations yet. Be the first to send one!
+                    </div>
+                )}
+              </>
             )}
         </main>
         {appreciationToEdit && (

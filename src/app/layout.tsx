@@ -30,9 +30,9 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <UserProvider>
-            <AuthChecker>
-                {children}
-            </AuthChecker>
+          <AuthChecker>
+            {children}
+          </AuthChecker>
           <Toaster />
         </UserProvider>
       </body>

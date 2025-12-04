@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
@@ -18,11 +18,12 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { currentUser } = useUser()
-  const [grievances, setGrievances] = useState<Grievance[]>(initialGrievances)
+  const [grievances, setGrievances] = useState<Grievance[]>([])
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null);
   const [isBirthdateVerified, setIsBirthdateVerified] = useState(false);
   const [birthdateInput, setBirthdateInput] = useState('');
@@ -31,6 +32,16 @@ export default function GrievancePage() {
   const [grievanceToDelete, setGrievanceToDelete] = useState<Grievance | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    // Simulate fetching data
+    setTimeout(() => {
+      setGrievances(initialGrievances);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -163,6 +174,52 @@ export default function GrievancePage() {
     }
   };
 
+  const renderAdminLoadingState = () => (
+     <div className="border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12"></TableHead>
+            <TableHead>Employee</TableHead>
+            <TableHead>Subject</TableHead>
+            <TableHead>Submitted</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-6 w-6 rounded-full" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-48" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const renderEmployeeLoadingState = () => (
+    <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+            <div key={i} className="border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-6 w-20" />
+                </div>
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-1/4" />
+                </div>
+            </div>
+        ))}
+    </div>
+  );
+
   const renderEmployeeView = () => {
     if (currentUser.role === 'Employee' && !isBirthdateVerified) {
       return (
@@ -210,6 +267,7 @@ export default function GrievancePage() {
     }
     
     return (
+        loading ? renderEmployeeLoadingState() :
         <EmployeeGrievanceView 
           searchQuery={searchQuery} 
           grievances={grievances.filter(g => g.employeeId === currentUser.id)}
@@ -233,7 +291,8 @@ export default function GrievancePage() {
         />
         <main className="p-4 sm:p-6">
           {currentUser.role === 'Admin' ? (
-            <GrievanceManagement 
+             loading ? renderAdminLoadingState() : 
+             <GrievanceManagement 
               searchQuery={searchQuery} 
               grievances={grievances}
               onStatusChange={handleStatusChange}
