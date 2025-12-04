@@ -18,6 +18,7 @@ import { CreateNotificationDialog } from './create-notification-dialog'
 import { CreatePollDialog } from './create-poll-dialog'
 import { CreateAppreciationDialog } from './create-appreciation-dialog'
 import type { Notification, Poll, Appreciation, User } from '@/lib/types'
+import { employees } from '@/lib/data'
 
 interface AppHeaderProps {
   searchQuery: string
@@ -38,10 +39,17 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
+  
+  const allUsers = [...users, ...employees];
 
   const handleLogout = () => {
     setCurrentUser(null)
     router.push('/login')
+  }
+  
+  const handleSwitchUser = (user: User) => {
+    setCurrentUser(user);
+    router.push('/');
   }
 
   if (!currentUser) return null;
@@ -74,8 +82,16 @@ export function AppHeader({
             </Button>
           </CreateNotificationDialog>
         )}
-        {title === 'Polling' && onAddPoll && (
-          <CreatePollDialog onSave={onAddPoll}>
+        {currentUser.role !== 'Employee' && title === 'Polling' && onAddPoll && (
+          <CreatePollDialog mode="create" onSave={onAddPoll}>
+            <Button size="sm" className="gap-1">
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Poll</span>
+            </Button>
+          </CreatePollDialog>
+        )}
+         {currentUser.role === 'Employee' && title === 'Polling' && onAddPoll && (
+          <CreatePollDialog mode="create" onSave={onAddPoll}>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Create Poll</span>
@@ -115,6 +131,15 @@ export function AppHeader({
                 </p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Switch User</DropdownMenuLabel>
+            {allUsers
+              .filter((user) => user.id !== currentUser.id)
+              .map((user) => (
+                <DropdownMenuItem key={user.id} onSelect={() => handleSwitchUser(user)}>
+                  {user.name}
+                </DropdownMenuItem>
+              ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
