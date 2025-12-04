@@ -16,6 +16,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
+import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -24,6 +26,10 @@ export default function GrievancePage() {
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null);
   const [isBirthdateVerified, setIsBirthdateVerified] = useState(false);
   const [birthdateInput, setBirthdateInput] = useState('');
+  const [grievanceToEdit, setGrievanceToEdit] = useState<Grievance | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [grievanceToDelete, setGrievanceToDelete] = useState<Grievance | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
 
   if (!currentUser) return null;
@@ -41,6 +47,29 @@ export default function GrievancePage() {
     }
     setGrievances(prev => [newGrievance, ...prev])
   }
+  
+  const handleEditGrievance = (updatedGrievance: Grievance) => {
+    setGrievances(prev => prev.map(g => (g.id === updatedGrievance.id ? updatedGrievance : g)));
+    setGrievanceToEdit(null);
+    setIsEditOpen(false);
+  };
+  
+  const handleDeleteGrievance = (grievanceId: string) => {
+    setGrievances(prev => prev.filter(g => g.id !== grievanceId));
+    setGrievanceToDelete(null);
+    setIsDeleteOpen(false);
+  };
+
+  const openEditDialog = (grievance: Grievance) => {
+    setGrievanceToEdit(grievance);
+    setIsEditOpen(true);
+  };
+
+  const openDeleteDialog = (grievance: Grievance) => {
+    setGrievanceToDelete(grievance);
+    setIsDeleteOpen(true);
+  };
+
 
   const handleStatusChange = (
     grievanceId: string,
@@ -186,6 +215,8 @@ export default function GrievancePage() {
           grievances={grievances.filter(g => g.employeeId === currentUser.id)}
           onAddGrievance={handleAddGrievance}
           onSelectGrievance={handleSelectGrievance}
+          onEdit={openEditDialog}
+          onDelete={openDeleteDialog}
           getStatusVariant={getBadgeVariant}
         />
     )
@@ -212,6 +243,23 @@ export default function GrievancePage() {
              renderEmployeeView()
           )}
         </main>
+        {grievanceToEdit && (
+            <RegisterGrievanceDialog
+                mode="edit"
+                grievanceToEdit={grievanceToEdit}
+                onGrievanceSubmit={handleEditGrievance}
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+            />
+        )}
+        {grievanceToDelete && (
+            <DeleteGrievanceDialog
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
+                onConfirm={() => handleDeleteGrievance(grievanceToDelete.id)}
+                grievance={grievanceToDelete}
+            />
+        )}
       </div>
     </SidebarProvider>
   )

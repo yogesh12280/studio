@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -17,16 +17,50 @@ import { Textarea } from './ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import type { Grievance } from '@/lib/types'
 
-interface RegisterGrievanceDialogProps {
-  children: React.ReactNode
-  onGrievanceSubmit: (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void
-}
+type CreateGrievanceDialogProps = {
+  children: React.ReactNode;
+  mode: 'create';
+  onGrievanceSubmit: (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
 
-export function RegisterGrievanceDialog({ children, onGrievanceSubmit }: RegisterGrievanceDialogProps) {
-  const [open, setOpen] = useState(false)
+type EditGrievanceDialogProps = {
+  children?: React.ReactNode;
+  mode: 'edit';
+  grievanceToEdit: Grievance;
+  onGrievanceSubmit: (grievance: Grievance) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+type GrievanceDialogProps = CreateGrievanceDialogProps | EditGrievanceDialogProps;
+
+export function RegisterGrievanceDialog(props: GrievanceDialogProps) {
+  const { mode } = props;
+  const isEditMode = mode === 'edit';
+
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = props.open ?? internalOpen;
+  const onOpenChange = props.onOpenChange ?? setInternalOpen;
+  
   const { toast } = useToast()
   const [subject, setSubject] = useState('')
   const [description, setDescription] = useState('')
+  
+  const grievanceToEdit = isEditMode ? props.grievanceToEdit : undefined;
+
+  useEffect(() => {
+    if (open) {
+      if (isEditMode && grievanceToEdit) {
+        setSubject(grievanceToEdit.subject);
+        setDescription(grievanceToEdit.description);
+      } else {
+        setSubject('');
+        setDescription('');
+      }
+    }
+  }, [open, isEditMode, grievanceToEdit]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,30 +74,49 @@ export function RegisterGrievanceDialog({ children, onGrievanceSubmit }: Registe
         return
     }
     
-    onGrievanceSubmit({
-      subject,
-      description,
-      status: 'Pending',
-    })
+    if (isEditMode && grievanceToEdit) {
+      const updatedGrievance: Grievance = {
+        ...grievanceToEdit,
+        subject,
+        description,
+      };
+      (props.onGrievanceSubmit as (grievance: Grievance) => void)(updatedGrievance);
+      toast({
+        title: 'Grievance Updated',
+        description: 'Your grievance has been successfully updated.',
+      });
+    } else {
+      (props.onGrievanceSubmit as (grievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void)({
+        subject,
+        description,
+        status: 'Pending',
+      })
 
-    toast({
-      title: 'Grievance Submitted',
-      description: 'Your grievance has been registered and will be reviewed shortly.',
-    })
+      toast({
+        title: 'Grievance Submitted',
+        description: 'Your grievance has been registered and will be reviewed shortly.',
+      })
+    }
     
     setSubject('')
     setDescription('')
-    setOpen(false)
+    onOpenChange(false)
   }
+  
+  const dialogTitle = isEditMode ? 'Edit Grievance' : 'Register Grievance';
+  const dialogDescription = isEditMode
+    ? 'Make changes to your grievance. This is only possible while the status is "Pending".'
+    : 'Submit a new grievance. Please provide a clear subject and a detailed description.';
+  const buttonText = isEditMode ? 'Save Changes' : 'Submit Grievance';
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Register Grievance</DialogTitle>
+          <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Submit a new grievance. Please provide a clear subject and a detailed description.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -95,7 +148,7 @@ export function RegisterGrievanceDialog({ children, onGrievanceSubmit }: Registe
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Submit Grievance</Button>
+            <Button type="submit">{buttonText}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
