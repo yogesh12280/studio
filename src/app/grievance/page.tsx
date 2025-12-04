@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast'
 import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -337,3 +338,5 @@ const getBadgeVariant = (status: Grievance['status']) => {
         return 'outline' as const
     }
   }
+
+    
