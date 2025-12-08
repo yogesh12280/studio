@@ -14,6 +14,8 @@ import { FeaturedNotifications } from '@/components/featured-notifications'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { DatePickerWithRange } from '@/components/ui/date-picker-with-range'
+import type { DateRange } from 'react-day-picker'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -22,6 +24,7 @@ export default function NotificationsPage() {
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -334,10 +337,14 @@ export default function NotificationsPage() {
             ) : (
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
+                <div className="mb-4">
+                    <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
+                </div>
                 <NotificationFeed 
                   searchQuery={searchQuery}
                   notifications={notifications}
                   onSelectNotification={handleSelectNotification}
+                  dateRange={dateRange}
                 />
               </>
             )
