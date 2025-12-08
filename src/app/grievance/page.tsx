@@ -275,9 +275,6 @@ export default function GrievancePage() {
   const handleAddReply = async (grievanceId: string, commentId: string, replyText: string) => {
     const originalGrievances = JSON.parse(JSON.stringify(grievances));
 
-    // This is a complex update, so a full server refetch is safer than complex optimistic updates.
-    // However, to provide a good UX, we can try a targeted optimistic update.
-
     const optimisticReply: GrievanceComment = {
       id: `g-reply-temp-${Date.now()}`,
       text: replyText,
@@ -300,16 +297,20 @@ export default function GrievancePage() {
       });
     };
     
-    setGrievances(prevGrievances => prevGrievances.map(g => {
+    const updateUI = (updater: (prev: Grievance[]) => Grievance[]) => {
+      setGrievances(updater);
+      if (selectedGrievance?.id === grievanceId) {
+        const newSelected = updater([selectedGrievance])[0];
+        setSelectedGrievance(newSelected);
+      }
+    };
+    
+    updateUI(prevGrievances => prevGrievances.map(g => {
         if (g.id === grievanceId) {
             return {...g, comments: addReplyRecursively(g.comments || [])}
         }
         return g;
     }));
-
-    if (selectedGrievance?.id === grievanceId) {
-        setSelectedGrievance(prev => prev ? {...prev, comments: addReplyRecursively(prev.comments || [])} : null);
-    }
 
     try {
         const response = await fetch(`/api/grievances/${grievanceId}/comments/${commentId}/replies`, {
@@ -320,7 +321,6 @@ export default function GrievancePage() {
         if (!response.ok) throw new Error('Failed to add reply');
         const updatedGrievanceFromServer = await response.json();
         
-        // This replaces the entire grievance with the server version, which now contains the real reply
         setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
         if (selectedGrievance?.id === grievanceId) {
             setSelectedGrievance(updatedGrievanceFromServer);
@@ -328,7 +328,7 @@ export default function GrievancePage() {
     } catch (error) {
         console.error(error);
         setGrievances(originalGrievances);
-        if (selectedGrievance?.id === grievanceId) {
+         if (selectedGrievance?.id === grievanceId) {
             setSelectedGrievance(originalGrievances.find((g: Grievance) => g.id === grievanceId) || null);
         }
         toast({
@@ -390,11 +390,15 @@ export default function GrievancePage() {
     setBirthdateInputString(formattedValue);
 
     if (formattedValue.length === 10) {
-        const parsedDate = parse(formattedValue, 'dd/MM/yyyy', new Date());
-        if (!isNaN(parsedDate.getTime())) {
-          setBirthdateInput(parsedDate);
-        } else {
-          setBirthdateInput(undefined);
+        try {
+            const parsedDate = parse(formattedValue, 'dd/MM/yyyy', new Date());
+            if (!isNaN(parsedDate.getTime())) {
+              setBirthdateInput(parsedDate);
+            } else {
+              setBirthdateInput(undefined);
+            }
+        } catch(e) {
+            setBirthdateInput(undefined)
         }
     } else {
         setBirthdateInput(undefined);
@@ -547,7 +551,7 @@ export default function GrievancePage() {
               grievances={grievances}
               onStatusChange={handleStatusChange}
               onAddComment={handleAddComment}
-              onAddReply={onAddReply}
+              onAddReply={handleAddReply}
             />
           ) : (
              renderEmployeeView()
@@ -594,3 +598,4 @@ const getBadgeVariant = (status: Grievance['status']) => {
     
 
     
+
