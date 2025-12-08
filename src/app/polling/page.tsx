@@ -10,11 +10,12 @@ import { useUser } from '@/contexts/user-context';
 import type { Poll } from '@/lib/types';
 import { PollCard } from '@/components/poll-card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { CreatePollDialog } from '@/components/create-poll-dialog';
 import { DeletePollDialog } from '@/components/delete-poll-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 
 export default function PollingPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -170,6 +171,16 @@ export default function PollingPage() {
             ) : (
               <>
                 <div className="mb-4 flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Search polls..."
+                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <DatePicker 
                       date={startDate} 
                       onDateChange={setStartDate} 
