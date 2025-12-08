@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+import { format, parse } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 export default function GrievancePage() {
@@ -31,6 +31,7 @@ export default function GrievancePage() {
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null);
   const [isBirthdateVerified, setIsBirthdateVerified] = useState(false);
   const [birthdateInput, setBirthdateInput] = useState<Date | undefined>();
+  const [birthdateInputString, setBirthdateInputString] = useState<string>('');
   const [grievanceToEdit, setGrievanceToEdit] = useState<Grievance | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [grievanceToDelete, setGrievanceToDelete] = useState<Grievance | null>(null);
@@ -59,6 +60,12 @@ export default function GrievancePage() {
     };
     fetchGrievances();
   }, [toast]);
+
+  useEffect(() => {
+    if (birthdateInput) {
+      setBirthdateInputString(format(birthdateInput, 'dd/MM/yyyy'));
+    }
+  }, [birthdateInput]);
 
   if (!currentUser) return null;
 
@@ -365,6 +372,17 @@ export default function GrievancePage() {
         });
     }
   };
+  
+  const handleBirthdateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setBirthdateInputString(value);
+    const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
+    if (!isNaN(parsedDate.getTime())) {
+      setBirthdateInput(parsedDate);
+    } else {
+      setBirthdateInput(undefined);
+    }
+  };
 
   const renderAdminLoadingState = () => (
      <div className="border rounded-lg">
@@ -425,18 +443,17 @@ export default function GrievancePage() {
               <form onSubmit={handleBirthdateVerification} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="birthdate">Birthdate</Label>
-                  <Popover>
+                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !birthdateInput && 'text-muted-foreground'
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {birthdateInput ? format(birthdateInput, 'dd/MM/yyyy') : <span>Pick a date</span>}
-                      </Button>
+                      <div className="relative">
+                        <Input
+                          id="birthdate"
+                          placeholder="dd/mm/yyyy"
+                          value={birthdateInputString}
+                          onChange={handleBirthdateInputChange}
+                        />
+                        <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
@@ -512,7 +529,7 @@ export default function GrievancePage() {
               grievances={grievances}
               onStatusChange={handleStatusChange}
               onAddComment={handleAddComment}
-              onAddReply={handleAddReply}
+              onAddReply={onAddReply}
             />
           ) : (
              renderEmployeeView()
