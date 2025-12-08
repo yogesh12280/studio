@@ -96,7 +96,6 @@ export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion
                       </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2 ml-12 mt-1">{suggestion.description}</p>
               </div>
             </div>
         )
