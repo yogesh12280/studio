@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
+import { FeaturedSuggestions } from '@/components/featured-suggestions'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -269,6 +270,7 @@ export default function SuggestionPage() {
                 <>
                     {loading ? renderLoadingState() : (
                       <>
+                        <FeaturedSuggestions suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
                         <div className="mb-4 flex items-center gap-2">
                           <DatePicker 
                             date={startDate} 
