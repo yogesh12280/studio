@@ -113,16 +113,6 @@ export default function PollingPage() {
     setSelectedPoll(null);
   }
 
-  const filteredPolls = useMemo(() => {
-    return polls.filter(poll => {
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        poll.question.toLowerCase().includes(searchLower) ||
-        poll.author.name.toLowerCase().includes(searchLower)
-      );
-    }).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [polls, searchQuery]);
-
   const renderLoadingState = () => (
     <div className="space-y-3">
       {[...Array(3)].map((_, i) => (
@@ -167,7 +157,7 @@ export default function PollingPage() {
                 />
               </div>
             ) : (
-              <PollFeed polls={filteredPolls} onSelectPoll={handleSelectPoll} />
+              <PollFeed polls={polls} onSelectPoll={handleSelectPoll} searchQuery={searchQuery} />
             )
           )}
         </main>

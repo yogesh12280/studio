@@ -26,7 +26,7 @@ export function PollList({ polls, onSelectPoll }: PollListProps) {
         </Badge>
        )
     }
-    return <Badge variant={poll.category === 'Organization' ? 'default' : 'secondary'}>{poll.category}</Badge>;
+    return null;
   }
 
   return (
@@ -38,10 +38,11 @@ export function PollList({ polls, onSelectPoll }: PollListProps) {
           className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
         >
           <div className="flex-1 mb-3">
-            <div className="flex items-center gap-2 mb-1">
-              {getBadge(poll)}
-              <span className="font-medium text-base">{poll.question}</span>
+            <div className="flex justify-between items-start gap-2 mb-1">
+                <span className="font-medium text-base">{poll.question}</span>
+                <Badge variant={poll.category === 'Organization' ? 'default' : 'secondary'}>{poll.category}</Badge>
             </div>
+             {getBadge(poll) && <div className="flex items-center gap-2 mb-1">{getBadge(poll)}</div>}
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
