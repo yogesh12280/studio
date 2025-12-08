@@ -48,10 +48,11 @@ export function NotificationList({ notifications, onSelectNotification }: Notifi
           className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
         >
           <div className="flex-1 mb-3">
-            <div className="flex items-center gap-2 mb-1">
-              {getBadge(notification)}
+            <div className="flex justify-between items-start gap-2 mb-1">
               <span className="font-medium text-base">{notification.title}</span>
+              <Badge variant={notification.category === 'Organization' ? 'default' : 'secondary'}>{notification.category}</Badge>
             </div>
+             {getBadge(notification) && <div className="flex items-center gap-2 mb-1">{getBadge(notification)}</div>}
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
