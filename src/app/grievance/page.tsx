@@ -374,13 +374,30 @@ export default function GrievancePage() {
   };
   
   const handleBirthdateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setBirthdateInputString(value);
-    const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
-    if (!isNaN(parsedDate.getTime())) {
-      setBirthdateInput(parsedDate);
+    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+    let formattedValue = '';
+  
+    if (rawValue.length > 0) {
+      formattedValue = rawValue.substring(0, 2);
+    }
+    if (rawValue.length > 2) {
+      formattedValue += '/' + rawValue.substring(2, 4);
+    }
+    if (rawValue.length > 4) {
+      formattedValue += '/' + rawValue.substring(4, 8);
+    }
+    
+    setBirthdateInputString(formattedValue);
+
+    if (formattedValue.length === 10) {
+        const parsedDate = parse(formattedValue, 'dd/MM/yyyy', new Date());
+        if (!isNaN(parsedDate.getTime())) {
+          setBirthdateInput(parsedDate);
+        } else {
+          setBirthdateInput(undefined);
+        }
     } else {
-      setBirthdateInput(undefined);
+        setBirthdateInput(undefined);
     }
   };
 
@@ -451,6 +468,7 @@ export default function GrievancePage() {
                           placeholder="dd/mm/yyyy"
                           value={birthdateInputString}
                           onChange={handleBirthdateInputChange}
+                          maxLength={10}
                         />
                         <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
