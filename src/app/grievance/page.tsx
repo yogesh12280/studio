@@ -9,7 +9,7 @@ import { GrievanceManagement } from '@/components/grievance-management'
 import { EmployeeGrievanceView } from '@/components/employee-grievance-view'
 import type { Grievance, GrievanceComment } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { GrievanceCard } from '@/components/grievance-card'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,10 @@ import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -26,7 +30,7 @@ export default function GrievancePage() {
   const [grievances, setGrievances] = useState<Grievance[]>([])
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null);
   const [isBirthdateVerified, setIsBirthdateVerified] = useState(false);
-  const [birthdateInput, setBirthdateInput] = useState('');
+  const [birthdateInput, setBirthdateInput] = useState<Date | undefined>();
   const [grievanceToEdit, setGrievanceToEdit] = useState<Grievance | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [grievanceToDelete, setGrievanceToDelete] = useState<Grievance | null>(null);
@@ -338,10 +342,8 @@ export default function GrievancePage() {
 
   const handleBirthdateVerification = (e: React.FormEvent) => {
     e.preventDefault();
-    // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
-    const parts = birthdateInput.split('/');
-    if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
-      const formattedInput = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    if (birthdateInput) {
+      const formattedInput = format(birthdateInput, 'yyyy-MM-dd');
       if (formattedInput === currentUser.birthdate) {
         setIsBirthdateVerified(true);
         toast({
@@ -358,21 +360,10 @@ export default function GrievancePage() {
     } else {
         toast({
             variant: "destructive",
-            title: "Invalid Format",
-            description: "Please enter the date in DD/MM/YYYY format.",
+            title: "Missing Birthdate",
+            description: "Please select your birthdate.",
         });
     }
-  };
-
-  const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ''); // Remove all non-digit characters
-    if (value.length > 2) {
-      value = `${value.slice(0, 2)}/${value.slice(2)}`;
-    }
-    if (value.length > 5) {
-      value = `${value.slice(0, 5)}/${value.slice(5, 9)}`;
-    }
-    setBirthdateInput(value);
   };
 
   const renderAdminLoadingState = () => (
@@ -434,15 +425,31 @@ export default function GrievancePage() {
               <form onSubmit={handleBirthdateVerification} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="birthdate">Birthdate</Label>
-                  <Input 
-                    id="birthdate"
-                    type="text" 
-                    placeholder="DD/MM/YYYY"
-                    value={birthdateInput}
-                    onChange={handleBirthdateChange}
-                    required
-                    maxLength={10}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={'outline'}
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !birthdateInput && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {birthdateInput ? format(birthdateInput, 'dd/MM/yyyy') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={birthdateInput}
+                        onSelect={setBirthdateInput}
+                        initialFocus
+                        captionLayout="dropdown-buttons"
+                        fromYear={1950}
+                        toYear={new Date().getFullYear()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <Button type="submit" className="w-full">Verify</Button>
               </form>
@@ -546,5 +553,7 @@ const getBadgeVariant = (status: Grievance['status']) => {
         return 'outline' as const
     }
   }
+
+    
 
     
