@@ -9,7 +9,7 @@ import { GrievanceManagement } from '@/components/grievance-management'
 import { EmployeeGrievanceView } from '@/components/employee-grievance-view'
 import type { Grievance, GrievanceComment } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CalendarIcon } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { GrievanceCard } from '@/components/grievance-card'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -19,10 +19,7 @@ import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
 import { format, parse } from 'date-fns'
-import { cn } from '@/lib/utils'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -368,7 +365,7 @@ export default function GrievancePage() {
         toast({
             variant: "destructive",
             title: "Missing Birthdate",
-            description: "Please select your birthdate.",
+            description: "Please enter your birthdate.",
         });
     }
   };
@@ -464,33 +461,13 @@ export default function GrievancePage() {
               <form onSubmit={handleBirthdateVerification} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="birthdate">Birthdate</Label>
-                   <Popover>
-                      <div className="relative">
-                        <Input
-                          id="birthdate"
-                          placeholder="dd/mm/yyyy"
-                          value={birthdateInputString}
-                          onChange={handleBirthdateInputChange}
-                          maxLength={10}
-                        />
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </PopoverTrigger>
-                      </div>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={birthdateInput}
-                        onSelect={setBirthdateInput}
-                        initialFocus
-                        captionLayout="dropdown-buttons"
-                        fromYear={1950}
-                        toYear={new Date().getFullYear()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                    <Input
+                      id="birthdate"
+                      placeholder="dd/mm/yyyy"
+                      value={birthdateInputString}
+                      onChange={handleBirthdateInputChange}
+                      maxLength={10}
+                    />
                 </div>
                 <Button type="submit" className="w-full">Verify</Button>
               </form>
@@ -600,5 +577,6 @@ const getBadgeVariant = (status: Grievance['status']) => {
     
 
     
+
 
 
