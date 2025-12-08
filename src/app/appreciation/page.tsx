@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
@@ -16,11 +15,16 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { AppreciationList } from '@/components/appreciation-list'
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
+import { FeaturedAppreciations } from '@/components/featured-appreciations'
+import { AppreciationCard } from '@/components/appreciation-card'
+import { ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function AppreciationPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { currentUser } = useUser()
   const [appreciations, setAppreciations] = useState<Appreciation[]>([])
+  const [selectedAppreciation, setSelectedAppreciation] = useState<Appreciation | null>(null);
   const [appreciationToEdit, setAppreciationToEdit] = useState<Appreciation | null>(null)
   const [appreciationToDelete, setAppreciationToDelete] = useState<Appreciation | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -75,11 +79,13 @@ export default function AppreciationPage() {
     setAppreciations(prev => prev.filter(a => a.id !== appreciationId));
     setAppreciationToDelete(null);
     setIsDeleteOpen(false);
+    if(selectedAppreciation?.id === appreciationId) {
+        setSelectedAppreciation(null);
+    }
   }
 
   const handleLikeToggle = (appreciationId: string) => {
-    setAppreciations(prevAppreciations =>
-      prevAppreciations.map(a => {
+    const newAppreciations = appreciations.map(a => {
         if (a.id === appreciationId) {
           const isLiked = a.likedBy.includes(currentUser.id)
           return {
@@ -89,8 +95,11 @@ export default function AppreciationPage() {
           }
         }
         return a
-      })
-    )
+      });
+    setAppreciations(newAppreciations);
+    if (selectedAppreciation?.id === appreciationId) {
+        setSelectedAppreciation(newAppreciations.find(a => a.id === appreciationId) || null);
+    }
   }
   
   const openEditDialog = (appreciation: Appreciation) => {
@@ -101,6 +110,14 @@ export default function AppreciationPage() {
   const openDeleteDialog = (appreciation: Appreciation) => {
     setAppreciationToDelete(appreciation);
     setIsDeleteOpen(true);
+  }
+
+  const handleSelectAppreciation = (appreciation: Appreciation) => {
+    setSelectedAppreciation(appreciation);
+  }
+
+  const handleBackToList = () => {
+    setSelectedAppreciation(null);
   }
 
   const filteredAppreciations = useMemo(() => {
@@ -176,44 +193,61 @@ export default function AppreciationPage() {
         />
         <main className="p-4 sm:p-6 space-y-4">
             {loading ? renderLoadingState() : (
-              <>
-                <div className="mb-4 flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                        type="search"
-                        placeholder="Search appreciations..."
-                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <DatePicker 
-                      date={startDate} 
-                      onDateChange={setStartDate} 
-                      placeholder="Start date" 
-                      disabled={{ after: endDate }}
+              selectedAppreciation ? (
+                 <div className="max-w-2xl mx-auto">
+                    <Button variant="ghost" onClick={handleBackToList} className="mb-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to all appreciations
+                    </Button>
+                    <AppreciationCard
+                        appreciation={selectedAppreciation}
+                        onLikeToggle={handleLikeToggle}
+                        onEdit={() => openEditDialog(selectedAppreciation)}
+                        onDelete={() => openDeleteDialog(selectedAppreciation)}
                     />
-                    <DatePicker 
-                      date={endDate} 
-                      onDateChange={setEndDate} 
-                      placeholder="End date" 
-                      disabled={{ before: startDate }}
-                    />
-                </div>
-                <AppreciationList
-                    appreciations={paginatedAppreciations}
-                    onLikeToggle={handleLikeToggle}
-                    onEdit={openEditDialog}
-                    onDelete={openDeleteDialog}
-                    totalAppreciations={filteredAppreciations.length}
-                    currentPage={currentPage}
-                    pageSize={pageSize}
-                    totalPages={totalPages}
-                    setCurrentPage={setCurrentPage}
-                    setPageSize={setPageSize}
-                />
-              </>
+                 </div>
+              ) : (
+                <>
+                  <FeaturedAppreciations appreciations={appreciations} onSelectAppreciation={handleSelectAppreciation} />
+                  <div className="mb-4 flex items-center gap-2">
+                      <div className="relative">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                          type="search"
+                          placeholder="Search appreciations..."
+                          className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                      </div>
+                      <DatePicker 
+                        date={startDate} 
+                        onDateChange={setStartDate} 
+                        placeholder="Start date" 
+                        disabled={{ after: endDate }}
+                      />
+                      <DatePicker 
+                        date={endDate} 
+                        onDateChange={setEndDate} 
+                        placeholder="End date" 
+                        disabled={{ before: startDate }}
+                      />
+                  </div>
+                  <AppreciationList
+                      appreciations={paginatedAppreciations}
+                      onSelectAppreciation={handleSelectAppreciation}
+                      onLikeToggle={handleLikeToggle}
+                      onEdit={openEditDialog}
+                      onDelete={openDeleteDialog}
+                      totalAppreciations={filteredAppreciations.length}
+                      currentPage={currentPage}
+                      pageSize={pageSize}
+                      totalPages={totalPages}
+                      setCurrentPage={setCurrentPage}
+                      setPageSize={setPageSize}
+                  />
+                </>
+              )
             )}
         </main>
         {appreciationToEdit && (

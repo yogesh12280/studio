@@ -21,6 +21,7 @@ import { employees } from '@/lib/data';
 
 interface AppreciationListProps {
   appreciations: Appreciation[];
+  onSelectAppreciation: (appreciation: Appreciation) => void;
   onLikeToggle: (appreciationId: string) => void;
   onEdit: (appreciation: Appreciation) => void;
   onDelete: (appreciation: Appreciation) => void;
@@ -34,6 +35,7 @@ interface AppreciationListProps {
 
 export function AppreciationList({
   appreciations,
+  onSelectAppreciation,
   onLikeToggle,
   onEdit,
   onDelete,
@@ -75,7 +77,7 @@ export function AppreciationList({
                 .filter((u): u is User => !!u);
 
               return (
-                <div key={appreciation.id} className="p-3 flex items-center gap-4 border rounded-lg">
+                <div key={appreciation.id} onClick={() => onSelectAppreciation(appreciation)} className="p-3 flex items-center gap-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={appreciation.fromUser.avatarUrl} alt={appreciation.fromUser.name} />
@@ -159,6 +161,7 @@ export function AppreciationList({
               );
             })}
       </div>
+      
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Page {currentPage} of {totalPages}</span>
