@@ -26,7 +26,7 @@ export function FeaturedSuggestions({ suggestions, onSelectSuggestion }: Feature
     const usedIds = new Set<string>();
 
     const sortedByDate = [...suggestions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    const sortedByComments = [...suggestions].sort((a, b) => b.comments.length - a.comments.length);
+    const sortedByComments = [...suggestions].sort((a, b) => (b.comments?.length || 0) - (a.comments?.length || 0));
     const sortedByUpvotes = [...suggestions].sort((a, b) => b.upvotes - a.upvotes);
     
     if (sortedByDate.length > 0) {
@@ -34,33 +34,19 @@ export function FeaturedSuggestions({ suggestions, onSelectSuggestion }: Feature
         usedIds.add(sortedByDate[0].id);
     }
 
-    if (sortedByUpvotes.length > 0) {
-        const mostUpvoted = sortedByUpvotes.find(s => !usedIds.has(s.id));
-        if (mostUpvoted) {
-            featured.push({ suggestion: mostUpvoted, title: 'Most Upvoted' });
-            usedIds.add(mostUpvoted.id);
-        }
+    const mostUpvoted = sortedByUpvotes.find(s => !usedIds.has(s.id));
+    if (mostUpvoted) {
+        featured.push({ suggestion: mostUpvoted, title: 'Most Upvoted' });
+        usedIds.add(mostUpvoted.id);
     }
     
-    if (sortedByComments.length > 0) {
-        const mostCommented = sortedByComments.find(s => !usedIds.has(s.id));
-        if (mostCommented && featured.length < 3) {
-            featured.push({ suggestion: mostCommented, title: 'Most Commented' });
-            usedIds.add(mostCommented.id);
-        }
-    }
-    
-    // Fill up to 3 if we have duplicates
-    let i = 0;
-    while (featured.length < 3 && i < sortedByDate.length) {
-        if (!usedIds.has(sortedByDate[i].id)) {
-            featured.push({ suggestion: sortedByDate[i], title: 'Trending' });
-            usedIds.add(sortedByDate[i].id);
-        }
-        i++;
+    const mostCommented = sortedByComments.find(s => !usedIds.has(s.id));
+    if (mostCommented) {
+        featured.push({ suggestion: mostCommented, title: 'Most Commented' });
+        usedIds.add(mostCommented.id);
     }
 
-    return featured.slice(0, 3);
+    return featured;
 
   }, [suggestions]);
   
@@ -80,7 +66,7 @@ export function FeaturedSuggestions({ suggestions, onSelectSuggestion }: Feature
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {featuredSuggestions.map(({ suggestion, title: featuredTitle }) => (
                     <div 
-                        key={suggestion.id} 
+                        key={`${suggestion.id}-${featuredTitle}`}
                         onClick={() => onSelectSuggestion(suggestion)} 
                         className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden"
                     >
