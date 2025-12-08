@@ -285,17 +285,24 @@ export default function GrievancePage() {
     const grievanceToUpdate = grievances.find(g => g.id === grievanceId);
     if (!grievanceToUpdate) return;
     
-    const updatedGrievance = {
-      ...grievanceToUpdate,
-      comments: (grievanceToUpdate.comments || []).map(c => {
+    // This function recursively finds the comment and adds the reply.
+    const addReplyToComment = (comments: GrievanceComment[]): GrievanceComment[] => {
+      return comments.map(c => {
         if (c.id === commentId) {
           return { ...c, replies: [...(c.replies || []), optimisticReply] };
         }
-        // This is for nested replies, but we'll stick to one level for now.
-        // if (c.replies) { ... }
+        if (c.replies) {
+          return { ...c, replies: addReplyToComment(c.replies) };
+        }
         return c;
-      })
+      });
     };
+
+    const updatedGrievance = {
+      ...grievanceToUpdate,
+      comments: addReplyToComment(grievanceToUpdate.comments || []),
+    };
+
     updateUI(updatedGrievance);
 
     try {
@@ -337,19 +344,41 @@ export default function GrievancePage() {
 
   const handleBirthdateVerification = (e: React.FormEvent) => {
     e.preventDefault();
-    if (birthdateInput === currentUser.birthdate) {
-      setIsBirthdateVerified(true);
-      toast({
-        title: "Verification Successful",
-        description: "You can now access your grievances.",
-      });
+    // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
+    const parts = birthdateInput.split('/');
+    if (parts.length === 3) {
+      const formattedInput = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      if (formattedInput === currentUser.birthdate) {
+        setIsBirthdateVerified(true);
+        toast({
+          title: "Verification Successful",
+          description: "You can now access your grievances.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Verification Failed",
+          description: "The birthdate you entered is incorrect. Please try again.",
+        });
+      }
     } else {
-      toast({
-        variant: "destructive",
-        title: "Verification Failed",
-        description: "The birthdate you entered is incorrect. Please try again.",
-      });
+        toast({
+            variant: "destructive",
+            title: "Invalid Format",
+            description: "Please enter the date in DD/MM/YYYY format.",
+        });
     }
+  };
+
+  const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2)}`;
+    }
+    if (value.length > 5) {
+      value = `${value.slice(0, 5)}/${value.slice(5, 9)}`;
+    }
+    setBirthdateInput(value);
   };
 
   const renderAdminLoadingState = () => (
@@ -405,7 +434,7 @@ export default function GrievancePage() {
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>Verify Your Identity</CardTitle>
-              <CardDescription>Please enter your birthdate (YYYY-MM-DD) to access the grievance section.</CardDescription>
+              <CardDescription>Please enter your birthdate (DD/MM/YYYY) to access the grievance section.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleBirthdateVerification} className="space-y-4">
@@ -414,10 +443,11 @@ export default function GrievancePage() {
                   <Input 
                     id="birthdate"
                     type="text" 
-                    placeholder="YYYY-MM-DD"
+                    placeholder="DD/MM/YYYY"
                     value={birthdateInput}
-                    onChange={(e) => setBirthdateInput(e.target.value)}
+                    onChange={handleBirthdateChange}
                     required
+                    maxLength={10}
                   />
                 </div>
                 <Button type="submit" className="w-full">Verify</Button>
