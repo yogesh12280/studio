@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ThumbsUp, MessageSquare } from 'lucide-react'
 import type { Suggestion, User } from '@/lib/types'
-import { formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { useUser } from '@/contexts/user-context'
 import { employees } from '@/lib/data'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 interface SuggestionListProps {
   suggestions: Suggestion[];
@@ -36,24 +37,30 @@ export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion
             <div 
               key={suggestion.id} 
               onClick={() => onSelectSuggestion(suggestion)} 
-              className="cursor-pointer border rounded-lg p-4 hover:bg-muted/50 transition-colors flex flex-col"
+              className="cursor-pointer border rounded-lg p-3 hover:bg-muted/50 transition-colors"
             >
-              <div className="flex-1 mb-3">
-                 <div className="flex items-start gap-3 mb-2">
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage src={suggestion.employeeAvatarUrl} alt={suggestion.employeeName} />
-                        <AvatarFallback>{suggestion.employeeName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-semibold">{suggestion.employeeName}</p>
-                        <p className="text-xs text-muted-foreground">
-                            Submitted {formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true })}
-                        </p>
+              <div className="flex items-center gap-4 w-full">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={suggestion.employeeAvatarUrl} alt={suggestion.employeeName} />
+                    <AvatarFallback>{suggestion.employeeName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between min-w-0">
+                    <div className="flex-1 min-w-0 pr-4">
+                        <p className="font-semibold text-sm truncate" title={suggestion.employeeName}>{suggestion.employeeName}</p>
+                        <p className="text-sm font-bold truncate" title={suggestion.title}>{suggestion.title}</p>
                     </div>
-                </div>
-                 <div className="flex justify-between items-center ml-12">
-                  <h3 className="font-bold truncate pr-4">{suggestion.title}</h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-shrink-0">
+
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-shrink-0 mt-1 sm:mt-0">
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <span className="text-xs whitespace-nowrap">{format(new Date(suggestion.createdAt), "dd MMM yyyy")}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true })}</p>
+                            </TooltipContent>
+                        </Tooltip>
+
                       <Popover open={upvotePopoverOpen === suggestion.id} onOpenChange={(isOpen) => setUpvotePopoverOpen(isOpen ? suggestion.id : null)}>
                         <PopoverTrigger asChild>
                           <Button 
@@ -65,7 +72,7 @@ export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion
                               }}
                               onMouseEnter={() => setUpvotePopoverOpen(suggestion.id)}
                               onMouseLeave={() => setUpvotePopoverOpen(null)}
-                              className={cn('text-muted-foreground', isUpvoted && "text-primary")}
+                              className={cn('h-8 w-14 text-muted-foreground', isUpvoted && "text-primary")}
                           >
                               <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-primary")} />
                               <span>{suggestion.upvotes}</span>
@@ -90,8 +97,8 @@ export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion
                           </PopoverContent>
                         )}
                       </Popover>
-                      <div className="flex items-center gap-1">
-                          <MessageSquare className="h-4 w-4"/>
+                      <div className="flex items-center gap-1 h-8 w-14">
+                          <MessageSquare className="h-4 w-4 mr-2"/>
                           <span>{suggestion.comments.length}</span>
                       </div>
                   </div>
