@@ -339,8 +339,18 @@ export default function NotificationsPage() {
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
                 <div className="mb-4 flex items-center gap-2">
-                    <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Start date" />
-                    <DatePicker date={endDate} onDateChange={setEndDate} placeholder="End date" />
+                    <DatePicker 
+                      date={startDate} 
+                      onDateChange={setStartDate} 
+                      placeholder="Start date" 
+                      disabled={{ after: endDate }}
+                    />
+                    <DatePicker 
+                      date={endDate} 
+                      onDateChange={setEndDate} 
+                      placeholder="End date" 
+                      disabled={{ before: startDate }}
+                    />
                 </div>
                 <NotificationFeed 
                   searchQuery={searchQuery}
