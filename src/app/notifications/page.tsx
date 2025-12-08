@@ -40,6 +40,12 @@ export default function NotificationsPage() {
         setLoading(false);
       }
     };
+    
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    setStartDate(oneYearAgo);
+    setEndDate(today);
 
     fetchNotifications();
   }, []);
