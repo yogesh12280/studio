@@ -20,13 +20,14 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { MoreHorizontal, Send, ChevronDown, ChevronUp, Smile } from 'lucide-react'
 import { Grievance, GrievanceComment, User } from '@/lib/types'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { useUser } from '@/contexts/user-context'
 import { AddGrievanceCommentDialog } from './add-grievance-comment-dialog'
 import { Separator } from './ui/separator'
 import { Input } from './ui/input'
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 
 interface ReplyInputProps {
@@ -151,6 +152,11 @@ function CommentWithReplies({ comment, grievanceId, onAddReply, currentUser, isC
   );
 }
 
+interface DateRange {
+    from: Date | undefined;
+    to: Date | undefined;
+}
+
 
 interface GrievanceManagementProps {
   searchQuery: string;
@@ -158,9 +164,25 @@ interface GrievanceManagementProps {
   onStatusChange: (grievanceId: string, newStatus: Grievance['status'], comment?: string) => void;
   onAddComment: (grievanceId: string, commentText: string) => void;
   onAddReply: (grievanceId: string, commentId: string, replyText: string) => void;
+  dateRange?: DateRange;
+  currentPage: number;
+  pageSize: number;
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
 }
 
-export function GrievanceManagement({ searchQuery, grievances, onStatusChange, onAddComment, onAddReply }: GrievanceManagementProps) {
+export function GrievanceManagement({ 
+  searchQuery, 
+  grievances, 
+  onStatusChange, 
+  onAddComment, 
+  onAddReply,
+  dateRange,
+  currentPage,
+  pageSize,
+  setCurrentPage,
+  setPageSize,
+}: GrievanceManagementProps) {
   const { currentUser } = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedGrievance, setSelectedGrievance] = useState<Grievance | null>(null)
@@ -233,22 +255,49 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
 
   const filteredGrievances = useMemo(() => {
     const searchLower = searchQuery.toLowerCase();
-    if (!searchLower) {
-      return grievances.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
     return grievances
-      .filter(g => 
-        g.employeeName.toLowerCase().includes(searchLower) ||
-        g.subject.toLowerCase().includes(searchLower) ||
-        g.status.toLowerCase().includes(searchLower)
-      )
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [grievances, searchQuery]);
+      .filter(g => {
+        const textMatch = g.employeeName.toLowerCase().includes(searchLower) ||
+            g.subject.toLowerCase().includes(searchLower) ||
+            g.status.toLowerCase().includes(searchLower);
+        
+        const dateMatch = (() => {
+            if (!dateRange?.from && !dateRange?.to) return true;
+            const grievanceDate = new Date(g.createdAt);
+            const start = dateRange.from ? startOfDay(dateRange.from) : undefined;
+            const end = dateRange.to ? endOfDay(dateRange.to) : undefined;
+            if (start && end) {
+                return isWithinInterval(grievanceDate, { start, end });
+            }
+            if (start) {
+                return grievanceDate >= start;
+            }
+            if (end) {
+                return grievanceDate <= end;
+            }
+            return true;
+        })();
+        
+        return textMatch && dateMatch;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [grievances, searchQuery, dateRange]);
+
+  const paginatedGrievances = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredGrievances.slice(startIndex, startIndex + pageSize);
+  }, [filteredGrievances, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredGrievances.length / pageSize);
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+  };
 
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold font-headline">Manage Grievances</h2>
+    <>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -262,7 +311,7 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredGrievances.map((grievance) => (
+            {paginatedGrievances.map((grievance) => (
               <Fragment key={grievance.id}>
                 <TableRow>
                   <TableCell>
@@ -375,9 +424,50 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
                 )}
               </Fragment>
             ))}
+             {paginatedGrievances.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                        No grievances found.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Page {currentPage} of {totalPages}</span>
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50].map(size => (
+                  <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span>per page</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
        <AddGrievanceCommentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -385,8 +475,6 @@ export function GrievanceManagement({ searchQuery, grievances, onStatusChange, o
         targetStatus={targetStatus}
         onSubmit={handleDialogSubmit}
       />
-    </div>
+    </>
   )
 }
-
-    

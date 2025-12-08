@@ -9,7 +9,7 @@ import { GrievanceManagement } from '@/components/grievance-management'
 import { EmployeeGrievanceView } from '@/components/employee-grievance-view'
 import type { Grievance, GrievanceComment } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search } from 'lucide-react'
 import { GrievanceCard } from '@/components/grievance-card'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,6 +20,7 @@ import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { format, parse } from 'date-fns'
+import { DatePicker } from '@/components/ui/date-picker'
 
 export default function GrievancePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,6 +36,10 @@ export default function GrievancePage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const fetchGrievances = async () => {
@@ -56,6 +61,13 @@ export default function GrievancePage() {
       }
     };
     fetchGrievances();
+    
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    setStartDate(oneYearAgo);
+    setEndDate(today);
+
   }, [toast]);
 
   useEffect(() => {
@@ -512,6 +524,51 @@ export default function GrievancePage() {
         />
     )
   }
+  
+  const renderAdminView = () => {
+    if (loading) return renderAdminLoadingState();
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold font-headline">Manage Grievances</h2>
+        <div className="mb-4 flex items-center gap-2">
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder="Search grievances..."
+                className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <DatePicker 
+              date={startDate} 
+              onDateChange={setStartDate} 
+              placeholder="Start date" 
+              disabled={{ after: endDate }}
+            />
+            <DatePicker 
+              date={endDate} 
+              onDateChange={setEndDate} 
+              placeholder="End date" 
+              disabled={{ before: startDate }}
+            />
+        </div>
+        <GrievanceManagement 
+          searchQuery={searchQuery} 
+          grievances={grievances}
+          onStatusChange={handleStatusChange}
+          onAddComment={handleAddComment}
+          onAddReply={handleAddReply}
+          dateRange={{from: startDate, to: endDate}}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          setCurrentPage={setCurrentPage}
+          setPageSize={setPageSize}
+        />
+      </div>
+    );
+  };
 
   return (
     <SidebarProvider>
@@ -523,18 +580,7 @@ export default function GrievancePage() {
           title="Grievance"
         />
         <main className="p-4 sm:p-6">
-          {currentUser.role === 'Admin' ? (
-             loading ? renderAdminLoadingState() : 
-             <GrievanceManagement 
-              searchQuery={searchQuery} 
-              grievances={grievances}
-              onStatusChange={handleStatusChange}
-              onAddComment={handleAddComment}
-              onAddReply={handleAddReply}
-            />
-          ) : (
-             renderEmployeeView()
-          )}
+          {currentUser.role === 'Admin' ? renderAdminView() : renderEmployeeView() }
         </main>
         {grievanceToEdit && (
             <RegisterGrievanceDialog
@@ -577,6 +623,7 @@ const getBadgeVariant = (status: Grievance['status']) => {
     
 
     
+
 
 
 
