@@ -26,7 +26,7 @@ import { useUser } from '@/contexts/user-context'
 import { employees } from '@/lib/data'
 
 type CreateAppreciationDialogProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   mode: 'create';
   onSave: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
   open?: boolean;
@@ -138,7 +138,7 @@ export function CreateAppreciationDialog(props: AppreciationDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
+      {!isEditMode && props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>

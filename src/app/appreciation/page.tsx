@@ -73,6 +73,9 @@ export default function AppreciationPage() {
     setAppreciations(prev => prev.map(a => a.id === updatedAppreciation.id ? updatedAppreciation : a));
     setAppreciationToEdit(null);
     setIsEditOpen(false);
+    if(selectedAppreciation?.id === updatedAppreciation.id) {
+        setSelectedAppreciation(updatedAppreciation);
+    }
   }
 
   const handleDeleteAppreciation = (appreciationId: string) => {

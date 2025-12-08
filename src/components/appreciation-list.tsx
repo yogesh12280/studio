@@ -162,38 +162,40 @@ export function AppreciationList({
             })}
       </div>
       
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Page {currentPage} of {totalPages}</span>
-          <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 5, 10, 20, 50].map(size => (
-                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span>per page</span>
+      {totalAppreciations > 0 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Page {currentPage} of {totalPages}</span>
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 5, 10, 20, 50].map(size => (
+                  <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span>per page</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </>
   );
 }
