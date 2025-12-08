@@ -598,4 +598,3 @@ const getBadgeVariant = (status: Grievance['status']) => {
     
 
     
-
