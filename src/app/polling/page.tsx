@@ -14,6 +14,7 @@ import { ArrowLeft } from 'lucide-react';
 import { CreatePollDialog } from '@/components/create-poll-dialog';
 import { DeletePollDialog } from '@/components/delete-poll-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function PollingPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,6 +26,10 @@ export default function PollingPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setLoading(true);
@@ -33,6 +38,12 @@ export default function PollingPage() {
       setPolls(initialPolls);
       setLoading(false);
     }, 1000);
+
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    setStartDate(oneYearAgo);
+    setEndDate(today);
   }, []);
 
   if (!currentUser) return null;
@@ -157,7 +168,32 @@ export default function PollingPage() {
                 />
               </div>
             ) : (
-              <PollFeed polls={polls} onSelectPoll={handleSelectPoll} searchQuery={searchQuery} />
+              <>
+                <div className="mb-4 flex items-center gap-2">
+                    <DatePicker 
+                      date={startDate} 
+                      onDateChange={setStartDate} 
+                      placeholder="Start date" 
+                      disabled={{ after: endDate }}
+                    />
+                    <DatePicker 
+                      date={endDate} 
+                      onDateChange={setEndDate} 
+                      placeholder="End date" 
+                      disabled={{ before: startDate }}
+                    />
+                </div>
+                <PollFeed 
+                    polls={polls} 
+                    onSelectPoll={handleSelectPoll} 
+                    searchQuery={searchQuery}
+                    dateRange={{from: startDate, to: endDate}}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    setCurrentPage={setCurrentPage}
+                    setPageSize={setPageSize}
+                />
+              </>
             )
           )}
         </main>
