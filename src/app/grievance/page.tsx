@@ -262,6 +262,11 @@ export default function GrievancePage() {
   };
 
   const handleAddReply = async (grievanceId: string, commentId: string, replyText: string) => {
+    const originalGrievances = JSON.parse(JSON.stringify(grievances));
+
+    // This is a complex update, so a full server refetch is safer than complex optimistic updates.
+    // However, to provide a good UX, we can try a targeted optimistic update.
+
     const optimisticReply: GrievanceComment = {
       id: `g-reply-temp-${Date.now()}`,
       text: replyText,
@@ -272,38 +277,28 @@ export default function GrievancePage() {
       replies: [],
     };
 
-    const originalGrievances = JSON.parse(JSON.stringify(grievances));
-
-    const updateUI = (grievance: Grievance) => {
-      const newGrievances = grievances.map(g => g.id === grievance.id ? grievance : g);
-      setGrievances(newGrievances);
-      if(selectedGrievance?.id === grievance.id) {
-        setSelectedGrievance(grievance);
-      }
-    };
-
-    const grievanceToUpdate = grievances.find(g => g.id === grievanceId);
-    if (!grievanceToUpdate) return;
-    
-    // This function recursively finds the comment and adds the reply.
-    const addReplyToComment = (comments: GrievanceComment[]): GrievanceComment[] => {
+    const addReplyRecursively = (comments: GrievanceComment[]): GrievanceComment[] => {
       return comments.map(c => {
         if (c.id === commentId) {
           return { ...c, replies: [...(c.replies || []), optimisticReply] };
         }
-        if (c.replies) {
-          return { ...c, replies: addReplyToComment(c.replies) };
+        if (c.replies && c.replies.length > 0) {
+          return { ...c, replies: addReplyRecursively(c.replies) };
         }
         return c;
       });
     };
+    
+    setGrievances(prevGrievances => prevGrievances.map(g => {
+        if (g.id === grievanceId) {
+            return {...g, comments: addReplyRecursively(g.comments || [])}
+        }
+        return g;
+    }));
 
-    const updatedGrievance = {
-      ...grievanceToUpdate,
-      comments: addReplyToComment(grievanceToUpdate.comments || []),
-    };
-
-    updateUI(updatedGrievance);
+    if (selectedGrievance?.id === grievanceId) {
+        setSelectedGrievance(prev => prev ? {...prev, comments: addReplyRecursively(prev.comments || [])} : null);
+    }
 
     try {
         const response = await fetch(`/api/grievances/${grievanceId}/comments/${commentId}/replies`, {
@@ -315,8 +310,7 @@ export default function GrievancePage() {
         const updatedGrievanceFromServer = await response.json();
         
         // This replaces the entire grievance with the server version, which now contains the real reply
-        const newGrievances = grievances.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g);
-        setGrievances(newGrievances);
+        setGrievances(prev => prev.map(g => g.id === grievanceId ? updatedGrievanceFromServer : g));
         if (selectedGrievance?.id === grievanceId) {
             setSelectedGrievance(updatedGrievanceFromServer);
         }
@@ -346,7 +340,7 @@ export default function GrievancePage() {
     e.preventDefault();
     // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
     const parts = birthdateInput.split('/');
-    if (parts.length === 3) {
+    if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
       const formattedInput = `${parts[2]}-${parts[1]}-${parts[0]}`;
       if (formattedInput === currentUser.birthdate) {
         setIsBirthdateVerified(true);
@@ -371,7 +365,7 @@ export default function GrievancePage() {
   };
 
   const handleBirthdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^0-9]/g, '');
+    let value = e.target.value.replace(/\D/g, ''); // Remove all non-digit characters
     if (value.length > 2) {
       value = `${value.slice(0, 2)}/${value.slice(2)}`;
     }
