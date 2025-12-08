@@ -114,16 +114,6 @@ export function FeaturedNotifications({ notifications, onSelectNotification }: F
                         className="cursor-pointer border rounded-lg p-0 hover:bg-muted/50 transition-colors flex flex-col overflow-hidden"
                     >
                         <div className="p-4 flex flex-col flex-1">
-                            {notification.imageUrl && (
-                                <div className="relative aspect-video w-full mb-4 rounded-lg overflow-hidden">
-                                    <Image
-                                    src={notification.imageUrl}
-                                    alt={notification.title}
-                                    fill
-                                    className="object-cover"
-                                    />
-                                </div>
-                            )}
                             <div className="flex-1 mb-3">
                                 <div className="flex items-center gap-2 mb-2">
                                 {getBadge(notification)}
