@@ -14,6 +14,8 @@ import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
+import { DatePicker } from '@/components/ui/date-picker'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -25,6 +27,10 @@ export default function SuggestionPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setLoading(true);
@@ -33,6 +39,12 @@ export default function SuggestionPage() {
       setSuggestions(initialSuggestions);
       setLoading(false);
     }, 1000);
+
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    setStartDate(oneYearAgo);
+    setEndDate(today);
   }, []);
 
   if (!currentUser) return null;
@@ -170,12 +182,40 @@ export default function SuggestionPage() {
   };
 
   const filteredSuggestions = useMemo(() => {
-    return suggestions.filter(suggestion => 
-      suggestion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      suggestion.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      suggestion.employeeName.toLowerCase().includes(searchQuery.toLowerCase())
-    ).sort((a, b) => b.upvotes - a.upvotes)
-  }, [suggestions, searchQuery]);
+    return suggestions.filter(suggestion => {
+      const searchLower = searchQuery.toLowerCase()
+      const textMatch = suggestion.title.toLowerCase().includes(searchLower) ||
+        suggestion.description.toLowerCase().includes(searchLower) ||
+        suggestion.employeeName.toLowerCase().includes(searchLower)
+
+      const dateMatch = (() => {
+          if (!startDate && !endDate) return true;
+          const suggestionDate = new Date(suggestion.createdAt);
+          const start = startDate ? startOfDay(startDate) : undefined;
+          const end = endDate ? endOfDay(endDate) : undefined;
+          if (start && end) {
+              return isWithinInterval(suggestionDate, { start, end });
+          }
+          if (start) {
+              return suggestionDate >= start;
+          }
+          if (end) {
+              return suggestionDate <= end;
+          }
+          return true;
+      })();
+      
+      return textMatch && dateMatch
+    }).sort((a, b) => b.upvotes - a.upvotes)
+  }, [suggestions, searchQuery, startDate, endDate]);
+  
+  const paginatedSuggestions = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredSuggestions.slice(startIndex, startIndex + pageSize);
+  }, [filteredSuggestions, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredSuggestions.length / pageSize);
+
 
   const renderLoadingState = () => (
     <div className="space-y-3">
@@ -228,12 +268,34 @@ export default function SuggestionPage() {
             ) : (
                 <>
                     {loading ? renderLoadingState() : (
-                      <SuggestionList 
-                          suggestions={filteredSuggestions} 
-                          onUpvoteToggle={handleUpvoteToggle}
-                          onSelectSuggestion={handleSelectSuggestion}
-                          currentUser={currentUser}
-                      />
+                      <>
+                        <div className="mb-4 flex items-center gap-2">
+                          <DatePicker 
+                            date={startDate} 
+                            onDateChange={setStartDate} 
+                            placeholder="Start date" 
+                            disabled={{ after: endDate }}
+                          />
+                          <DatePicker 
+                            date={endDate} 
+                            onDateChange={setEndDate} 
+                            placeholder="End date" 
+                            disabled={{ before: startDate }}
+                          />
+                        </div>
+                        <SuggestionList 
+                            suggestions={paginatedSuggestions} 
+                            onUpvoteToggle={handleUpvoteToggle}
+                            onSelectSuggestion={handleSelectSuggestion}
+                            currentUser={currentUser}
+                            totalSuggestions={filteredSuggestions.length}
+                            currentPage={currentPage}
+                            pageSize={pageSize}
+                            totalPages={totalPages}
+                            setCurrentPage={setCurrentPage}
+                            setPageSize={setPageSize}
+                        />
+                      </>
                     )}
                 </>
             )}
