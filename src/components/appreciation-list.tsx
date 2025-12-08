@@ -51,7 +51,7 @@ export function AppreciationList({
           <AppreciationCard 
             key={appreciation.id}
             appreciation={appreciation}
-            onLikeToggle={handleLikeToggle}
+            onLikeToggle={() => onLikeToggle(appreciation.id)}
             onEdit={() => onEdit(appreciation)}
             onDelete={() => onDelete(appreciation)}
           />
