@@ -465,7 +465,6 @@ export default function GrievancePage() {
                 <div className="space-y-2">
                   <Label htmlFor="birthdate">Birthdate</Label>
                    <Popover>
-                    <PopoverTrigger asChild>
                       <div className="relative">
                         <Input
                           id="birthdate"
@@ -474,9 +473,12 @@ export default function GrievancePage() {
                           onChange={handleBirthdateInputChange}
                           maxLength={10}
                         />
-                        <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </PopoverTrigger>
                       </div>
-                    </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
@@ -598,3 +600,4 @@ const getBadgeVariant = (status: Grievance['status']) => {
     
 
     
+
