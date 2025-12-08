@@ -419,7 +419,7 @@ export default function GrievancePage() {
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>Verify Your Identity</CardTitle>
-              <CardDescription>Please enter your birthdate (DD/MM/YYYY) to access the grievance section.</CardDescription>
+              <CardDescription>Please enter your birthdate to access the grievance section.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleBirthdateVerification} className="space-y-4">
@@ -553,6 +553,8 @@ const getBadgeVariant = (status: Grievance['status']) => {
         return 'outline' as const
     }
   }
+
+    
 
     
 
