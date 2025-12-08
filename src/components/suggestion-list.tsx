@@ -51,52 +51,52 @@ export function SuggestionList({ suggestions, onUpvoteToggle, onSelectSuggestion
                         </p>
                     </div>
                 </div>
-                <h3 className="font-bold mb-1 ml-12">{suggestion.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 ml-12">{suggestion.description}</p>
-              </div>
-              <div className="flex items-center justify-end text-sm text-muted-foreground">
-                <div className="flex items-center gap-4">
-                    <Popover open={upvotePopoverOpen === suggestion.id} onOpenChange={(isOpen) => setUpvotePopoverOpen(isOpen ? suggestion.id : null)}>
-                      <PopoverTrigger asChild>
-                        <Button 
-                            variant={'ghost'} 
-                            size="sm" 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onUpvoteToggle(suggestion.id);
-                            }}
-                            onMouseEnter={() => setUpvotePopoverOpen(suggestion.id)}
-                            onMouseLeave={() => setUpvotePopoverOpen(null)}
-                            className={cn('text-muted-foreground', isUpvoted && "text-primary")}
-                        >
-                            <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-primary")} />
-                            <span>{suggestion.upvotes}</span>
-                        </Button>
-                      </PopoverTrigger>
-                      {upvoters.length > 0 && (
-                        <PopoverContent className="w-auto max-w-xs">
-                          <div className="flex flex-col gap-2">
-                            <p className="font-semibold text-sm">Upvoted by</p>
-                            <div className="flex flex-wrap gap-2">
-                              {upvoters.map(user => (
-                                <div key={user.id} className="flex items-center gap-2 text-xs">
-                                  <Avatar className="h-6 w-6">
-                                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <span>{user.name}</span>
-                                </div>
-                              ))}
+                 <div className="flex justify-between items-center ml-12">
+                  <h3 className="font-bold truncate pr-4">{suggestion.title}</h3>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-shrink-0">
+                      <Popover open={upvotePopoverOpen === suggestion.id} onOpenChange={(isOpen) => setUpvotePopoverOpen(isOpen ? suggestion.id : null)}>
+                        <PopoverTrigger asChild>
+                          <Button 
+                              variant={'ghost'} 
+                              size="sm" 
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  onUpvoteToggle(suggestion.id);
+                              }}
+                              onMouseEnter={() => setUpvotePopoverOpen(suggestion.id)}
+                              onMouseLeave={() => setUpvotePopoverOpen(null)}
+                              className={cn('text-muted-foreground', isUpvoted && "text-primary")}
+                          >
+                              <ThumbsUp className={cn('mr-2 h-4 w-4', isUpvoted && "fill-primary")} />
+                              <span>{suggestion.upvotes}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        {upvoters.length > 0 && (
+                          <PopoverContent className="w-auto max-w-xs">
+                            <div className="flex flex-col gap-2">
+                              <p className="font-semibold text-sm">Upvoted by</p>
+                              <div className="flex flex-wrap gap-2">
+                                {upvoters.map(user => (
+                                  <div key={user.id} className="flex items-center gap-2 text-xs">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <span>{user.name}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        </PopoverContent>
-                      )}
-                    </Popover>
-                    <div className="flex items-center gap-1">
-                        <MessageSquare className="h-4 w-4"/>
-                        <span>{suggestion.comments.length}</span>
-                    </div>
+                          </PopoverContent>
+                        )}
+                      </Popover>
+                      <div className="flex items-center gap-1">
+                          <MessageSquare className="h-4 w-4"/>
+                          <span>{suggestion.comments.length}</span>
+                      </div>
+                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground line-clamp-2 ml-12 mt-1">{suggestion.description}</p>
               </div>
             </div>
         )
