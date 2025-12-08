@@ -66,8 +66,7 @@ export function AppreciationList({
 
   return (
     <>
-      <div className="border rounded-lg">
-        <div className="divide-y">
+      <div className="space-y-3">
             {appreciations.map(appreciation => {
               const isLiked = appreciation.likedBy.includes(currentUser.id);
               const canModify = appreciation.fromUser.id === currentUser.id;
@@ -76,7 +75,7 @@ export function AppreciationList({
                 .filter((u): u is User => !!u);
 
               return (
-                <div key={appreciation.id} className="p-3 flex items-center gap-4">
+                <div key={appreciation.id} className="p-3 flex items-center gap-4 border rounded-lg">
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={appreciation.fromUser.avatarUrl} alt={appreciation.fromUser.name} />
@@ -159,7 +158,6 @@ export function AppreciationList({
                 </div>
               );
             })}
-        </div>
       </div>
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
