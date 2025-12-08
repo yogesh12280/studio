@@ -3,8 +3,12 @@
 import { useMemo } from 'react'
 import type { Notification } from '@/lib/types'
 import { NotificationList } from './notification-list'
-import type { DateRange } from 'react-day-picker'
-import { isWithinInterval } from 'date-fns'
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
+
+interface DateRange {
+    from: Date | undefined;
+    to: Date | undefined;
+}
 
 interface NotificationFeedProps {
   searchQuery: string
@@ -23,9 +27,22 @@ export function NotificationFeed({ searchQuery, notifications, onSelectNotificat
           notification.content.toLowerCase().includes(searchLower) ||
           notification.author.name.toLowerCase().includes(searchLower)
 
-        const dateMatch = dateRange?.from && dateRange?.to 
-          ? isWithinInterval(new Date(notification.createdAt), { start: dateRange.from, end: dateRange.to })
-          : true
+        const dateMatch = (() => {
+            if (!dateRange?.from && !dateRange?.to) return true;
+            const notificationDate = new Date(notification.createdAt);
+            const start = dateRange.from ? startOfDay(dateRange.from) : undefined;
+            const end = dateRange.to ? endOfDay(dateRange.to) : undefined;
+            if (start && end) {
+                return isWithinInterval(notificationDate, { start, end });
+            }
+            if (start) {
+                return notificationDate >= start;
+            }
+            if (end) {
+                return notificationDate <= end;
+            }
+            return true;
+        })();
 
         return textMatch && dateMatch
       })

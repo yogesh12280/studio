@@ -14,8 +14,7 @@ import { FeaturedNotifications } from '@/components/featured-notifications'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { DatePickerWithRange } from '@/components/ui/date-picker-with-range'
-import type { DateRange } from 'react-day-picker'
+import { DatePicker } from '@/components/ui/date-picker'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -24,7 +23,9 @@ export default function NotificationsPage() {
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -337,14 +338,15 @@ export default function NotificationsPage() {
             ) : (
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
-                <div className="mb-4">
-                    <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
+                <div className="mb-4 flex items-center gap-2">
+                    <DatePicker date={startDate} onDateChange={setStartDate} placeholder="Start date" />
+                    <DatePicker date={endDate} onDateChange={setEndDate} placeholder="End date" />
                 </div>
                 <NotificationFeed 
                   searchQuery={searchQuery}
                   notifications={notifications}
                   onSelectNotification={handleSelectNotification}
-                  dateRange={dateRange}
+                  dateRange={{from: startDate, to: endDate}}
                 />
               </>
             )
