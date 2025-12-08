@@ -63,7 +63,7 @@ export function AppHeader({
         {title}
       </h1>
       <div className="relative flex-1">
-        {title !== 'Dashboard' && title !== 'Polling' && title !== 'Notifications' && title !== 'Suggestions' && title !== 'Grievance' && (
+        {title !== 'Dashboard' && title !== 'Polling' && title !== 'Notifications' && title !== 'Suggestions' && title !== 'Grievance' && title !== 'Appreciation' && (
           <>
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

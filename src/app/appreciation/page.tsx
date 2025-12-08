@@ -7,12 +7,14 @@ import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { initialAppreciations } from '@/lib/data'
 import type { Appreciation } from '@/lib/types'
-import { AppreciationCard } from '@/components/appreciation-card'
-import { PlusCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { CreateAppreciationDialog } from '@/components/create-appreciation-dialog'
 import { DeleteAppreciationDialog } from '@/components/delete-appreciation-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Search } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { AppreciationList } from '@/components/appreciation-list'
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 
 export default function AppreciationPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,6 +25,11 @@ export default function AppreciationPage() {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
 
   useEffect(() => {
     setLoading(true);
@@ -31,6 +38,12 @@ export default function AppreciationPage() {
       setAppreciations(initialAppreciations);
       setLoading(false);
     }, 1000);
+
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    setStartDate(oneYearAgo);
+    setEndDate(today);
   }, []);
 
   if (!currentUser) return null;
@@ -93,14 +106,41 @@ export default function AppreciationPage() {
     return appreciations
       .filter(appreciation => {
         const searchLower = searchQuery.toLowerCase()
-        return (
+        const textMatch = (
           appreciation.message.toLowerCase().includes(searchLower) ||
           appreciation.fromUser.name.toLowerCase().includes(searchLower) ||
           appreciation.toUser.name.toLowerCase().includes(searchLower)
         )
+
+        const dateMatch = (() => {
+            if (!startDate && !endDate) return true;
+            const appreciationDate = new Date(appreciation.createdAt);
+            const start = startDate ? startOfDay(startDate) : undefined;
+            const end = endDate ? endOfDay(endDate) : undefined;
+            if (start && end) {
+                return isWithinInterval(appreciationDate, { start, end });
+            }
+            if (start) {
+                return appreciationDate >= start;
+            }
+            if (end) {
+                return appreciationDate <= end;
+            }
+            return true;
+        })();
+        
+        return textMatch && dateMatch
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [appreciations, searchQuery])
+  }, [appreciations, searchQuery, startDate, endDate])
+
+  const paginatedAppreciations = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredAppreciations.slice(startIndex, startIndex + pageSize);
+  }, [filteredAppreciations, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredAppreciations.length / pageSize);
+
 
   const renderLoadingState = () => (
     <div className="space-y-4">
@@ -136,20 +176,42 @@ export default function AppreciationPage() {
         <main className="p-4 sm:p-6 space-y-4">
             {loading ? renderLoadingState() : (
               <>
-                {filteredAppreciations.map(appreciation => (
-                    <AppreciationCard 
-                        key={appreciation.id}
-                        appreciation={appreciation}
-                        onLikeToggle={handleLikeToggle}
-                        onEdit={() => openEditDialog(appreciation)}
-                        onDelete={() => openDeleteDialog(appreciation)}
-                    />
-                ))}
-                {filteredAppreciations.length === 0 && !loading && (
-                    <div className="text-center text-muted-foreground py-12">
-                        No appreciations yet. Be the first to send one!
+                <div className="mb-4 flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Search appreciations..."
+                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
-                )}
+                    <DatePicker 
+                      date={startDate} 
+                      onDateChange={setStartDate} 
+                      placeholder="Start date" 
+                      disabled={{ after: endDate }}
+                    />
+                    <DatePicker 
+                      date={endDate} 
+                      onDateChange={setEndDate} 
+                      placeholder="End date" 
+                      disabled={{ before: startDate }}
+                    />
+                </div>
+                <AppreciationList
+                    appreciations={paginatedAppreciations}
+                    onLikeToggle={handleLikeToggle}
+                    onEdit={openEditDialog}
+                    onDelete={openDeleteDialog}
+                    totalAppreciations={filteredAppreciations.length}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    totalPages={totalPages}
+                    setCurrentPage={setCurrentPage}
+                    setPageSize={setPageSize}
+                />
               </>
             )}
         </main>
