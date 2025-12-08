@@ -9,12 +9,13 @@ import { useUser } from '@/contexts/user-context'
 import type { Notification, Comment } from '@/lib/types'
 import { NotificationCard } from '@/components/notification-card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search } from 'lucide-react'
 import { FeaturedNotifications } from '@/components/featured-notifications'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { DatePicker } from '@/components/ui/date-picker'
+import { Input } from '@/components/ui/input'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -347,6 +348,16 @@ export default function NotificationsPage() {
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
                 <div className="mb-4 flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Search notifications..."
+                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <DatePicker 
                       date={startDate} 
                       onDateChange={setStartDate} 
