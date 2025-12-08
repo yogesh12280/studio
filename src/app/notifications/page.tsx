@@ -25,6 +25,8 @@ export default function NotificationsPage() {
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
 
   useEffect(() => {
@@ -300,9 +302,9 @@ export default function NotificationsPage() {
           <Skeleton className="h-6 w-1/3" />
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-56 w-full" />
-          <Skeleton className="h-56 w-full" />
-          <Skeleton className="h-56 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
         </CardContent>
       </Card>
       <div className="space-y-3">
@@ -363,6 +365,10 @@ export default function NotificationsPage() {
                   notifications={notifications}
                   onSelectNotification={handleSelectNotification}
                   dateRange={{from: startDate, to: endDate}}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  setCurrentPage={setCurrentPage}
+                  setPageSize={setPageSize}
                 />
               </>
             )
