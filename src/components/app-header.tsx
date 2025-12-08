@@ -17,7 +17,8 @@ import { useUser } from '@/contexts/user-context'
 import { CreateNotificationDialog } from './create-notification-dialog'
 import { CreatePollDialog } from './create-poll-dialog'
 import { CreateAppreciationDialog } from './create-appreciation-dialog'
-import type { Notification, Poll, Appreciation, User } from '@/lib/types'
+import { CreateSuggestionDialog } from './create-suggestion-dialog'
+import type { Notification, Poll, Appreciation, User, Suggestion } from '@/lib/types'
 import { employees } from '@/lib/data'
 
 interface AppHeaderProps {
@@ -27,6 +28,7 @@ interface AppHeaderProps {
   onAddNotification?: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
   onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
   onAddAppreciation?: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
+  onAddSuggestion?: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void;
 }
 
 export function AppHeader({
@@ -36,6 +38,7 @@ export function AppHeader({
   onAddNotification,
   onAddPoll,
   onAddAppreciation,
+  onAddSuggestion,
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
@@ -105,6 +108,14 @@ export function AppHeader({
                 <span className="hidden sm:inline">Send Appreciation</span>
                 </Button>
             </CreateAppreciationDialog>
+        )}
+        {title === 'Suggestions' && onAddSuggestion && (
+          <CreateSuggestionDialog mode="create" onSuggestionSubmit={onAddSuggestion}>
+            <Button size="sm" className="gap-1">
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Suggestion</span>
+            </Button>
+          </CreateSuggestionDialog>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

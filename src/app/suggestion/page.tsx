@@ -8,12 +8,12 @@ import { useUser } from '@/contexts/user-context'
 import { initialSuggestions } from '@/lib/data'
 import type { Suggestion, Comment } from '@/lib/types'
 import { SuggestionList } from '@/components/suggestion-list'
-import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -206,6 +206,7 @@ export default function SuggestionPage() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           title="Suggestions"
+          onAddSuggestion={handleAddSuggestion}
         />
         <main className="p-4 sm:p-6">
             {selectedSuggestion ? (
@@ -226,15 +227,6 @@ export default function SuggestionPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold font-headline">Suggestion Box</h2>
-                        <CreateSuggestionDialog mode="create" onSuggestionSubmit={handleAddSuggestion}>
-                            <Button>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Suggestion
-                            </Button>
-                        </CreateSuggestionDialog>
-                    </div>
                     {loading ? renderLoadingState() : (
                       <SuggestionList 
                           suggestions={filteredSuggestions} 
