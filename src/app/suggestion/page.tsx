@@ -9,7 +9,7 @@ import { initialSuggestions } from '@/lib/data'
 import type { Suggestion, Comment } from '@/lib/types'
 import { SuggestionList } from '@/components/suggestion-list'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Search } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,6 +17,7 @@ import { CreateSuggestionDialog } from '@/components/create-suggestion-dialog'
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FeaturedSuggestions } from '@/components/featured-suggestions'
+import { Input } from '@/components/ui/input'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -272,6 +273,16 @@ export default function SuggestionPage() {
                       <>
                         <FeaturedSuggestions suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
                         <div className="mb-4 flex items-center gap-2">
+                          <div className="relative">
+                              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input
+                              type="search"
+                              placeholder="Search suggestions..."
+                              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              />
+                          </div>
                           <DatePicker 
                             date={startDate} 
                             onDateChange={setStartDate} 
