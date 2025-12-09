@@ -18,8 +18,9 @@ import { CreateNotificationDialog } from './create-notification-dialog'
 import { CreatePollDialog } from './create-poll-dialog'
 import { CreateAppreciationDialog } from './create-appreciation-dialog'
 import { CreateSuggestionDialog } from './create-suggestion-dialog'
-import type { Notification, Poll, Appreciation, User, Suggestion } from '@/lib/types'
+import type { Notification, Poll, Appreciation, User, Suggestion, Grievance } from '@/lib/types'
 import { employees } from '@/lib/data'
+import { RegisterGrievanceDialog } from './register-grievance-dialog'
 
 interface AppHeaderProps {
   searchQuery: string
@@ -29,6 +30,7 @@ interface AppHeaderProps {
   onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
   onAddAppreciation?: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
   onAddSuggestion?: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void;
+  onAddGrievance?: (newGrievance: Omit<Grievance, 'id' | 'createdAt'>) => void;
 }
 
 export function AppHeader({
@@ -39,6 +41,7 @@ export function AppHeader({
   onAddPoll,
   onAddAppreciation,
   onAddSuggestion,
+  onAddGrievance,
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
@@ -117,6 +120,14 @@ export function AppHeader({
             </Button>
           </CreateSuggestionDialog>
         )}
+        {title === 'Grievance' && onAddGrievance && (
+          <RegisterGrievanceDialog mode="create" onGrievanceSubmit={onAddGrievance}>
+            <Button size="sm" className="gap-1">
+              <PlusCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">New Grievance</span>
+            </Button>
+          </RegisterGrievanceDialog>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -159,3 +170,5 @@ export function AppHeader({
     </header>
   )
 }
+
+    

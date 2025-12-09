@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { PlusCircle, MessageSquare, MoreVertical, Edit, Trash2 } from 'lucide-react'
+import { MessageSquare, MoreVertical, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,42 +10,50 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Grievance } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
 
 interface EmployeeGrievanceViewProps {
-  searchQuery: string
   grievances: Grievance[]
-  onAddGrievance: (newGrievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void
   onSelectGrievance: (grievance: Grievance) => void;
   onEdit: (grievance: Grievance) => void;
   onDelete: (grievance: Grievance) => void;
   getStatusVariant: (status: Grievance['status']) => 'default' | 'destructive' | 'secondary' | 'outline';
+  currentPage: number;
+  pageSize: number;
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
 }
 
-export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance, onSelectGrievance, onEdit, onDelete, getStatusVariant }: EmployeeGrievanceViewProps) {
+export function EmployeeGrievanceView({ 
+  grievances, 
+  onSelectGrievance, 
+  onEdit, 
+  onDelete, 
+  getStatusVariant,
+  currentPage,
+  pageSize,
+  setCurrentPage,
+  setPageSize
+}: EmployeeGrievanceViewProps) {
 
-  const filteredGrievances = useMemo(() => {
-    return grievances.filter(grievance => 
-      grievance.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      grievance.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [grievances, searchQuery])
+  const paginatedGrievances = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return grievances.slice(startIndex, startIndex + pageSize);
+  }, [grievances, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(grievances.length / pageSize);
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+  };
   
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-headline">Your Grievances</h2>
-        <RegisterGrievanceDialog mode="create" onGrievanceSubmit={onAddGrievance}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Register New Grievance
-          </Button>
-        </RegisterGrievanceDialog>
-      </div>
+    <>
       <div className="space-y-3">
-        {filteredGrievances.map((grievance) => (
+        {paginatedGrievances.map((grievance) => (
           <div
             key={grievance.id}
             className="border rounded-lg p-4 flex flex-col cursor-pointer hover:bg-muted/50 transition-colors"
@@ -106,12 +114,47 @@ export function EmployeeGrievanceView({ searchQuery, grievances, onAddGrievance,
             </div>
           </div>
         ))}
-        {filteredGrievances.length === 0 && (
+        {grievances.length === 0 && (
             <div className="text-center text-muted-foreground py-12">
-                You haven&apos;t submitted any grievances yet.
+                You haven&apos;t submitted any grievances that match the current filters.
             </div>
         )}
       </div>
-    </div>
+
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Page {currentPage} of {totalPages}</span>
+          <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 5, 10, 20, 50].map(size => (
+                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span>per page</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </>
   )
 }
+
+    

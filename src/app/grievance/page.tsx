@@ -19,7 +19,7 @@ import { RegisterGrievanceDialog } from '@/components/register-grievance-dialog'
 import { DeleteGrievanceDialog } from '@/components/delete-grievance-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { format, parse } from 'date-fns'
+import { format, parse, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
 
 export default function GrievancePage() {
@@ -460,6 +460,33 @@ export default function GrievancePage() {
     </div>
   );
 
+  const filteredEmployeeGrievances = grievances.filter(g => {
+    if (g.employeeId !== currentUser.id) return false;
+
+    const searchLower = searchQuery.toLowerCase();
+    const textMatch = g.subject.toLowerCase().includes(searchLower) ||
+        g.description.toLowerCase().includes(searchLower);
+    
+    const dateMatch = (() => {
+        if (!startDate && !endDate) return true;
+        const grievanceDate = new Date(g.createdAt);
+        const start = startDate ? startOfDay(startDate) : undefined;
+        const end = endDate ? endOfDay(endDate) : undefined;
+        if (start && end) {
+            return isWithinInterval(grievanceDate, { start, end });
+        }
+        if (start) {
+            return grievanceDate >= start;
+        }
+        if (end) {
+            return grievanceDate <= end;
+        }
+        return true;
+    })();
+
+    return textMatch && dateMatch;
+  });
+
   const renderEmployeeView = () => {
     if (currentUser.role === 'Employee' && !isBirthdateVerified) {
       return (
@@ -508,20 +535,44 @@ export default function GrievancePage() {
     
     return (
         loading ? renderEmployeeLoadingState() :
-        <EmployeeGrievanceView 
-          searchQuery={searchQuery} 
-          grievances={grievances.filter(g => g.employeeId === currentUser.id)}
-          onAddGrievance={(data) => handleAddGrievance({
-            ...data,
-            employeeId: currentUser.id,
-            employeeName: currentUser.name,
-            employeeAvatarUrl: currentUser.avatarUrl,
-          })}
-          onSelectGrievance={handleSelectGrievance}
-          onEdit={openEditDialog}
-          onDelete={openDeleteDialog}
-          getStatusVariant={getBadgeVariant}
-        />
+        <div className="space-y-6">
+            <h2 className="text-2xl font-bold font-headline">Your Grievances</h2>
+            <div className="mb-4 flex items-center gap-2">
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                    type="search"
+                    placeholder="Search your grievances..."
+                    className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                <DatePicker 
+                date={startDate} 
+                onDateChange={setStartDate} 
+                placeholder="Start date" 
+                disabled={{ after: endDate }}
+                />
+                <DatePicker 
+                date={endDate} 
+                onDateChange={setEndDate} 
+                placeholder="End date" 
+                disabled={{ before: startDate }}
+                />
+            </div>
+            <EmployeeGrievanceView
+              grievances={filteredEmployeeGrievances}
+              onSelectGrievance={handleSelectGrievance}
+              onEdit={openEditDialog}
+              onDelete={openDeleteDialog}
+              getStatusVariant={getBadgeVariant}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              setCurrentPage={setCurrentPage}
+              setPageSize={setPageSize}
+            />
+        </div>
     )
   }
   
@@ -570,6 +621,15 @@ export default function GrievancePage() {
     );
   };
 
+  const handleAddGrievanceInHeader = (data: Omit<Grievance, 'id' | 'createdAt' | 'comments'>) => {
+    handleAddGrievance({
+        ...data,
+        employeeId: currentUser.id,
+        employeeName: currentUser.name,
+        employeeAvatarUrl: currentUser.avatarUrl,
+    });
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -578,6 +638,7 @@ export default function GrievancePage() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           title="Grievance"
+          onAddGrievance={currentUser.role === 'Employee' ? handleAddGrievanceInHeader : undefined}
         />
         <main className="p-4 sm:p-6">
           {currentUser.role === 'Admin' ? renderAdminView() : renderEmployeeView() }
@@ -624,7 +685,4 @@ const getBadgeVariant = (status: Grievance['status']) => {
 
     
 
-
-
-
-
+    
