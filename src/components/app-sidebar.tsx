@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SembConnectLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award, LayoutDashboard } from 'lucide-react'
+import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 
@@ -27,7 +27,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/notifications" className="flex items-center gap-2">
           <div className="bg-primary text-primary-foreground rounded-lg p-2">
             <SembConnectLogo className="h-6 w-6" />
           </div>
@@ -38,18 +38,6 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="Dashboard"
-              isActive={pathname === '/'}
-            >
-              <Link href="/">
-                <LayoutDashboard />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

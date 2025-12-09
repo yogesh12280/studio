@@ -17,7 +17,7 @@ export default function LoginPage() {
 
   const handleLogin = (user: any) => {
     setCurrentUser(user)
-    router.push('/')
+    router.push('/notifications')
   }
 
   useEffect(() => {
