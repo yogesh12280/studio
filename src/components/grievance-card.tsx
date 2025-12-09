@@ -96,9 +96,11 @@ function CommentWithReplies({ comment, grievanceId, onAddReply, currentUser, isC
             <p className="text-xs text-muted-foreground mt-1">
             {isClient ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : ''}
             </p>
-            <Button variant="link" size="sm" className="text-xs p-0 h-auto" onClick={() => setShowReplyInput(!showReplyInput)}>
-                Reply
-            </Button>
+            {currentUser.role === 'Admin' && (
+              <Button variant="link" size="sm" className="text-xs p-0 h-auto" onClick={() => setShowReplyInput(!showReplyInput)}>
+                  Reply
+              </Button>
+            )}
         </div>
 
         {comment.replies && comment.replies.length > 0 && (
@@ -122,7 +124,7 @@ function CommentWithReplies({ comment, grievanceId, onAddReply, currentUser, isC
             ))}
           </div>
         )}
-        {showReplyInput && (
+        {showReplyInput && currentUser.role === 'Admin' && (
           <ReplyInput
             commentId={comment.id}
             onAddReply={(commentId, replyText) => onAddReply(grievanceId, commentId, replyText)}
@@ -214,34 +216,34 @@ export function GrievanceCard({ grievance, onAddComment, onAddReply, getStatusVa
             </p>
           )}
 
-          <form onSubmit={handleCommentSubmit} className="flex items-center gap-2 pt-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <Input
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add to the conversation..."
-              className="flex-1 h-9"
-            />
-            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-              <PopoverTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
-                  <Smile className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-0">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </PopoverContent>
-            </Popover>
-            <Button type="submit" size="icon" className="h-9 w-9">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+          {currentUser.role === 'Admin' && (
+            <form onSubmit={handleCommentSubmit} className="flex items-center gap-2 pt-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <Input
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add to the conversation..."
+                className="flex-1 h-9"
+              />
+              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9">
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-0">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </PopoverContent>
+              </Popover>
+              <Button type="submit" size="icon" className="h-9 w-9">
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          )}
         </div>
     </Card>
   )
 }
-
-    
