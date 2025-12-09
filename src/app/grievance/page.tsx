@@ -668,7 +668,7 @@ export default function GrievancePage() {
 
 const getBadgeVariant = (status: Grievance['status']) => {
     switch (status) {
-      case 'Pending':
+      case 'Initiated':
         return 'destructive' as const
       case 'In Progress':
         return 'secondary' as const

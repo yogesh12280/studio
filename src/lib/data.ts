@@ -80,7 +80,7 @@ export let grievances: Grievance[] = [
     employeeAvatarUrl: getImageUrl('avatar2'),
     subject: 'Issue with new workstation',
     description: 'The new workstation provided is missing a secondary monitor, which is affecting my productivity. I had requested one during the setup process.',
-    status: 'Pending',
+    status: 'Initiated',
     createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 48).toISOString(),
     comments: [],
   },

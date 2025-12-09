@@ -89,7 +89,7 @@ export function RegisterGrievanceDialog(props: GrievanceDialogProps) {
       (props.onGrievanceSubmit as (grievance: Omit<Grievance, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt'>) => void)({
         subject,
         description,
-        status: 'Pending',
+        status: 'Initiated',
       })
 
       toast({
@@ -105,7 +105,7 @@ export function RegisterGrievanceDialog(props: GrievanceDialogProps) {
   
   const dialogTitle = isEditMode ? 'Edit Grievance' : 'Register Grievance';
   const dialogDescription = isEditMode
-    ? 'Make changes to your grievance. This is only possible while the status is "Pending".'
+    ? 'Make changes to your grievance. This is only possible while the status is "Initiated".'
     : 'Submit a new grievance. Please provide a clear subject and a detailed description.';
   const buttonText = isEditMode ? 'Save Changes' : 'Submit Grievance';
 

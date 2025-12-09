@@ -212,7 +212,7 @@ export function GrievanceManagement({
 
   const getStatusVariant = (status: Grievance['status']) => {
     switch (status) {
-      case 'Pending':
+      case 'Initiated':
         return 'destructive'
       case 'In Progress':
         return 'secondary'
@@ -354,9 +354,9 @@ export function GrievanceManagement({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleStatusUpdate(grievance, 'Pending')}
+                          onClick={() => handleStatusUpdate(grievance, 'Initiated')}
                         >
-                          Mark as Pending
+                          Mark as Initiated
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleStatusUpdate(grievance, 'In Progress')}

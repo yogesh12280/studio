@@ -42,7 +42,7 @@ export type Grievance = {
   employeeAvatarUrl: string;
   subject: string;
   description: string;
-  status: 'Pending' | 'In Progress' | 'Resolved';
+  status: 'Initiated' | 'In Progress' | 'Resolved';
   createdAt: string;
   resolvedAt?: string;
   comments?: GrievanceComment[];

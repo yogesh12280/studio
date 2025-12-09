@@ -70,7 +70,7 @@ export function EmployeeGrievanceView({
                         <Badge variant={getStatusVariant(grievance.status)}>
                             {grievance.status}
                         </Badge>
-                        {grievance.status === 'Pending' && (
+                        {grievance.status === 'Initiated' && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                 <Button 
