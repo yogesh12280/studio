@@ -42,7 +42,7 @@ export function AppreciationCard({ appreciation, onLikeToggle, onEdit, onDelete 
   if (!currentUser) return null;
 
   const isLiked = appreciation.likedBy.includes(currentUser.id)
-  const canModify = appreciation.fromUser.id === currentUser.id
+  const canModify = appreciation.fromUser.id === currentUser.id && appreciation.likes === 0;
   
   const allUsers = [...users, ...employees];
   const likers = appreciation.likedBy

@@ -71,7 +71,7 @@ export function AppreciationList({
       <div className="space-y-3">
             {appreciations.map(appreciation => {
               const isLiked = appreciation.likedBy.includes(currentUser.id);
-              const canModify = appreciation.fromUser.id === currentUser.id;
+              const canModify = appreciation.fromUser.id === currentUser.id && appreciation.likes === 0;
               const likers = appreciation.likedBy
                 .map(userId => allUsers.find(u => u.id === userId))
                 .filter((u): u is User => !!u);
@@ -134,7 +134,7 @@ export function AppreciationList({
                       )}
                     </Popover>
 
-                    {canModify && (
+                    {canModify ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -155,6 +155,8 @@ export function AppreciationList({
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    ) : (
+                      <div className="h-8 w-8" /> 
                     )}
                   </div>
                 </div>
