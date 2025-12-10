@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'SembConnect',
   description: 'Efficient and targeted bulletin delivery for your organization.',
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>',
+    icon: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c63ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 2 11 13'/><path d='m22 2-7 20-4-9-9-4 20-7z'/></svg>`,
   },
 }
 
