@@ -7,32 +7,63 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SembConnectLogo } from '@/components/icons'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useEffect, useState } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { employees } from '@/lib/data'
 
 export default function LoginPage() {
   const { users, setCurrentUser, loading } = useUser()
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = (user: any) => {
     setCurrentUser(user)
     router.push('/notifications')
   }
 
-  useEffect(() => {
-    if (!loading && users.length > 0) {
-      const userToLogin = users.find(u => u.id === 'user-1');
-      if (userToLogin) {
-        handleLogin(userToLogin);
-      } else {
-        setError('No valid user found to log in.');
-      }
-    } else if (!loading && users.length === 0) {
-        setError('No users available to log in.');
-    }
-  }, [users, loading]);
+  const allUsers = [...users, ...employees]
 
+  const renderUserList = () => {
+    if (loading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[120px]" />
+                  <Skeleton className="h-3 w-[80px]" />
+                </div>
+              </div>
+              <Skeleton className="h-9 w-20 rounded-md" />
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    if (allUsers.length === 0) {
+        return <p className="text-center text-muted-foreground">No users found.</p>
+    }
+
+    return (
+      <div className="space-y-4">
+        {allUsers.map((user) => (
+          <div key={user.id} className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold">{user.name}</p>
+                <p className="text-sm text-muted-foreground">{user.role}</p>
+              </div>
+            </div>
+            <Button onClick={() => handleLogin(user)}>Login</Button>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -43,26 +74,11 @@ export default function LoginPage() {
             </div>
           <CardTitle className="text-2xl font-headline">Welcome to SembConnect</CardTitle>
           <CardDescription>
-            {error ? 'Login Failed' : 'Logging you in...'}
+            Please select a user to log in.
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {error ? (
-                <div className="flex flex-col items-center justify-center text-center text-destructive gap-4">
-                    <AlertCircle className="h-12 w-12" />
-                    <p className="font-semibold">{error}</p>
-                </div>
-            ) : (
-                <div className="flex items-center justify-center">
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-[150px]" />
-                            <Skeleton className="h-4 w-[100px]" />
-                        </div>
-                    </div>
-                </div>
-            )}
+            {renderUserList()}
         </CardContent>
       </Card>
     </div>
