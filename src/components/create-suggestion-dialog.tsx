@@ -14,7 +14,6 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Textarea } from './ui/textarea'
-import { useToast } from '@/hooks/use-toast'
 import type { Suggestion } from '@/lib/types'
 
 type CreateSuggestionDialogProps = {
@@ -45,7 +44,6 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
   const open = props.open ?? internalOpen
   const onOpenChange = props.onOpenChange ?? setInternalOpen
 
-  const { toast } = useToast()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
 
@@ -66,34 +64,22 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-
     if (isEditMode && suggestionToEdit) {
         (props.onSuggestionSubmit as (suggestion: Suggestion) => void)({
             ...suggestionToEdit,
             title,
             description,
         });
-        toast({
-            title: 'Suggestion Updated!',
-            description: 'Your suggestion has been successfully updated.',
-        });
     } else {
         (props.onSuggestionSubmit as (suggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void)({
           title,
           description,
         })
-       
-        toast({
-          title: 'Suggestion Submitted!',
-          description: 'Thank you for your feedback.',
-        })
     }
     
-    setTimeout(() => {
-      onOpenChange(false)
-      setTitle('')
-      setDescription('')
-    }, 100);
+    onOpenChange(false)
+    setTitle('')
+    setDescription('')
   }
   
   const dialogTitle = isEditMode ? 'Edit Suggestion' : 'Submit a Suggestion';

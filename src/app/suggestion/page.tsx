@@ -9,7 +9,7 @@ import { initialSuggestions } from '@/lib/data'
 import type { Suggestion, Comment } from '@/lib/types'
 import { SuggestionList } from '@/components/suggestion-list'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, Search, CheckCircle, X } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -18,6 +18,8 @@ import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
 import { FeaturedSuggestions } from '@/components/featured-suggestions'
 import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SuggestionPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -33,6 +35,18 @@ export default function SuggestionPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (successMessage) {
+      timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [successMessage]);
 
   useEffect(() => {
     setLoading(true);
@@ -63,7 +77,8 @@ export default function SuggestionPage() {
       comments: [],
       ...newSuggestionData,
     }
-    setSuggestions(prev => [newSuggestion, ...prev])
+    setSuggestions(prev => [newSuggestion, ...prev]);
+    setSuccessMessage('Suggestion submitted successfully!');
   }
   
   const handleEditSuggestion = (updatedSuggestion: Suggestion) => {
@@ -73,6 +88,7 @@ export default function SuggestionPage() {
     }
     setSuggestionToEdit(null);
     setIsEditOpen(false);
+    setSuccessMessage('Suggestion updated successfully!');
   }
 
   const handleDeleteSuggestion = (suggestionId: string) => {
@@ -82,6 +98,7 @@ export default function SuggestionPage() {
     if (selectedSuggestion?.id === suggestionId) {
         setSelectedSuggestion(null);
     }
+    setSuccessMessage('Suggestion deleted successfully!');
   }
 
   const handleUpvoteToggle = (suggestionId: string) => {
@@ -128,6 +145,9 @@ export default function SuggestionPage() {
       return s;
     });
     setSuggestions(newSuggestions);
+    toast({
+        title: 'Comment added',
+    });
   };
   
   const handleAddReply = (suggestionId: string, commentId: string, replyText: string) => {
@@ -163,6 +183,9 @@ export default function SuggestionPage() {
       return s;
     });
     setSuggestions(newSuggestions);
+    toast({
+        title: 'Reply added',
+    });
   };
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
@@ -251,6 +274,18 @@ export default function SuggestionPage() {
           onAddSuggestion={handleAddSuggestion}
         />
         <main className="p-4 sm:p-6">
+            {successMessage && (
+                <Alert className="mb-4 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertTitle className="text-green-800 dark:text-green-300">Success</AlertTitle>
+                    <AlertDescription className="text-green-700 dark:text-green-400">
+                        {successMessage}
+                    </AlertDescription>
+                    <button onClick={() => setSuccessMessage(null)} className="absolute top-2 right-2 p-1">
+                        <X className="h-4 w-4 text-green-700 dark:text-green-400" />
+                    </button>
+                </Alert>
+            )}
             {selectedSuggestion ? (
                 <div className="max-w-2xl mx-auto">
                      <Button variant="ghost" onClick={handleBackToList} className="mb-4">
@@ -259,9 +294,9 @@ export default function SuggestionPage() {
                     </Button>
                     <SuggestionCard 
                         suggestion={selectedSuggestion}
-                        onUpvoteToggle={handleUpvoteToggle}
+                        onUpvoteToggle={onUpvoteToggle}
                         onAddComment={handleAddComment}
-                        onAddReply={handleAddReply}
+                        onAddReply={onAddReply}
                         onEdit={() => openEditDialog(selectedSuggestion)}
                         onDelete={() => openDeleteDialog(selectedSuggestion)}
                         currentUser={currentUser}

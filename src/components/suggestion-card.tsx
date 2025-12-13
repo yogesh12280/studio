@@ -25,6 +25,7 @@ import { useUser } from '@/contexts/user-context'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { employees } from '@/lib/data'
+import { useToast } from '@/hooks/use-toast'
 
 interface ReplyInputProps {
   commentId: string;
@@ -158,6 +159,7 @@ export function SuggestionCard({ suggestion, onUpvoteToggle, onAddComment, onAdd
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [upvotePopoverOpen, setUpvotePopoverOpen] = useState(false);
   const { users } = useUser();
+  const { toast } = useToast();
 
   if (!currentUser) return null;
 
