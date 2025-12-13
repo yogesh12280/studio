@@ -126,8 +126,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
     if (!scheduledFor) {
       toast({
         variant: 'destructive',
-        title: 'Missing Schedule Date',
-        description: 'Please pick a post date for the notification.',
+        title: 'Field Required',
+        description: 'Please fill out the schedule field.',
       });
       return;
     }
