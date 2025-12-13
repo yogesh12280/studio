@@ -90,6 +90,7 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
           title,
           description,
         })
+       
         toast({
           title: 'Suggestion Submitted!',
           description: 'Thank you for your feedback.',
