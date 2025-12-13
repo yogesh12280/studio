@@ -294,9 +294,9 @@ export default function SuggestionPage() {
                     </Button>
                     <SuggestionCard 
                         suggestion={selectedSuggestion}
-                        onUpvoteToggle={onUpvoteToggle}
+                        onUpvoteToggle={handleUpvoteToggle}
                         onAddComment={handleAddComment}
-                        onAddReply={onAddReply}
+                        onAddReply={handleAddReply}
                         onEdit={() => openEditDialog(selectedSuggestion)}
                         onDelete={() => openDeleteDialog(selectedSuggestion)}
                         currentUser={currentUser}
