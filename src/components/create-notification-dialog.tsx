@@ -115,11 +115,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !finalCategory || !scheduledFor || !endDate) {
+    if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
-            description: "Please fill out Title, Content, Category, Schedule Date, and End Date.",
+            description: "Please fill out Title, Content, Image, Schedule Date, and End Date.",
         })
         return
     }
@@ -266,7 +266,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
+                        if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
+                          e.preventDefault();
+                        }
+                      }}>
                         <Calendar
                           mode="single"
                           selected={scheduledFor}
@@ -294,7 +298,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
+                        if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
+                          e.preventDefault();
+                        }
+                      }}>
                         <Calendar
                           mode="single"
                           selected={endDate}
