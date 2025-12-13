@@ -111,17 +111,25 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    debugger;
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
+    if (!title || !content || !imageUrl || !endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
-            description: "Please fill out Title, Content, Image, Schedule Date, and End Date.",
+            description: "Please fill out Title, Content, Image, and End Date.",
         })
         return
+    }
+
+    if (!scheduledFor) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Schedule Date',
+        description: 'Please pick a post date for the notification.',
+      });
+      return;
     }
 
    
