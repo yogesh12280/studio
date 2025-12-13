@@ -111,7 +111,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+    debugger;
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
@@ -124,14 +124,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         return
     }
 
-    if ((linkText && !linkUrl) || (!linkText && linkUrl)) {
-        toast({
-            variant: "destructive",
-            title: "Incomplete Link",
-            description: "Please provide both Link Text and a URL.",
-        });
-        return;
-    }
+   
 
     if (isEditMode) {
         const updatedNotification: Notification = {
