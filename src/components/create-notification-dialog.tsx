@@ -93,12 +93,12 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         resetForm();
       } else if (!isEditMode) {
         resetForm();
-        if (currentUser.role === 'Employee') {
+        if (currentUser?.role === 'Employee') {
             setCategory('Employee')
         }
       }
     }
-  }, [open, isEditMode, notificationToEdit, currentUser.role])
+  }, [open, isEditMode, notificationToEdit, currentUser?.role])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -114,6 +114,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
     if (!title || !content || !finalCategory || !scheduledFor || !endDate) {
@@ -164,6 +165,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   const dialogTitle = isEditMode ? "Edit Notification" : "Create Notification";
   const dialogDescription = isEditMode ? "Edit and update your announcement." : "Craft and schedule announcements for your organization.";
   const buttonText = isEditMode ? "Save Changes" : "Create Notification";
+
+  if (!currentUser) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
