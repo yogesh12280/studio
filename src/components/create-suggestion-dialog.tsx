@@ -76,12 +76,11 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
     }
     
     if (isEditMode && suggestionToEdit) {
-        const updatedSuggestion: Suggestion = {
+        (props.onSuggestionSubmit as (suggestion: Suggestion) => void)({
             ...suggestionToEdit,
             title,
             description,
-        };
-        (props.onSuggestionSubmit as (suggestion: Suggestion) => void)(updatedSuggestion);
+        });
         toast({
             title: 'Suggestion Updated!',
             description: 'Your suggestion has been successfully updated.',
@@ -97,11 +96,9 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
         })
     }
     
-    setTimeout(() => {
-        setTitle('')
-        setDescription('')
-        onOpenChange(false)
-    }, 500);
+    setTitle('')
+    setDescription('')
+    onOpenChange(false)
   }
   
   const dialogTitle = isEditMode ? 'Edit Suggestion' : 'Submit a Suggestion';
