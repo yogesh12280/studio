@@ -66,15 +66,7 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!title || !description) {
-        toast({
-            variant: "destructive",
-            title: "Missing Fields",
-            description: "Please fill out both title and description.",
-        })
-        return
-    }
-    
+
     if (isEditMode && suggestionToEdit) {
         (props.onSuggestionSubmit as (suggestion: Suggestion) => void)({
             ...suggestionToEdit,
@@ -141,7 +133,6 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                required
                 className="col-span-3 min-h-[140px]"
                 placeholder="Describe your suggestion in detail..."
               />
