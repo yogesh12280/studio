@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import { CalendarIcon, Upload, PlusCircle } from 'lucide-react'
+import { CalendarIcon, Upload } from 'lucide-react'
 import { Calendar } from './ui/calendar'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -38,6 +38,10 @@ type CreateNotificationDialogProps = {
     onSave: (newNotification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    scheduledFor: Date | undefined;
+    setScheduledFor: (date: Date | undefined) => void;
+    endDate: Date | undefined;
+    setEndDate: (date: Date | undefined) => void;
 }
 
 type EditNotificationDialogProps = {
@@ -47,6 +51,10 @@ type EditNotificationDialogProps = {
     onSave: (notification: Notification) => void;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    scheduledFor: Date | undefined;
+    setScheduledFor: (date: Date | undefined) => void;
+    endDate: Date | undefined;
+    setEndDate: (date: Date | undefined) => void;
 }
 
 type NotificationDialogProps = CreateNotificationDialogProps | EditNotificationDialogProps;
@@ -69,8 +77,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   const [imageUrl, setImageUrl] = useState('')
   const [linkText, setLinkText] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
-  const [scheduledFor, setScheduledFor] = useState<Date | undefined>()
-  const [endDate, setEndDate] = useState<Date | undefined>()
   
   const notificationToEdit = isEditMode ? props.notificationToEdit : undefined;
 
@@ -82,8 +88,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         setImageUrl(notificationToEdit?.imageUrl || '')
         setLinkText(notificationToEdit?.link?.text || '')
         setLinkUrl(notificationToEdit?.link?.url || '')
-        setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
-        setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
+        props.setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
+        props.setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
     }
 
     if (open) {
@@ -96,7 +102,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         }
       }
     }
-  }, [open, isEditMode, notificationToEdit, currentUser?.role])
+  }, [open, isEditMode, notificationToEdit, currentUser?.role]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -115,7 +121,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !finalCategory || !scheduledFor || !endDate) {
+    if (!title || !content || !finalCategory || !props.scheduledFor || !props.endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
@@ -132,8 +138,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             category: finalCategory,
             imageUrl: imageUrl || undefined,
             link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
-            scheduledFor: scheduledFor?.toISOString(),
-            endDate: endDate?.toISOString(),
+            scheduledFor: props.scheduledFor?.toISOString(),
+            endDate: props.endDate?.toISOString(),
         };
         (props.onSave as (notification: Notification) => void)(updatedNotification);
         toast({
@@ -147,8 +153,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             category: finalCategory,
             imageUrl: imageUrl || undefined,
             link: linkUrl && linkText ? { url: linkUrl, text: linkText } : undefined,
-            scheduledFor: scheduledFor?.toISOString(),
-            endDate: endDate?.toISOString(),
+            scheduledFor: props.scheduledFor?.toISOString(),
+            endDate: props.endDate?.toISOString(),
         };
         (props.onSave as (notification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void)(newNotificationData);
         toast({
@@ -250,18 +256,18 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           variant={'outline'}
                           className={cn(
                             'col-span-3 w-auto justify-start text-left font-normal',
-                            !scheduledFor && 'text-muted-foreground'
+                            !props.scheduledFor && 'text-muted-foreground'
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
+                          {props.scheduledFor ? format(props.scheduledFor, 'PPP') : <span>Pick a post date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent onPointerDownOutside={(e) => e.preventDefault()} className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={scheduledFor}
-                          onSelect={setScheduledFor}
+                          selected={props.scheduledFor}
+                          onSelect={props.setScheduledFor}
                           disabled={{ before: new Date() }}
                           initialFocus
                         />
@@ -278,19 +284,19 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           variant={'outline'}
                           className={cn(
                             'col-span-3 w-auto justify-start text-left font-normal',
-                            !endDate && 'text-muted-foreground'
+                            !props.endDate && 'text-muted-foreground'
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
+                          {props.endDate ? format(props.endDate, 'PPP') : <span>Pick an expiry date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent onPointerDownOutside={(e) => e.preventDefault()} className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
-                          disabled={{ before: scheduledFor || new Date() }}
+                          selected={props.endDate}
+                          onSelect={props.setEndDate}
+                          disabled={{ before: props.scheduledFor || new Date() }}
                           initialFocus
                         />
                       </PopoverContent>
