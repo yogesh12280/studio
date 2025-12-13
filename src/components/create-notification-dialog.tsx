@@ -114,25 +114,14 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !imageUrl || !endDate) {
+    if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
-            description: "Please fill out Title, Content, Image, and End Date.",
+            description: "Please fill out Title, Content, Image, Schedule Date and End Date.",
         })
         return
     }
-
-    if (!scheduledFor) {
-      toast({
-        variant: 'destructive',
-        title: 'Field Required',
-        description: 'Please fill out the schedule field.',
-      });
-      return;
-    }
-
-   
 
     if (isEditMode) {
         const updatedNotification: Notification = {
@@ -254,33 +243,48 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                     <Label htmlFor="schedule" className="text-right">
                       Schedule
                     </Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            'col-span-3 w-auto justify-start text-left font-normal',
-                            !scheduledFor && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
-                        if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
-                          e.preventDefault();
-                        }
-                      }}>
-                        <Calendar
-                          mode="single"
-                          selected={scheduledFor}
-                          onSelect={setScheduledFor}
-                          disabled={{ before: new Date() }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <div className='col-span-3'>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'w-auto justify-start text-left font-normal',
+                              !scheduledFor && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
+                          if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
+                            e.preventDefault();
+                          }
+                        }}>
+                          <Calendar
+                            mode="single"
+                            selected={scheduledFor}
+                            onSelect={setScheduledFor}
+                            disabled={{ before: new Date() }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <input
+                          type="text"
+                          value={scheduledFor ? "filled" : ""}
+                          required
+                          className="absolute bottom-0 left-0 w-px h-px opacity-0"
+                          onInvalid={(e) => {
+                              const target = e.target as HTMLInputElement;
+                              if (target.value === "") {
+                                  target.setCustomValidity("Please fill out this field.");
+                              }
+                          }}
+                          onChange={() => {}} // dummy onchange
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="end-date" className="text-right">
