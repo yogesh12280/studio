@@ -257,7 +257,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent onPointerDownOutside={(e) => e.preventDefault()} className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                         <Calendar
                           mode="single"
                           selected={scheduledFor}
@@ -285,7 +285,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent onPointerDownOutside={(e) => e.preventDefault()} className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                         <Calendar
                           mode="single"
                           selected={endDate}
