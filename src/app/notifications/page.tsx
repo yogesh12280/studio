@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
+import { CreateNotificationDialog } from '@/components/create-notification-dialog'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -28,6 +29,7 @@ export default function NotificationsPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
 
   useEffect(() => {
@@ -324,8 +326,14 @@ export default function NotificationsPage() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           title="Notifications"
-          onAddNotification={handleAddNotification}
-        />
+        >
+             <CreateNotificationDialog onSave={handleAddNotification} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">Create Notification</span>
+                </Button>
+            </CreateNotificationDialog>
+        </AppHeader>
         <main className="p-4 sm:p-6">
           {loading ? renderLoadingState() : (
             selectedNotification ? (

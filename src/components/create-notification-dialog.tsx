@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
-import { CalendarIcon, Upload } from 'lucide-react'
+import { CalendarIcon, Upload, PlusCircle } from 'lucide-react'
 import { Calendar } from './ui/calendar'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -56,9 +56,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   const { mode = 'create' } = props;
   const isEditMode = mode === 'edit';
   
-  const [internalOpen, setInternalOpen] = useState(false);
-  const open = props.open ?? internalOpen;
-  const onOpenChange = props.onOpenChange ?? setInternalOpen;
+  const { open, onOpenChange } = props;
 
   const { currentUser } = useUser()
   const { toast } = useToast()
@@ -159,7 +157,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         })
     }
 
-    onOpenChange(false)
+    if (onOpenChange) {
+      onOpenChange(false)
+    }
   }
   
   const dialogTitle = isEditMode ? "Edit Notification" : "Create Notification";
@@ -168,9 +168,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   if (!currentUser) return null;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {!isEditMode && <DialogTrigger asChild>{props.children}</DialogTrigger>}
+  const contentToRender = (
       <DialogContent className="sm:max-w-[625px] grid-rows-[auto,1fr,auto] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
@@ -307,6 +305,12 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
           </DialogFooter>
         </form>
       </DialogContent>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
+      {contentToRender}
     </Dialog>
   )
 }
