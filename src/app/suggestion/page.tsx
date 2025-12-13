@@ -9,7 +9,7 @@ import { initialSuggestions } from '@/lib/data'
 import type { Suggestion, Comment } from '@/lib/types'
 import { SuggestionList } from '@/components/suggestion-list'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Search, CheckCircle, X } from 'lucide-react'
+import { ArrowLeft, Search, CheckCircle, X, AlertCircle } from 'lucide-react'
 import { SuggestionCard } from '@/components/suggestion-card'
 import { DeleteSuggestionDialog } from '@/components/delete-suggestion-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -36,17 +36,19 @@ export default function SuggestionPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (successMessage) {
+    if (successMessage || errorMessage) {
       timer = setTimeout(() => {
         setSuccessMessage(null);
+        setErrorMessage(null);
       }, 5000);
     }
     return () => clearTimeout(timer);
-  }, [successMessage]);
+  }, [successMessage, errorMessage]);
 
   useEffect(() => {
     setLoading(true);
@@ -282,6 +284,18 @@ export default function SuggestionPage() {
                         {successMessage}
                     </AlertDescription>
                     <button onClick={() => setSuccessMessage(null)} className="absolute top-2 right-2 p-1">
+                        <X className="h-4 w-4" />
+                    </button>
+                </Alert>
+            )}
+            {errorMessage && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>
+                        {errorMessage}
+                    </AlertDescription>
+                    <button onClick={() => setErrorMessage(null)} className="absolute top-2 right-2 p-1">
                         <X className="h-4 w-4" />
                     </button>
                 </Alert>
