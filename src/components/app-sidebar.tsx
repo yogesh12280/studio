@@ -17,10 +17,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
+import { useTheme } from 'next-themes'
+import { Button } from './ui/button'
 
 export function AppSidebar() {
   const { currentUser } = useUser()
   const pathname = usePathname()
+  const { setTheme, theme } = useTheme()
 
   if (!currentUser) return null;
 
@@ -102,10 +105,16 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-2">
         <SidebarSeparator />
-        <div className="flex items-center justify-center gap-2 p-2 group-data-[collapsible=icon]:flex-col">
-          <Moon className="h-5 w-5 hidden dark:block" />
-          <Sun className="h-5 w-5 dark:hidden" />
-        </div>
+         <Button
+            variant="ghost"
+            size="icon"
+            className="mx-auto h-8 w-8"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        >
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+        </Button>
         <div
           className={cn(
             'flex items-center gap-3 rounded-lg p-2 transition-colors',

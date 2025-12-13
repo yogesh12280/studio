@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { Toaster } from '@/components/ui/toaster'
 import { UserProvider } from '@/contexts/user-context'
 import { AuthChecker } from '@/components/auth-checker'
+import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
   title: 'SembConnect',
@@ -32,12 +33,19 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased')}>
-        <UserProvider>
-          <AuthChecker>
-            {children}
-          </AuthChecker>
-          <Toaster />
-        </UserProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <UserProvider>
+            <AuthChecker>
+                {children}
+            </AuthChecker>
+            <Toaster />
+            </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
