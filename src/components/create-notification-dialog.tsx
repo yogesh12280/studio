@@ -124,6 +124,15 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         return
     }
 
+    if ((linkText && !linkUrl) || (!linkText && linkUrl)) {
+        toast({
+            variant: "destructive",
+            title: "Incomplete Link",
+            description: "Please provide both Link Text and a URL.",
+        });
+        return;
+    }
+
     if (isEditMode) {
         const updatedNotification: Notification = {
             ...(props.notificationToEdit as Notification),
@@ -257,7 +266,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                         <Calendar
                           mode="single"
                           selected={scheduledFor}
@@ -285,7 +294,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                         <Calendar
                           mode="single"
                           selected={endDate}
