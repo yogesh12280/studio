@@ -170,9 +170,13 @@ interface NotificationCardProps {
   onEditNotification: (notification: Notification) => void
   onAddReply: (notificationId: string, commentId: string, replyText: string) => void;
   currentUser: User | null;
+  scheduledFor: Date | undefined;
+  setScheduledFor: (date: Date | undefined) => void;
+  endDate: Date | undefined;
+  setEndDate: (date: Date | undefined) => void;
 }
 
-export function NotificationCard({ notification, onLikeToggle, onDelete, onAddComment, onEditNotification, onAddReply, currentUser }: NotificationCardProps) {
+export function NotificationCard({ notification, onLikeToggle, onDelete, onAddComment, onEditNotification, onAddReply, currentUser, scheduledFor, setScheduledFor, endDate, setEndDate }: NotificationCardProps) {
   const { users } = useUser()
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
@@ -445,6 +449,10 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           onSave={onEditNotification}
+          scheduledFor={scheduledFor}
+          setScheduledFor={setScheduledFor}
+          endDate={endDate}
+          setEndDate={setEndDate}
         >
           <></>
         </CreateNotificationDialog>

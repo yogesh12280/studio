@@ -25,11 +25,15 @@ export default function NotificationsPage() {
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  
+  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined);
+  const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // State for the create/edit dialog's date pickers
+  const [scheduledFor, setScheduledFor] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
 
   useEffect(() => {
@@ -49,11 +53,20 @@ export default function NotificationsPage() {
     const today = new Date();
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(today.getFullYear() - 1);
-    setStartDate(oneYearAgo);
-    setEndDate(today);
+    setFilterStartDate(oneYearAgo);
+    setFilterEndDate(today);
 
     fetchNotifications();
   }, []);
+  
+  useEffect(() => {
+    // When the create dialog is opened, reset the dates
+    if (isCreateDialogOpen) {
+        setScheduledFor(undefined);
+        setEndDate(undefined);
+    }
+  }, [isCreateDialogOpen])
+
 
   if (!currentUser) return null;
 
@@ -327,7 +340,15 @@ export default function NotificationsPage() {
           setSearchQuery={setSearchQuery}
           title="Notifications"
         >
-             <CreateNotificationDialog onSave={handleAddNotification} open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+             <CreateNotificationDialog 
+                onSave={handleAddNotification} 
+                open={isCreateDialogOpen} 
+                onOpenChange={setIsCreateDialogOpen}
+                scheduledFor={scheduledFor}
+                setScheduledFor={setScheduledFor}
+                endDate={endDate}
+                setEndDate={setEndDate}
+              >
                 <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
                     <PlusCircle className="h-4 w-4" />
                     <span className="hidden sm:inline">Create Notification</span>
@@ -350,6 +371,10 @@ export default function NotificationsPage() {
                   onEditNotification={handleEditNotification}
                   onAddReply={handleAddReply}
                   currentUser={currentUser}
+                  scheduledFor={scheduledFor}
+                  setScheduledFor={setScheduledFor}
+                  endDate={endDate}
+                  setEndDate={setEndDate}
                 />
               </div>
             ) : (
@@ -367,23 +392,23 @@ export default function NotificationsPage() {
                         />
                     </div>
                     <DatePicker 
-                      date={startDate} 
-                      onDateChange={setStartDate} 
+                      date={filterStartDate} 
+                      onDateChange={setFilterStartDate} 
                       placeholder="Start date" 
-                      disabled={{ after: endDate }}
+                      disabled={{ after: filterEndDate }}
                     />
                     <DatePicker 
-                      date={endDate} 
-                      onDateChange={setEndDate} 
+                      date={filterEndDate} 
+                      onDateChange={setFilterEndDate} 
                       placeholder="End date" 
-                      disabled={{ before: startDate }}
+                      disabled={{ before: filterStartDate }}
                     />
                 </div>
                 <NotificationFeed 
                   searchQuery={searchQuery}
                   notifications={notifications}
                   onSelectNotification={handleSelectNotification}
-                  dateRange={{from: startDate, to: endDate}}
+                  dateRange={{from: filterStartDate, to: filterEndDate}}
                   currentPage={currentPage}
                   pageSize={pageSize}
                   setCurrentPage={setCurrentPage}
