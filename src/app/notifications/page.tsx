@@ -31,10 +31,6 @@ export default function NotificationsPage() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
-  // State for the create/edit dialog's date pickers
-  const [scheduledFor, setScheduledFor] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -61,14 +57,6 @@ export default function NotificationsPage() {
 
     fetchNotifications();
   }, []);
-  
-  useEffect(() => {
-    // When the create dialog is opened, reset the dates
-    if (isCreateDialogOpen) {
-        setScheduledFor(undefined);
-        setEndDate(undefined);
-    }
-  }, [isCreateDialogOpen])
 
 
   if (!currentUser) return null;
@@ -347,10 +335,6 @@ export default function NotificationsPage() {
                 onSave={handleAddNotification} 
                 open={isCreateDialogOpen} 
                 onOpenChange={setIsCreateDialogOpen}
-                scheduledFor={scheduledFor}
-                setScheduledFor={setScheduledFor}
-                endDate={endDate}
-                setEndDate={setEndDate}
               >
                 <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
                     <PlusCircle className="h-4 w-4" />
@@ -374,10 +358,6 @@ export default function NotificationsPage() {
                   onEditNotification={handleEditNotification}
                   onAddReply={handleAddReply}
                   currentUser={currentUser}
-                  scheduledFor={scheduledFor}
-                  setScheduledFor={setScheduledFor}
-                  endDate={endDate}
-                  setEndDate={setEndDate}
                 />
               </div>
             ) : (
