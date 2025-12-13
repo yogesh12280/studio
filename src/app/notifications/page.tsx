@@ -34,6 +34,9 @@ export default function NotificationsPage() {
   // State for the create/edit dialog's date pickers
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
 
   useEffect(() => {
