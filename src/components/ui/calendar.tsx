@@ -62,6 +62,7 @@ function Calendar({
         ),
       }}
       {...props}
+      modal={true}
     />
   )
 }
