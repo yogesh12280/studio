@@ -275,14 +275,14 @@ export default function SuggestionPage() {
         />
         <main className="p-4 sm:p-6">
             {successMessage && (
-                <Alert className="mb-4 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <AlertTitle className="text-green-800 dark:text-green-300">Success</AlertTitle>
-                    <AlertDescription className="text-green-700 dark:text-green-400">
+                <Alert variant="success" className="mb-4">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertTitle>Success</AlertTitle>
+                    <AlertDescription>
                         {successMessage}
                     </AlertDescription>
                     <button onClick={() => setSuccessMessage(null)} className="absolute top-2 right-2 p-1">
-                        <X className="h-4 w-4 text-green-700 dark:text-green-400" />
+                        <X className="h-4 w-4" />
                     </button>
                 </Alert>
             )}
