@@ -261,6 +261,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           mode="single"
                           selected={scheduledFor}
                           onSelect={setScheduledFor}
+                          disabled={{ before: new Date() }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -288,6 +289,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           mode="single"
                           selected={endDate}
                           onSelect={setEndDate}
+                          disabled={{ before: scheduledFor || new Date() }}
                           initialFocus
                         />
                       </PopoverContent>
