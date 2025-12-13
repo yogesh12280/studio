@@ -52,7 +52,9 @@ export function AddGrievanceCommentDialog({ open, onOpenChange, grievance, targe
       description: `The grievance status has been set to "${targetStatus}".`,
     })
     
-    onOpenChange(false)
+    setTimeout(() => {
+      onOpenChange(false)
+    }, 100);
   }
   
   if (!grievance || !targetStatus) return null;

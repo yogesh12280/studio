@@ -151,7 +151,9 @@ export function CreatePollDialog(props: PollDialogProps) {
         });
     }
 
-    onOpenChange(false)
+    setTimeout(() => {
+      onOpenChange(false)
+    }, 100);
   }
   
   if (!currentUser) return null;

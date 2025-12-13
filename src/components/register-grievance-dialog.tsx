@@ -98,9 +98,11 @@ export function RegisterGrievanceDialog(props: GrievanceDialogProps) {
       })
     }
     
-    setSubject('')
-    setDescription('')
-    onOpenChange(false)
+    setTimeout(() => {
+      setSubject('')
+      setDescription('')
+      onOpenChange(false)
+    }, 100);
   }
   
   const dialogTitle = isEditMode ? 'Edit Grievance' : 'Register Grievance';

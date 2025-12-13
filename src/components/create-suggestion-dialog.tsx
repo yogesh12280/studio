@@ -97,9 +97,11 @@ export function CreateSuggestionDialog(props: SuggestionDialogProps) {
         })
     }
     
-    setTitle('')
-    setDescription('')
-    onOpenChange(false)
+    setTimeout(() => {
+      onOpenChange(false)
+      setTitle('')
+      setDescription('')
+    }, 100);
   }
   
   const dialogTitle = isEditMode ? 'Edit Suggestion' : 'Submit a Suggestion';

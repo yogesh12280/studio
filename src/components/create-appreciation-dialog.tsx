@@ -129,7 +129,9 @@ export function CreateAppreciationDialog(props: AppreciationDialogProps) {
       })
     }
 
-    onOpenChange(false)
+    setTimeout(() => {
+      onOpenChange(false)
+    }, 100);
   }
   
   const dialogTitle = isEditMode ? 'Edit Appreciation' : 'Send Appreciation';
