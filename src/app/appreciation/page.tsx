@@ -46,11 +46,7 @@ export default function AppreciationPage() {
         setAppreciations(data);
       } catch (error) {
         console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'Error fetching appreciations',
-          description: (error as Error).message
-        });
+        
       } finally {
         setLoading(false);
       }
@@ -62,7 +58,7 @@ export default function AppreciationPage() {
     oneYearAgo.setFullYear(today.getFullYear() - 1);
     setStartDate(oneYearAgo);
     setEndDate(today);
-  }, [toast]);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -93,11 +89,7 @@ export default function AppreciationPage() {
     } catch (error) {
        console.error(error);
       setAppreciations(prev => prev.filter(a => a.id !== optimisticAppreciation.id));
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not save appreciation. Please try again.',
-      });
+      
     }
   }
   
@@ -128,11 +120,7 @@ export default function AppreciationPage() {
       if (selectedAppreciation?.id === updatedAppreciation.id) {
         setSelectedAppreciation(originalAppreciations.find(a => a.id === updatedAppreciation.id) || null);
       }
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not update appreciation. Please try again.',
-      });
+      
     }
   }
 
@@ -156,11 +144,7 @@ export default function AppreciationPage() {
       if (selectedAppreciation?.id === appreciationId) {
         setSelectedAppreciation(originalAppreciations.find(a => a.id === appreciationId) || null);
       }
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not delete appreciation. Please try again.',
-      });
+      
     }
   }
 
@@ -200,11 +184,7 @@ export default function AppreciationPage() {
        if (selectedAppreciation?.id === appreciationId) {
         setSelectedAppreciation(originalAppreciations.find(a => a.id === appreciationId) || null);
       }
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not update like. Please try again.',
-      });
+      
     }
   }
   
@@ -377,3 +357,5 @@ export default function AppreciationPage() {
     </SidebarProvider>
   )
 }
+
+    
