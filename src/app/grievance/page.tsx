@@ -638,7 +638,7 @@ export default function GrievancePage() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           title="Grievance"
-          onAddGrievance={currentUser.role === 'Employee' ? handleAddGrievanceInHeader : undefined}
+          onAddGrievance={currentUser.role === 'Employee' && isBirthdateVerified ? handleAddGrievanceInHeader : undefined}
         />
         <main className="p-4 sm:p-6">
           {currentUser.role === 'Admin' ? renderAdminView() : renderEmployeeView() }
