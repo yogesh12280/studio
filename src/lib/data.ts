@@ -97,6 +97,7 @@ export let grievances: Grievance[] = [
         {
             id: 'g-comment-1',
             text: 'We are looking into this with high priority.',
+            user: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
             author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
             createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7).toISOString(),
             status: 'In Progress'
@@ -117,6 +118,7 @@ export let grievances: Grievance[] = [
          {
             id: 'g-comment-2',
             text: 'The reimbursement was processed and should reflect in your account within 2-3 business days.',
+            user: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
             author: { name: 'Neha M', avatarUrl: getImageUrl('avatar1')},
             createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(),
             status: 'Resolved'
@@ -198,7 +200,7 @@ export const initialSuggestions: Suggestion[] = [
     }
 ];
 
-export const initialAppreciations: Appreciation[] = [
+export let appreciations: Appreciation[] = [
   {
     id: 'app-1',
     fromUser: { id: 'user-1', name: 'Neha M', avatarUrl: getImageUrl('avatar1') },
@@ -219,4 +221,4 @@ export const initialAppreciations: Appreciation[] = [
   }
 ];
 
-    
+export const initialAppreciations = appreciations;

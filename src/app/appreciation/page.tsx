@@ -5,7 +5,6 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
-import { initialAppreciations } from '@/lib/data'
 import type { Appreciation } from '@/lib/types'
 import { CreateAppreciationDialog } from '@/components/create-appreciation-dialog'
 import { DeleteAppreciationDialog } from '@/components/delete-appreciation-dialog'
@@ -19,6 +18,7 @@ import { FeaturedAppreciations } from '@/components/featured-appreciations'
 import { AppreciationCard } from '@/components/appreciation-card'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AppreciationPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -34,28 +34,42 @@ export default function AppreciationPage() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(1);
-
+  const { toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate fetching data
-    setTimeout(() => {
-      setAppreciations(initialAppreciations);
-      setLoading(false);
-    }, 1000);
-
+    const fetchAppreciations = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/appreciations');
+        if (!response.ok) throw new Error("Failed to fetch appreciations");
+        const data = await response.json();
+        setAppreciations(data);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'Error fetching appreciations',
+          description: (error as Error).message
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAppreciations();
+    
     const today = new Date();
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(today.getFullYear() - 1);
     setStartDate(oneYearAgo);
     setEndDate(today);
-  }, []);
+  }, [toast]);
 
   if (!currentUser) return null;
 
-  const handleAddAppreciation = (newAppreciationData: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => {
-    const newAppreciation: Appreciation = {
-      id: `appreciation-${Date.now()}`,
+  const handleAddAppreciation = async (newAppreciationData: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => {
+    const optimisticAppreciation: Appreciation = {
+      ...newAppreciationData,
+      id: `appreciation-temp-${Date.now()}`,
       fromUser: {
         id: currentUser.id,
         name: currentUser.name,
@@ -64,30 +78,94 @@ export default function AppreciationPage() {
       createdAt: new Date().toISOString(),
       likes: 0,
       likedBy: [],
-      ...newAppreciationData,
     }
-    setAppreciations(prev => [newAppreciation, ...prev])
+    setAppreciations(prev => [optimisticAppreciation, ...prev]);
+
+    try {
+      const response = await fetch('/api/appreciations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newAppreciationData, fromUserId: currentUser.id }),
+      });
+      if (!response.ok) throw new Error('Failed to save appreciation');
+      const savedAppreciation = await response.json();
+      setAppreciations(prev => prev.map(a => a.id === optimisticAppreciation.id ? savedAppreciation : a));
+    } catch (error) {
+       console.error(error);
+      setAppreciations(prev => prev.filter(a => a.id !== optimisticAppreciation.id));
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not save appreciation. Please try again.',
+      });
+    }
   }
   
-  const handleEditAppreciation = (updatedAppreciation: Appreciation) => {
+  const handleEditAppreciation = async (updatedAppreciation: Appreciation) => {
+    const originalAppreciations = [...appreciations];
     setAppreciations(prev => prev.map(a => a.id === updatedAppreciation.id ? updatedAppreciation : a));
+    if (selectedAppreciation?.id === updatedAppreciation.id) {
+        setSelectedAppreciation(updatedAppreciation);
+    }
     setAppreciationToEdit(null);
     setIsEditOpen(false);
-    if(selectedAppreciation?.id === updatedAppreciation.id) {
-        setSelectedAppreciation(updatedAppreciation);
+
+    try {
+      const response = await fetch(`/api/appreciations/${updatedAppreciation.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedAppreciation),
+      });
+      if (!response.ok) throw new Error('Failed to update appreciation');
+      const savedAppreciation = await response.json();
+       setAppreciations(prev => prev.map(a => (a.id === savedAppreciation.id ? savedAppreciation : a)));
+       if (selectedAppreciation?.id === savedAppreciation.id) {
+          setSelectedAppreciation(savedAppreciation);
+      }
+    } catch (error) {
+      console.error(error);
+      setAppreciations(originalAppreciations);
+      if (selectedAppreciation?.id === updatedAppreciation.id) {
+        setSelectedAppreciation(originalAppreciations.find(a => a.id === updatedAppreciation.id) || null);
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not update appreciation. Please try again.',
+      });
     }
   }
 
-  const handleDeleteAppreciation = (appreciationId: string) => {
+  const handleDeleteAppreciation = async (appreciationId: string) => {
+    const originalAppreciations = [...appreciations];
     setAppreciations(prev => prev.filter(a => a.id !== appreciationId));
-    setAppreciationToDelete(null);
-    setIsDeleteOpen(false);
     if(selectedAppreciation?.id === appreciationId) {
         setSelectedAppreciation(null);
     }
+    setAppreciationToDelete(null);
+    setIsDeleteOpen(false);
+    
+    try {
+      const response = await fetch(`/api/appreciations/${appreciationId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete appreciation');
+    } catch (error) {
+       console.error(error);
+      setAppreciations(originalAppreciations);
+      if (selectedAppreciation?.id === appreciationId) {
+        setSelectedAppreciation(originalAppreciations.find(a => a.id === appreciationId) || null);
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not delete appreciation. Please try again.',
+      });
+    }
   }
 
-  const handleLikeToggle = (appreciationId: string) => {
+  const handleLikeToggle = async (appreciationId: string) => {
+    const originalAppreciations = [...appreciations];
     const newAppreciations = appreciations.map(a => {
         if (a.id === appreciationId) {
           const isLiked = a.likedBy.includes(currentUser.id)
@@ -102,6 +180,31 @@ export default function AppreciationPage() {
     setAppreciations(newAppreciations);
     if (selectedAppreciation?.id === appreciationId) {
         setSelectedAppreciation(newAppreciations.find(a => a.id === appreciationId) || null);
+    }
+    
+    try {
+      const response = await fetch(`/api/appreciations/${appreciationId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id }),
+      });
+       if (!response.ok) throw new Error('Failed to toggle like');
+       const savedAppreciation = await response.json();
+       setAppreciations(prev => prev.map(a => (a.id === savedAppreciation.id ? savedAppreciation : a)));
+       if (selectedAppreciation?.id === savedAppreciation.id) {
+          setSelectedAppreciation(savedAppreciation);
+      }
+    } catch (error) {
+      console.error(error);
+      setAppreciations(originalAppreciations);
+       if (selectedAppreciation?.id === appreciationId) {
+        setSelectedAppreciation(originalAppreciations.find(a => a.id === appreciationId) || null);
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not update like. Please try again.',
+      });
     }
   }
   
