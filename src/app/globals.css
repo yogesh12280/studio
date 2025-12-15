@@ -124,3 +124,23 @@ body {
 .dark .ProseMirror pre {
   @apply bg-muted text-muted-foreground;
 }
+
+.ProseMirror table {
+  @apply w-full my-4 border-collapse border border-input;
+}
+.ProseMirror th, .ProseMirror td {
+  @apply border border-input px-4 py-2 text-left;
+}
+.ProseMirror th {
+  @apply font-bold bg-muted;
+}
+.ProseMirror .selectedCell:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsl(var(--primary) / 0.2);
+  pointer-events: none;
+}
+.ProseMirror .column-resize-handle {
+    @apply bg-primary;
+}

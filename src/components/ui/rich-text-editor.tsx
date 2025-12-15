@@ -3,10 +3,25 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Table from '@tiptap/extension-table';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TableRow from '@tiptap/extension-table-row';
 import { useCallback, useRef } from 'react';
-import { Bold, Italic, Strikethrough, Code, Image as ImageIcon } from 'lucide-react';
+import { Bold, Italic, Strikethrough, Code, Image as ImageIcon, Pilcrow, Minus, Table as TableIcon, Trash2 } from 'lucide-react';
+import {
+    Columns,
+    Rows,
+    Heading1,
+    Heading2,
+    Heading3,
+    WrapText,
+    List,
+    ListOrdered
+} from 'lucide-react'
 import { Button } from './button';
 import { cn } from '@/lib/utils';
+import { Separator } from './separator';
 
 const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +48,7 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
   }
 
   return (
-    <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1">
+    <div className="border border-input bg-transparent rounded-t-md p-1 flex flex-wrap items-center gap-1">
       <Button
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
@@ -90,6 +105,93 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
         className="hidden"
         accept="image/*"
       />
+      <Separator orientation="vertical" className="h-6" />
+        <Button
+            onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <TableIcon className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().addColumnBefore().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Columns className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8 rotate-180'
+        >
+            <Columns className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Minus className='h-4 w-4' />
+            <Columns className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().addRowBefore().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Rows className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+className='h-8 w-8 rotate-180'
+        >
+            <Rows className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Minus className='h-4 w-4' />
+            <Rows className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Trash2 className='h-4 w-4' />
+            <TableIcon className='h-4 w-4' />
+        </Button>
+        <Button
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            variant='ghost'
+            size='icon'
+            type='button'
+            className='h-8 w-8'
+        >
+            <Heading1 className='h-4 w-4' />
+        </Button>
     </div>
   );
 };
@@ -118,6 +220,12 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
         inline: false,
         allowBase64: true,
       }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: value,
     onUpdate: ({ editor }) => {
@@ -129,6 +237,19 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
       },
     },
   });
+
+  // This is a workaround to update the editor content when the external value changes.
+  // It's not ideal, but it prevents the infinite loop.
+  const isFirstRender = useRef(true);
+  useRef(() => {
+    if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+    }
+    if (editor && value !== editor.getHTML()) {
+        editor.commands.setContent(value, false);
+    }
+  }, [value, editor]);
 
   return (
     <div className={cn("border border-input rounded-md", className)}>
