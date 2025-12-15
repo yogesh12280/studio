@@ -83,7 +83,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
           levels: [1, 2, 3],
         },
       }),
-      TiptapImage,
+      TiptapImage.configure({
+        allowBase64: true,
+      }),
     ],
     content: '',
     editorProps: {
@@ -97,8 +99,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   useEffect(() => {
     if (open) {
       const initialContent = notificationToEdit?.content || '';
-      setTitle(notificationToEdit?.title || '')
       editor?.commands.setContent(initialContent);
+
+      setTitle(notificationToEdit?.title || '')
       setCategory(notificationToEdit?.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined))
       setImageUrl(notificationToEdit?.imageUrl || '')
       setLinkText(notificationToEdit?.link?.text || '')
@@ -106,7 +109,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
       setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
       setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
     }
-  }, [open, isEditMode, notificationToEdit, currentUser?.role, editor]);
+  }, [open, notificationToEdit, currentUser?.role, editor]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -279,15 +282,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           />
                         </PopoverContent>
                       </Popover>
-                      <input
-                          type="text"
-                          value={scheduledFor ? "filled" : ""}
-                          required
-                          readOnly
-                          className="absolute bottom-0 left-0 w-px h-px opacity-0 pointer-events-none"
-                          onFocus={(e) => e.target.parentElement?.querySelector('button')?.focus()}
-                          tabIndex={-1}
-                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
