@@ -138,3 +138,7 @@ body {
 .ProseMirror a {
   @apply text-primary underline;
 }
+
+.ProseMirror img {
+  @apply max-w-full h-auto rounded-lg;
+}

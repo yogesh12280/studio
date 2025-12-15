@@ -1,7 +1,8 @@
 'use client';
 
-import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
 import {
   Bold,
   Italic,
@@ -11,9 +12,11 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { useCallback } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -22,6 +25,14 @@ interface RichTextEditorProps {
 }
 
 const EditorToolbar = ({ editor }: { editor: any }) => {
+  const addImage = useCallback(() => {
+    const url = window.prompt('URL');
+
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  }, [editor]);
+
   if (!editor) {
     return null;
   }
@@ -92,6 +103,14 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
       >
         <ListOrdered className="h-4 w-4" />
       </Button>
+      <Button
+        type="button"
+        variant='ghost'
+        size="icon"
+        onClick={addImage}
+      >
+        <ImageIcon className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
@@ -105,6 +124,7 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
                 levels: [1, 2, 3],
             },
         }),
+        Image,
     ],
     content: value,
     onUpdate: ({ editor }) => {
@@ -117,9 +137,6 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
     },
   });
   
-  // Update editor content when the external value changes
-  // This is important for controlled components
-  // and for resetting the form.
   if (editor && value !== editor.getHTML()) {
     editor.commands.setContent(value, false);
   }
