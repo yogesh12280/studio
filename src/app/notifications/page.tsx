@@ -13,10 +13,11 @@ import { ArrowLeft, Search, PlusCircle } from 'lucide-react'
 import { FeaturedNotifications } from '@/components/featured-notifications'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { CreateNotificationDialog } from '@/components/create-notification-dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -24,7 +25,6 @@ export default function NotificationsPage() {
   const { currentUser } = useUser()
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   
   const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined);
   const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined);
@@ -57,6 +57,11 @@ export default function NotificationsPage() {
 
     fetchNotifications();
   }, []);
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+  }
 
 
   if (!currentUser) return null;
@@ -158,11 +163,6 @@ export default function NotificationsPage() {
     .catch(error => {
         console.error(error);
         setNotifications(originalNotifications); // Revert on error
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not update your like. Please try again.",
-        });
     });
   }
 
@@ -213,11 +213,6 @@ export default function NotificationsPage() {
       updateUI(prev => prev.map(n => 
         n.id === notificationId ? { ...n, comments: n.comments.filter(c => c.id !== tempId) } : n
       ));
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not add your comment. Please try again.",
-      });
     });
   }
   
@@ -286,11 +281,6 @@ export default function NotificationsPage() {
       if (selectedNotification) {
         setSelectedNotification(originalNotifications.find((n: Notification) => n.id === selectedNotification.id) || null);
       }
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not add your reply. Please try again.",
-      });
     });
   };
 
@@ -363,7 +353,7 @@ export default function NotificationsPage() {
             ) : (
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
-                <div className="mb-4 flex items-center gap-2">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -386,6 +376,19 @@ export default function NotificationsPage() {
                       placeholder="End date" 
                       disabled={{ before: filterStartDate }}
                     />
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Label htmlFor="page-size">Show:</Label>
+                      <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                        <SelectTrigger className="w-[70px]" id="page-size">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[5, 10, 20, 50].map(size => (
+                            <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                  </div>
                 </div>
                 <NotificationFeed 
                   searchQuery={searchQuery}

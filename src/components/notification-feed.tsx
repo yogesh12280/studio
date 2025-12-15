@@ -5,7 +5,6 @@ import type { Notification } from '@/lib/types'
 import { NotificationList } from './notification-list'
 import { isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { Button } from './ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 
 interface DateRange {
     from: Date | undefined;
@@ -31,7 +30,6 @@ export function NotificationFeed({
   currentPage,
   pageSize,
   setCurrentPage,
-  setPageSize,
 }: NotificationFeedProps) {
 
   const filteredNotifications = useMemo(() => {
@@ -75,33 +73,12 @@ export function NotificationFeed({
 
   const totalPages = Math.ceil(filteredNotifications.length / pageSize);
 
-  const handlePageSizeChange = (value: string) => {
-    setPageSize(Number(value));
-    setCurrentPage(1);
-  }
-
   if (filteredNotifications.length === 0) {
     return <p className="text-muted-foreground mt-4 text-center">No notifications found.</p>
   }
 
   return (
     <div className="mt-4">
-      <div className="flex justify-end mb-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Show:</span>
-          <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 20, 50].map(size => (
-                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-           <span className='hidden sm:inline'>per page</span>
-        </div>
-      </div>
       <NotificationList notifications={paginatedNotifications} onSelectNotification={onSelectNotification} />
        <div className="flex items-center justify-between mt-4">
         <div className="text-sm text-muted-foreground">
