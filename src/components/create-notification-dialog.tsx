@@ -141,10 +141,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             endDate: endDate?.toISOString(),
         };
         (props.onSave as (notification: Notification) => void)(updatedNotification);
-        toast({
-          title: 'Notification Updated!',
-          description: 'Your notification has been successfully updated.',
-        })
     } else {
         const newNotificationData = {
             title,
@@ -156,10 +152,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
             endDate: endDate?.toISOString(),
         };
         (props.onSave as (notification: Omit<Notification, 'id' | 'author' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'createdAt'>) => void)(newNotificationData);
-        toast({
-          title: 'Notification Created!',
-          description: 'Your notification has been successfully created.',
-        })
     }
 
     if (onOpenChange) {
@@ -285,6 +277,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           type="text"
                           value={scheduledFor ? "filled" : ""}
                           required
+                          readOnly
                           className="absolute bottom-0 left-0 w-px h-px opacity-0 pointer-events-none"
                           onFocus={(e) => e.target.parentElement?.querySelector('button')?.focus()}
                           tabIndex={-1}
