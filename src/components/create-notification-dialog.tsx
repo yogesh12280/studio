@@ -31,9 +31,6 @@ import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
 import { RichTextEditor } from './ui/rich-text-editor'
-import { useEditor, type Editor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TiptapImage from '@tiptap/extension-image'
 
 type CreateNotificationDialogProps = {
     children: React.ReactNode;
@@ -67,6 +64,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   // Form state
   const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
   const [category, setCategory] = useState<'Organization' | 'Employee' | undefined>()
   const [imageUrl, setImageUrl] = useState('')
   const [linkText, setLinkText] = useState('')
@@ -76,41 +74,10 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   
   const notificationToEdit = isEditMode ? props.notificationToEdit : undefined;
   
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-        // Add clipboard text serializer
-        clipboardTextSerializer: (slice) => {
-          let text = '';
-          slice.content.forEach((node) => {
-            text += node.textContent;
-          });
-          return text;
-        }
-      }),
-      TiptapImage.configure({
-        allowBase64: true,
-      }),
-    ],
-    content: '',
-    editorProps: {
-      attributes: {
-        class:
-          'prose dark:prose-invert min-h-[120px] w-full rounded-b-md border border-input border-t-0 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-      },
-    },
-  });
-
   useEffect(() => {
     if (open) {
       const initialContent = notificationToEdit?.content || '';
-      if (editor && editor.getHTML() !== initialContent) {
-        editor?.commands.setContent(initialContent);
-      }
-
+      setContent(initialContent);
       setTitle(notificationToEdit?.title || '')
       setCategory(notificationToEdit?.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined))
       setImageUrl(notificationToEdit?.imageUrl || '')
@@ -119,7 +86,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
       setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
       setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
     }
-  }, [open, notificationToEdit, currentUser?.role, editor]);
+  }, [open, notificationToEdit, currentUser?.role]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -134,9 +101,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser || !editor) return;
+    if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
-    const content = editor.getHTML();
 
     if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
         toast({
@@ -207,7 +173,8 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                   Content
                 </Label>
                 <RichTextEditor 
-                  editor={editor}
+                  value={content}
+                  onChange={setContent}
                   className="col-span-3"
                 />
               </div>

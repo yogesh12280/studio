@@ -87,9 +87,9 @@ body {
   }
 }
 
-/* TipTap editor styles */
+/* TipTap Editor Styles */
 .ProseMirror {
-  @apply max-w-full;
+  @apply min-h-[150px] p-2;
 }
 
 .ProseMirror:focus {
@@ -100,45 +100,27 @@ body {
   @apply mt-4;
 }
 
-.ProseMirror p {
-  @apply m-0;
-}
-
 .ProseMirror ul,
 .ProseMirror ol {
   @apply pl-4;
 }
 
-.ProseMirror ul {
-  @apply list-disc;
+.ProseMirror li > p {
+  @apply mt-0;
 }
 
-.ProseMirror ol {
-  @apply list-decimal;
+.ProseMirror pre {
+  @apply bg-muted text-muted-foreground rounded-md p-4;
 }
 
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3 {
-  @apply font-bold m-0;
-}
-
-.ProseMirror h1 {
-  @apply text-2xl;
-}
-
-.ProseMirror h2 {
-  @apply text-xl;
-}
-
-.ProseMirror h3 {
-  @apply text-lg;
-}
-
-.ProseMirror a {
-  @apply text-primary underline;
+.ProseMirror blockquote {
+  @apply border-l-4 border-muted pl-4 italic;
 }
 
 .ProseMirror img {
-  @apply max-w-full h-auto rounded-lg;
+  @apply max-w-full h-auto;
+}
+
+.dark .ProseMirror pre {
+  @apply bg-muted text-muted-foreground;
 }
