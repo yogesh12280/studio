@@ -89,7 +89,7 @@ body {
 
 /* TipTap Editor Styles */
 .ProseMirror {
-  @apply min-h-[150px] p-2;
+  @apply min-h-[150px];
 }
 
 .ProseMirror:focus {
