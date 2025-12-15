@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -181,11 +180,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                 <Label htmlFor="content" className="text-right pt-2">
                   Content
                 </Label>
-                <RichTextEditor 
+                {open && <RichTextEditor 
                   value={content}
                   onChange={setContent}
                   className="col-span-3"
-                />
+                />}
               </div>
               {currentUser.role === 'Admin' ? (
                 <div className="grid grid-cols-4 items-center gap-4">
