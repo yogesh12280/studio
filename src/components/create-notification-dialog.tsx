@@ -76,14 +76,15 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   useEffect(() => {
     const resetForm = () => {
-        setTitle(notificationToEdit?.title || '')
-        setContent(notificationToEdit?.content || '')
-        setCategory(notificationToEdit?.category)
-        setImageUrl(notificationToEdit?.imageUrl || '')
-        setLinkText(notificationToEdit?.link?.text || '')
-        setLinkUrl(notificationToEdit?.link?.url || '')
-        setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
-        setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
+      const initialContent = notificationToEdit?.content || '';
+      setTitle(notificationToEdit?.title || '')
+      setContent(initialContent)
+      setCategory(notificationToEdit?.category)
+      setImageUrl(notificationToEdit?.imageUrl || '')
+      setLinkText(notificationToEdit?.link?.text || '')
+      setLinkUrl(notificationToEdit?.link?.url || '')
+      setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
+      setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
     }
 
     if (open) {
@@ -180,11 +181,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                 <Label htmlFor="content" className="text-right pt-2">
                   Content
                 </Label>
-                {open && <RichTextEditor 
+                <RichTextEditor 
                   value={content}
                   onChange={setContent}
                   className="col-span-3"
-                />}
+                />
               </div>
               {currentUser.role === 'Admin' ? (
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -324,7 +325,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-      {contentToRender}
+      {open && contentToRender}
     </Dialog>
   )
 }
