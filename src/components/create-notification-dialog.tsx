@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,6 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { Textarea } from './ui/textarea'
 import {
   Select,
   SelectContent,
@@ -31,6 +31,12 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
+
+const RichTextEditor = dynamic(() => import('./ui/rich-text-editor').then(mod => mod.RichTextEditor), {
+  ssr: false,
+  loading: () => <div className="h-[120px] w-full rounded-md border border-input bg-background animate-pulse" />,
+});
+
 
 type CreateNotificationDialogProps = {
     children: React.ReactNode;
@@ -188,7 +194,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                 <Label htmlFor="content" className="text-right pt-2">
                   Content
                 </Label>
-                <Textarea id="content" required className="col-span-3 min-h-[120px]" value={content} onChange={e => setContent(e.target.value)} />
+                <RichTextEditor 
+                  value={content}
+                  onChange={setContent}
+                  className="col-span-3 min-h-[120px]"
+                />
               </div>
               {currentUser.role === 'Admin' ? (
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -243,7 +253,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                     <Label htmlFor="schedule" className="text-right">
                       Schedule
                     </Label>
-                    <div className='col-span-3'>
+                    <div className='col-span-3 relative'>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
@@ -275,14 +285,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           type="text"
                           value={scheduledFor ? "filled" : ""}
                           required
-                          className="absolute bottom-0 left-0 w-px h-px opacity-0"
-                          onInvalid={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              if (target.value === "") {
-                                  target.setCustomValidity("Please fill out this field.");
-                              }
-                          }}
-                          onChange={() => {}} // dummy onchange
+                          className="absolute bottom-0 left-0 w-px h-px opacity-0 pointer-events-none"
+                          onFocus={(e) => e.target.parentElement?.querySelector('button')?.focus()}
+                          tabIndex={-1}
                       />
                     </div>
                   </div>

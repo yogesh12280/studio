@@ -86,3 +86,27 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* react-quill styles */
+.ql-toolbar {
+    @apply rounded-t-md border-input bg-background;
+}
+.ql-container {
+    @apply rounded-b-md border-input;
+}
+
+.dark .ql-toolbar .ql-stroke {
+    @apply stroke-gray-400;
+}
+.dark .ql-toolbar .ql-fill {
+    @apply fill-gray-400;
+}
+.dark .ql-toolbar .ql-picker-label {
+    @apply text-gray-400;
+}
+.dark .ql-editor {
+    @apply text-foreground;
+}
+.dark .ql-editor.ql-blank::before {
+    @apply text-muted-foreground;
+}
