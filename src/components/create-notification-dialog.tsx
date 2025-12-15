@@ -31,7 +31,7 @@ import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
 import { RichTextEditor } from './ui/rich-text-editor'
-import { useEditor } from '@tiptap/react'
+import { useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 
@@ -82,6 +82,14 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
         heading: {
           levels: [1, 2, 3],
         },
+        // Add clipboard text serializer
+        clipboardTextSerializer: (slice) => {
+          let text = '';
+          slice.content.forEach((node) => {
+            text += node.textContent;
+          });
+          return text;
+        }
       }),
       TiptapImage.configure({
         allowBase64: true,
@@ -99,7 +107,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   useEffect(() => {
     if (open) {
       const initialContent = notificationToEdit?.content || '';
-      editor?.commands.setContent(initialContent);
+      if (editor && editor.getHTML() !== initialContent) {
+        editor?.commands.setContent(initialContent);
+      }
 
       setTitle(notificationToEdit?.title || '')
       setCategory(notificationToEdit?.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined))
