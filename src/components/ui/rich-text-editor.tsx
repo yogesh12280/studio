@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill';
 
 interface RichTextEditorProps {
   value: string;
@@ -20,24 +20,21 @@ const modules = {
   ],
 };
 
-const formats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet',
-  'link'
-];
-
-export function RichTextEditor({ value, onChange, className }: RichTextEditorProps) {
+const RichTextEditorWithRef = React.forwardRef<ReactQuill, RichTextEditorProps>(({ value, onChange, className }, ref) => {
   return (
     <div className={className}>
       <ReactQuill
+        ref={ref}
         theme="snow"
         value={value}
         onChange={onChange}
         modules={modules}
-        formats={formats}
         className="bg-background"
       />
     </div>
   );
-}
+});
+
+RichTextEditorWithRef.displayName = 'RichTextEditor';
+
+export { RichTextEditorWithRef as RichTextEditor };

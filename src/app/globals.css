@@ -89,7 +89,7 @@ body {
 
 /* react-quill styles */
 .ql-toolbar {
-    @apply rounded-t-md border-input bg-background;
+    @apply rounded-t-md border-input bg-transparent;
 }
 .ql-container {
     @apply rounded-b-md border-input;
