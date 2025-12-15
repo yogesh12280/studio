@@ -31,12 +31,7 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-
-const RichTextEditor = dynamic(() => import('./ui/rich-text-editor').then(mod => mod.RichTextEditor), {
-  ssr: false,
-  loading: () => <div className="h-[120px] w-full rounded-md border border-input bg-background animate-pulse" />,
-});
-
+import { RichTextEditor } from './ui/rich-text-editor'
 
 type CreateNotificationDialogProps = {
     children: React.ReactNode;
@@ -189,7 +184,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                 <RichTextEditor 
                   value={content}
                   onChange={setContent}
-                  className="col-span-3 min-h-[120px]"
+                  className="col-span-3"
                 />
               </div>
               {currentUser.role === 'Admin' ? (

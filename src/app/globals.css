@@ -87,26 +87,54 @@ body {
   }
 }
 
-/* react-quill styles */
-.ql-toolbar {
-    @apply rounded-t-md border-input bg-transparent;
-}
-.ql-container {
-    @apply rounded-b-md border-input;
+/* TipTap editor styles */
+.ProseMirror {
+  @apply max-w-full;
 }
 
-.dark .ql-toolbar .ql-stroke {
-    @apply stroke-gray-400;
+.ProseMirror:focus {
+  @apply outline-none;
 }
-.dark .ql-toolbar .ql-fill {
-    @apply fill-gray-400;
+
+.ProseMirror > * + * {
+  @apply mt-4;
 }
-.dark .ql-toolbar .ql-picker-label {
-    @apply text-gray-400;
+
+.ProseMirror p {
+  @apply m-0;
 }
-.dark .ql-editor {
-    @apply text-foreground;
+
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply pl-4;
 }
-.dark .ql-editor.ql-blank::before {
-    @apply text-muted-foreground;
+
+.ProseMirror ul {
+  @apply list-disc;
+}
+
+.ProseMirror ol {
+  @apply list-decimal;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  @apply font-bold m-0;
+}
+
+.ProseMirror h1 {
+  @apply text-2xl;
+}
+
+.ProseMirror h2 {
+  @apply text-xl;
+}
+
+.ProseMirror h3 {
+  @apply text-lg;
+}
+
+.ProseMirror a {
+  @apply text-primary underline;
 }
