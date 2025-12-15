@@ -31,6 +31,9 @@ import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
 import { RichTextEditor } from './ui/rich-text-editor'
+import { useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TiptapImage from '@tiptap/extension-image'
 
 type CreateNotificationDialogProps = {
     children: React.ReactNode;
@@ -64,7 +67,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   // Form state
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
   const [category, setCategory] = useState<'Organization' | 'Employee' | undefined>()
   const [imageUrl, setImageUrl] = useState('')
   const [linkText, setLinkText] = useState('')
@@ -73,31 +75,38 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   const [endDate, setEndDate] = useState<Date | undefined>()
   
   const notificationToEdit = isEditMode ? props.notificationToEdit : undefined;
+  
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      TiptapImage,
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class:
+          'prose dark:prose-invert min-h-[120px] w-full rounded-b-md border border-input border-t-0 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      },
+    },
+  });
 
   useEffect(() => {
-    const resetForm = () => {
+    if (open) {
       const initialContent = notificationToEdit?.content || '';
       setTitle(notificationToEdit?.title || '')
-      setContent(initialContent)
-      setCategory(notificationToEdit?.category)
+      editor?.commands.setContent(initialContent);
+      setCategory(notificationToEdit?.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined))
       setImageUrl(notificationToEdit?.imageUrl || '')
       setLinkText(notificationToEdit?.link?.text || '')
       setLinkUrl(notificationToEdit?.link?.url || '')
       setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
       setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
     }
-
-    if (open) {
-      if (isEditMode && notificationToEdit) {
-        resetForm();
-      } else if (!isEditMode) {
-        resetForm();
-        if (currentUser?.role === 'Employee') {
-            setCategory('Employee')
-        }
-      }
-    }
-  }, [open, isEditMode, notificationToEdit, currentUser?.role]);
+  }, [open, isEditMode, notificationToEdit, currentUser?.role, editor]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -112,8 +121,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) return;
+    if (!currentUser || !editor) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
+    const content = editor.getHTML();
 
     if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
         toast({
@@ -160,7 +170,9 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
 
   if (!currentUser) return null;
 
-  const contentToRender = (
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[625px] grid-rows-[auto,1fr,auto] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
@@ -182,8 +194,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                   Content
                 </Label>
                 <RichTextEditor 
-                  value={content}
-                  onChange={setContent}
+                  editor={editor}
                   className="col-span-3"
                 />
               </div>
@@ -320,12 +331,6 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
           </DialogFooter>
         </form>
       </DialogContent>
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-      {open && contentToRender}
     </Dialog>
   )
 }

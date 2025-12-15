@@ -1,8 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { EditorContent, type Editor } from '@tiptap/react';
 import {
   Bold,
   Italic,
@@ -19,13 +17,13 @@ import { Button } from './button';
 import { useCallback } from 'react';
 
 interface RichTextEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+  editor: Editor | null;
   className?: string;
 }
 
-const EditorToolbar = ({ editor }: { editor: any }) => {
+const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
   const addImage = useCallback(() => {
+    if (!editor) return;
     const url = window.prompt('URL');
 
     if (url) {
@@ -116,34 +114,10 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
 };
 
 
-export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
-  const editor = useEditor({
-    extensions: [
-        StarterKit.configure({
-            heading: {
-                levels: [1, 2, 3],
-            },
-        }),
-        Image,
-    ],
-    content: value,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-    editorProps: {
-        attributes: {
-          class: 'prose dark:prose-invert min-h-[120px] w-full rounded-b-md border border-input border-t-0 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        },
-    },
-  });
-  
-  if (editor && value !== editor.getHTML()) {
-    editor.commands.setContent(value, false);
-  }
-
+export const RichTextEditor = ({ editor, className }: RichTextEditorProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
-      {editor && <EditorToolbar editor={editor} />}
+      <EditorToolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>
   );
