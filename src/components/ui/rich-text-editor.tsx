@@ -8,10 +8,16 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import TableRow from '@tiptap/extension-table-row';
 import { useCallback, useRef } from 'react';
-import { Bold, Italic, Strikethrough, Code, Image as ImageIcon, Pilcrow, Minus, Table as TableIcon, Trash2, Quote, Heading1, Heading2, Heading3, List, ListOrdered, WrapText, Columns, Rows } from 'lucide-react';
+import { Bold, Italic, Strikethrough, Code, Image as ImageIcon, Pilcrow, Minus, Table as TableIcon, Trash2, Quote, Heading1, Heading2, Heading3, List, ListOrdered, WrapText, Columns, Rows, Palette, AlignLeft, AlignCenter, AlignRight, AlignJustify, CaseSensitive } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
 import { Separator } from './separator';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
+import FontFamily from '@tiptap/extension-font-family';
+import TextAlign from '@tiptap/extension-text-align';
 
 const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +78,7 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
       >
         <Strikethrough className="h-4 w-4" />
       </Button>
-      <Button
+       <Button
         onClick={() => editor.chain().focus().toggleCode().run()}
         disabled={!editor.can().chain().focus().toggleCode().run()}
         variant={editor.isActive('code') ? 'secondary' : 'ghost'}
@@ -84,6 +90,38 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
         <Code className="h-4 w-4" />
       </Button>
       
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+       <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" type="button" className="h-8 w-8" title="Font Color">
+              <Palette className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2">
+            <input
+              type="color"
+              onInput={(event) => editor.chain().focus().setColor((event.target as HTMLInputElement).value).run()}
+              value={editor.getAttributes('textStyle').color || '#000000'}
+              className="w-8 h-8 border-none bg-transparent p-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-sm [&::-moz-color-swatch]:rounded-sm"
+              title="Select Color"
+            />
+          </PopoverContent>
+        </Popover>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" type="button" className="h-8 w-8" title="Font Family">
+                    <CaseSensitive className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Inter').run()}>Inter</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Arial').run()}>Arial</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('monospace').run()}>Monospace</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontFamily().run()}>Default</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+
       <Separator orientation="vertical" className="h-6 mx-1" />
 
        <Button
@@ -126,6 +164,52 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
       >
         <Heading3 className="h-4 w-4" />
       </Button>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'}
+        size="icon"
+        type="button"
+        className="h-8 w-8"
+        title="Align Left"
+      >
+        <AlignLeft className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'}
+        size="icon"
+        type="button"
+        className="h-8 w-8"
+        title="Align Center"
+      >
+        <AlignCenter className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'}
+        size="icon"
+        type="button"
+        className="h-8 w-8"
+        title="Align Right"
+      >
+        <AlignRight className="h-4 w-4" />
+      </Button>
+       <Button
+        onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+        variant={editor.isActive({ textAlign: 'justify' }) ? 'secondary' : 'ghost'}
+        size="icon"
+        type="button"
+        className="h-8 w-8"
+        title="Align Justify"
+      >
+        <AlignJustify className="h-4 w-4" />
+      </Button>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
        <Button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
@@ -325,6 +409,12 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
       TableRow,
       TableHeader,
       TableCell,
+      TextStyle,
+      Color,
+      FontFamily,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
