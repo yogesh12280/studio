@@ -115,9 +115,9 @@ const TipTapToolbar = ({ editor }: { editor: Editor | null }) => {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Inter').run()}>Inter</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Arial').run()}>Arial</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('monospace').run()}>Monospace</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Inter').run()} disabled={editor.isActive('fontFamily', 'Inter')}>Inter</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('Arial').run()} disabled={editor.isActive('fontFamily', 'Arial')}>Arial</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => editor.chain().focus().setFontFamily('monospace').run()} disabled={editor.isActive('fontFamily', 'monospace')}>Monospace</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => editor.chain().focus().unsetFontFamily().run()}>Default</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -410,8 +410,8 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
       TableHeader,
       TableCell,
       TextStyle,
-      Color,
       FontFamily,
+      Color,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
