@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 interface RichTextEditorProps {
   editor: Editor | null;
@@ -22,14 +22,22 @@ interface RichTextEditorProps {
 }
 
 const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
-  const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt('URL');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+  const addImage = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && editor) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        editor.chain().focus().setImage({ src: reader.result as string }).run();
+      };
+      reader.readAsDataURL(file);
     }
-  }, [editor]);
+  };
 
   if (!editor) {
     return null;
@@ -109,6 +117,13 @@ const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
       >
         <ImageIcon className="h-4 w-4" />
       </Button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
     </div>
   );
 };
