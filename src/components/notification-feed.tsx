@@ -85,11 +85,10 @@ export function NotificationFeed({
   }
 
   return (
-    <div className="mt-6">
-      <NotificationList notifications={paginatedNotifications} onSelectNotification={onSelectNotification} />
-       <div className="flex items-center justify-between mt-4">
+    <div className="mt-4">
+      <div className="flex justify-end mb-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Page {currentPage} of {totalPages}</span>
+          <span>Show:</span>
           <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
             <SelectTrigger className="w-[70px]">
               <SelectValue />
@@ -100,7 +99,13 @@ export function NotificationFeed({
               ))}
             </SelectContent>
           </Select>
-           <span>per page</span>
+           <span className='hidden sm:inline'>per page</span>
+        </div>
+      </div>
+      <NotificationList notifications={paginatedNotifications} onSelectNotification={onSelectNotification} />
+       <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
         </div>
         <div className="flex items-center gap-2">
           <Button
