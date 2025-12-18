@@ -354,33 +354,37 @@ export default function NotificationsPage() {
             ) : (
               <>
                 <FeaturedNotifications notifications={notifications} onSelectNotification={handleSelectNotification} />
-                <div className="mb-4 flex flex-wrap items-center gap-2">
-                    <div className="relative">
+                <div className="mb-4 flex flex-col md:flex-row items-center gap-2">
+                    <div className="relative w-full md:flex-grow">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                         type="search"
                         placeholder="Search notifications..."
-                        className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                        className="w-full rounded-lg bg-background pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <DatePicker 
-                      date={filterStartDate} 
-                      onDateChange={setFilterStartDate} 
-                      placeholder="Start date" 
-                      disabled={{ after: filterEndDate }}
-                    />
-                    <DatePicker 
-                      date={filterEndDate} 
-                      onDateChange={setFilterEndDate} 
-                      placeholder="End date" 
-                      disabled={{ before: filterStartDate }}
-                    />
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="sort-by" className="text-sm font-medium">Sort by:</Label>
+                    <div className="flex w-full md:w-auto items-center gap-2">
+                      <DatePicker 
+                        date={filterStartDate} 
+                        onDateChange={setFilterStartDate} 
+                        placeholder="Start date" 
+                        disabled={{ after: filterEndDate }}
+                        className="w-full md:w-auto"
+                      />
+                      <DatePicker 
+                        date={filterEndDate} 
+                        onDateChange={setFilterEndDate} 
+                        placeholder="End date" 
+                        disabled={{ before: filterStartDate }}
+                        className="w-full md:w-auto"
+                      />
+                    </div>
+                    <div className="flex w-full md:w-auto items-center gap-2">
+                      <Label htmlFor="sort-by" className="text-sm font-medium shrink-0">Sort by:</Label>
                       <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-[180px]" id="sort-by">
+                        <SelectTrigger className="w-full md:w-[180px]" id="sort-by">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -391,10 +395,10 @@ export default function NotificationsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex items-center gap-2 ml-auto">
-                      <Label htmlFor="page-size">Show:</Label>
+                    <div className="flex w-full md:w-auto items-center gap-2">
+                      <Label htmlFor="page-size" className="shrink-0">Show:</Label>
                       <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                        <SelectTrigger className="w-[70px]" id="page-size">
+                        <SelectTrigger className="w-full md:w-[70px]" id="page-size">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
