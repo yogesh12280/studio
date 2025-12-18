@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -9,22 +9,19 @@ interface RichTextEditorProps {
 }
 
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
+  const editorRef = useRef<any>();
   const [editorLoaded, setEditorLoaded] = useState(false);
-  const [CKEditor, setCKEditor] = useState<any>(null);
-  const [ClassicEditor, setClassicEditor] = useState<any>(null);
+  const { CKEditor, ClassicEditor } = editorRef.current || {};
 
   useEffect(() => {
-    Promise.all([
-      import('@ckeditor/ckeditor5-react'),
-      import('@ckeditor/ckeditor5-build-classic')
-    ]).then(([ckeditor, classicEditor]) => {
-      setCKEditor(() => ckeditor.CKEditor);
-      setClassicEditor(() => classicEditor.default);
-      setEditorLoaded(true);
-    }).catch(error => console.error("Error loading CKEditor:", error));
+    editorRef.current = {
+      CKEditor: require('@ckeditor/ckeditor5-react').CKEditor,
+      ClassicEditor: require('@ckeditor/ckeditor5-build-classic'),
+    };
+    setEditorLoaded(true);
   }, []);
 
-  if (!editorLoaded || !CKEditor || !ClassicEditor) {
+  if (!editorLoaded) {
     return <div>Loading editor...</div>;
   }
 
@@ -32,6 +29,40 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
     <div className={className}>
       <CKEditor
         editor={ClassicEditor}
+        config={{
+          toolbar: {
+            items: [
+              'heading',
+              '|',
+              'bold',
+              'italic',
+              'link',
+              'bulletedList',
+              'numberedList',
+              '|',
+              'outdent',
+              'indent',
+              '|',
+              'imageUpload',
+              'blockQuote',
+              'insertTable',
+              'mediaEmbed',
+              'undo',
+              'redo',
+            ],
+          },
+          image: {
+            toolbar: [
+              'imageTextAlternative',
+              'imageStyle:inline',
+              'imageStyle:block',
+              'imageStyle:side',
+            ],
+          },
+          table: {
+            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
+          },
+        }}
         data={value}
         onChange={(event: any, editor: any) => {
           const data = editor.getData();
