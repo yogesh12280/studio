@@ -54,10 +54,16 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
           image: {
             toolbar: [
               'imageTextAlternative',
-              'imageStyle:inline',
-              'imageStyle:block',
-              'imageStyle:side',
+              '|',
+              'imageStyle:alignLeft',
+              'imageStyle:full',
+              'imageStyle:alignRight'
             ],
+            styles: [
+                'full',
+                'alignLeft',
+                'alignRight'
+            ]
           },
           table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
