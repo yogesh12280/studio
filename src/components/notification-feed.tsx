@@ -44,6 +44,9 @@ export function NotificationFeed({
       case 'Most Commented':
         sortedNotifications.sort((a, b) => b.comments.length - a.comments.length);
         break;
+      case 'Most Viewed':
+        sortedNotifications.sort((a, b) => b.viewers - a.viewers);
+        break;
       case 'Most Recent':
       default:
         sortedNotifications.sort((a, b) => {

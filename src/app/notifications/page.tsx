@@ -347,7 +347,7 @@ export default function NotificationsPage() {
                   onDelete={handleDelete}
                   onAddComment={handleAddComment}
                   onEditNotification={handleEditNotification}
-                  onAddReply={onAddReply}
+                  onAddReply={handleAddReply}
                   currentUser={currentUser}
                 />
               </div>
@@ -387,6 +387,7 @@ export default function NotificationsPage() {
                           <SelectItem value="Most Recent">Most Recent</SelectItem>
                           <SelectItem value="Most Liked">Most Liked</SelectItem>
                           <SelectItem value="Most Commented">Most Commented</SelectItem>
+                          <SelectItem value="Most Viewed">Most Viewed</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
