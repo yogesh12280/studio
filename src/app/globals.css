@@ -87,60 +87,45 @@ body {
   }
 }
 
-/* TipTap Editor Styles */
-.ProseMirror {
-  @apply min-h-[150px];
+/* CKEditor Styles */
+.ck-editor__editable_inline {
+    min-height: 150px;
+    border: 1px solid hsl(var(--border)) !important;
+    border-top: none !important;
+    border-radius: 0 0 var(--radius) var(--radius) !important;
 }
 
-.ProseMirror:focus {
-  @apply outline-none;
+.ck-toolbar {
+    border: 1px solid hsl(var(--border)) !important;
+    border-bottom: none !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
 }
 
-.ProseMirror > * + * {
-  @apply mt-4;
+.dark .ck-editor__editable_inline {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
 }
 
-.ProseMirror ul,
-.ProseMirror ol {
-  @apply pl-4;
+.dark .ck-toolbar {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-.ProseMirror li > p {
-  @apply mt-0;
+.dark .ck.ck-button, .dark .ck.ck-button:not(.ck-disabled):hover {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-.ProseMirror pre {
-  @apply bg-muted text-muted-foreground rounded-md p-4;
+.dark .ck.ck-input {
+   background-color: hsl(var(--muted)) !important;
+   color: hsl(var(--foreground)) !important;
 }
 
-.ProseMirror blockquote {
-  @apply border-l-4 border-muted pl-4 italic;
+.dark .ck.ck-list__item .ck-button:hover:not(.ck-disabled) {
+    background: hsl(var(--muted)) !important;
 }
 
-.ProseMirror img {
-  @apply max-w-full h-auto;
-}
-
-.dark .ProseMirror pre {
-  @apply bg-muted text-muted-foreground;
-}
-
-.ProseMirror table {
-  @apply w-full my-4 border-collapse border border-input;
-}
-.ProseMirror th, .ProseMirror td {
-  @apply border border-input px-4 py-2 text-left;
-}
-.ProseMirror th {
-  @apply font-bold bg-muted;
-}
-.ProseMirror .selectedCell:before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: hsl(var(--primary) / 0.2);
-  pointer-events: none;
-}
-.ProseMirror .column-resize-handle {
-    @apply bg-primary;
+.dark .ck.ck-dropdown__panel {
+    background: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--border)) !important;
 }
