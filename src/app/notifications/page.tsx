@@ -28,6 +28,7 @@ export default function NotificationsPage() {
   
   const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined);
   const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined);
+  const [sortBy, setSortBy] = useState('Most Recent');
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
@@ -346,7 +347,7 @@ export default function NotificationsPage() {
                   onDelete={handleDelete}
                   onAddComment={handleAddComment}
                   onEditNotification={handleEditNotification}
-                  onAddReply={handleAddReply}
+                  onAddReply={onAddReply}
                   currentUser={currentUser}
                 />
               </div>
@@ -376,6 +377,19 @@ export default function NotificationsPage() {
                       placeholder="End date" 
                       disabled={{ before: filterStartDate }}
                     />
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="sort-by" className="text-sm font-medium">Sort by:</Label>
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-[180px]" id="sort-by">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Most Recent">Most Recent</SelectItem>
+                          <SelectItem value="Most Liked">Most Liked</SelectItem>
+                          <SelectItem value="Most Commented">Most Commented</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-center gap-2 ml-auto">
                       <Label htmlFor="page-size">Show:</Label>
                       <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
@@ -395,6 +409,7 @@ export default function NotificationsPage() {
                   notifications={notifications}
                   onSelectNotification={handleSelectNotification}
                   dateRange={{from: filterStartDate, to: filterEndDate}}
+                  sortBy={sortBy}
                   currentPage={currentPage}
                   pageSize={pageSize}
                   setCurrentPage={setCurrentPage}

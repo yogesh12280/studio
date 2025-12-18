@@ -16,6 +16,7 @@ interface NotificationFeedProps {
   notifications: Notification[];
   onSelectNotification: (notification: Notification) => void;
   dateRange?: DateRange;
+  sortBy: string;
   currentPage: number;
   pageSize: number;
   setCurrentPage: (page: number) => void;
@@ -27,13 +28,33 @@ export function NotificationFeed({
   notifications, 
   onSelectNotification, 
   dateRange,
+  sortBy,
   currentPage,
   pageSize,
   setCurrentPage,
 }: NotificationFeedProps) {
 
   const filteredNotifications = useMemo(() => {
-    return notifications
+    let sortedNotifications = [...notifications];
+
+    switch (sortBy) {
+      case 'Most Liked':
+        sortedNotifications.sort((a, b) => b.likes - a.likes);
+        break;
+      case 'Most Commented':
+        sortedNotifications.sort((a, b) => b.comments.length - a.comments.length);
+        break;
+      case 'Most Recent':
+      default:
+        sortedNotifications.sort((a, b) => {
+          const dateA = a.scheduledFor ? new Date(a.scheduledFor) : new Date(a.createdAt);
+          const dateB = b.scheduledFor ? new Date(b.scheduledFor) : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+        break;
+    }
+
+    return sortedNotifications
       .filter(notification => {
         const searchLower = searchQuery.toLowerCase()
         const textMatch = notification.title.toLowerCase().includes(searchLower) ||
@@ -59,12 +80,7 @@ export function NotificationFeed({
 
         return textMatch && dateMatch
       })
-      .sort((a, b) => {
-        const dateA = a.scheduledFor ? new Date(a.scheduledFor) : new Date(a.createdAt);
-        const dateB = b.scheduledFor ? new Date(b.scheduledFor) : new Date(b.createdAt);
-        return dateB.getTime() - dateA.getTime();
-      })
-  }, [notifications, searchQuery, dateRange])
+  }, [notifications, searchQuery, dateRange, sortBy])
 
   const paginatedNotifications = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
