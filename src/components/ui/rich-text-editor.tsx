@@ -67,6 +67,8 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
               'outdent',
               'indent',
               '|',
+              'alignment',
+              '|',
               'imageUpload',
               'blockQuote',
               'insertTable',
