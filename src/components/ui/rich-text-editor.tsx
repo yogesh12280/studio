@@ -94,6 +94,9 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
           table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
           },
+          alignment: {
+            options: ['left', 'right', 'center', 'justify']
+          }
         }}
         data={value}
         onChange={(event: any, editor: any) => {
