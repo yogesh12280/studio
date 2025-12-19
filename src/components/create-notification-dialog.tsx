@@ -231,35 +231,29 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                     <Label htmlFor="schedule" className="text-right">
                       Schedule
                     </Label>
-                    <div className='col-span-3 relative'>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-auto justify-start text-left font-normal',
-                              !scheduledFor && 'text-muted-foreground'
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
-                          if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
-                            e.preventDefault();
-                          }
-                        }}>
-                          <Calendar
-                            mode="single"
-                            selected={scheduledFor}
-                            onSelect={setScheduledFor}
-                            disabled={{ before: new Date() }}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-auto justify-start text-left font-normal col-span-3',
+                            !scheduledFor && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {scheduledFor ? format(scheduledFor, 'PPP') : <span>Pick a post date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+                        <Calendar
+                          mode="single"
+                          selected={scheduledFor}
+                          onSelect={setScheduledFor}
+                          disabled={{ before: new Date() }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="end-date" className="text-right">
@@ -278,11 +272,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                           {endDate ? format(endDate, 'PPP') : <span>Pick an expiry date</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => {
-                        if (e.target && (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')) {
-                          e.preventDefault();
-                        }
-                      }}>
+                      <PopoverContent className="w-auto p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                         <Calendar
                           mode="single"
                           selected={endDate}
