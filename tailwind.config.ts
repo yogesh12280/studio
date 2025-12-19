@@ -14,7 +14,7 @@ export default {
         headline: ['PT Sans', 'sans-serif'],
         code: ['monospace'],
       },
-      typography: ({ theme }) => ({
+      typography: ({ theme }: { theme: (path: string) => string }) => ({
         DEFAULT: {
           css: {
             '--tw-prose-body': theme('colors.foreground'),
