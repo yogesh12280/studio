@@ -8,6 +8,29 @@ interface RichTextEditorProps {
   className?: string;
 }
 
+function SimpleUploadAdapterPlugin(editor: any) {
+  editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
+    return {
+      upload: async () => {
+        const file = await loader.file;
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({ default: reader.result });
+          };
+          reader.onerror = error => {
+            reject(error);
+          };
+          reader.readAsDataURL(file);
+        });
+      },
+      abort: () => {
+        // This is intentionally left blank.
+      },
+    };
+  };
+}
+
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
   const editorRef = useRef<any>();
   const [editorLoaded, setEditorLoaded] = useState(false);
@@ -30,6 +53,7 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
       <CKEditor
         editor={ClassicEditor}
         config={{
+          extraPlugins: [SimpleUploadAdapterPlugin],
           toolbar: {
             items: [
               'heading',
