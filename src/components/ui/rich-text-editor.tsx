@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import dynamic from "next/dynamic";
 import React from "react";
-import Editor from "@ckeditor/ckeditor5-build-classic";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const CKEditor = dynamic(
   () => import("@ckeditor/ckeditor5-react").then((m) => m.CKEditor),
@@ -13,43 +13,39 @@ interface RichTextEditorProps {
   value: string;
   onChange: (data: string) => void;
   className?: string;
-  readOnly?: boolean;
 }
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({
-  value,
-  onChange,
-  className,
-  readOnly = false
-}) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, className }) => {
   return (
     <div className={className}>
       <CKEditor
-        editor={Editor}
+        editor={ClassicEditor}
         data={value}
-        disabled={readOnly}
-        config={{
-          toolbar: [
-            'heading',
-            '|',
-            'bold',
-            'italic',
-            'link',
-            'bulletedList',
-            'numberedList',
-            '|',
-            'alignment',
-            '|',
-            'outdent',
-            'indent',
-            '|',
-            'blockQuote',
-            'undo',
-            'redo',
-          ],
+        onChange={(event, editor) => {
+          const data = editor.getData();
+          onChange(data);
         }}
-        onChange={(_, editor) => {
-          onChange(editor.getData());
+        config={{
+            toolbar: [
+                "heading",
+                "|",
+                "bold",
+                "italic",
+                "underline",
+                "strikethrough",
+                "|",
+                "alignment",
+                "|",
+                "bulletedList",
+                "numberedList",
+                "|",
+                "link",
+                "imageUpload",
+                "blockQuote",
+                "|",
+                "undo",
+                "redo",
+            ],
         }}
       />
     </div>
