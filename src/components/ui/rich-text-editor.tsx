@@ -1,13 +1,9 @@
+
 'use client';
 
-import dynamic from "next/dynamic";
-import React from "react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
-const CKEditor = dynamic(
-  () => import("@ckeditor/ckeditor5-react").then((m) => m.CKEditor),
-  { ssr: false }
-);
+import React from 'react';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 interface RichTextEditorProps {
   value: string;
@@ -15,41 +11,44 @@ interface RichTextEditorProps {
   className?: string;
 }
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, className }) => {
+export function RichTextEditor({ value, onChange, className }: RichTextEditorProps) {
   return (
     <div className={className}>
       <CKEditor
         editor={ClassicEditor}
         data={value}
-        onChange={(event, editor) => {
+        onChange={(event: any, editor: any) => {
           const data = editor.getData();
           onChange(data);
         }}
         config={{
-            toolbar: [
-                "heading",
-                "|",
-                "bold",
-                "italic",
-                "underline",
-                "strikethrough",
-                "|",
-                "alignment",
-                "|",
-                "bulletedList",
-                "numberedList",
-                "|",
-                "link",
-                "imageUpload",
-                "blockQuote",
-                "|",
-                "undo",
-                "redo",
-            ],
+          toolbar: [
+            'heading',
+            '|',
+            'bold',
+            'italic',
+            'underline',
+            'strikethrough',
+            '|',
+            'fontFamily',
+            'fontSize',
+            'fontColor',
+            'fontBackgroundColor',
+            '|',
+            'alignment',
+            '|',
+            'bulletedList',
+            'numberedList',
+            '|',
+            'link',
+            'imageUpload',
+            'blockQuote',
+            '|',
+            'undo',
+            'redo',
+          ],
         }}
       />
     </div>
   );
-};
-
-export { RichTextEditor };
+}
