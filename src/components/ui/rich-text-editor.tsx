@@ -11,31 +11,28 @@ interface RichTextEditorProps {
 
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
   const editorRef = useRef<any>(null);
-  const [editorLoaded, setEditorLoaded] = useState(false);
-  const [isClient, setIsClient] = useState(false)
+  const { CKEditor, CustomEditor } = editorRef.current || {};
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    import('@ckeditor/ckeditor5-react').then(editorModule => {
+        import('@/lib/ckeditor/custom-editor').then(customEditorModule => {
+            editorRef.current = {
+                CKEditor: editorModule.CKEditor,
+                CustomEditor: customEditorModule.default,
+            };
+            setIsMounted(true);
+        });
+    });
 
-  useEffect(() => {
-    if (!isClient) return;
-
-    const loadEditor = async () => {
-      const { CKEditor } = await import('@ckeditor/ckeditor5-react');
-      const CustomEditor = (await import('@/lib/ckeditor/custom-editor')).default;
-      editorRef.current = { CKEditor, CustomEditor };
-      setEditorLoaded(true);
-    };
-
-    loadEditor();
-  }, [isClient]);
-
-  if (!isClient || !editorLoaded || !editorRef.current) {
+    return () => {
+        setIsMounted(false);
+    }
+  }, []);
+  
+  if (!isMounted || !CKEditor || !CustomEditor) {
     return <Skeleton className="h-48 w-full" />;
   }
-
-  const { CKEditor, CustomEditor } = editorRef.current;
 
   return (
     <div className={className}>
