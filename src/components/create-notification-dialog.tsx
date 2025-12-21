@@ -77,17 +77,27 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   
   useEffect(() => {
     if (open) {
-      const initialContent = notificationToEdit?.content || '';
-      setContent(initialContent);
-      setTitle(notificationToEdit?.title || '')
-      setCategory(notificationToEdit?.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined))
-      setImageUrl(notificationToEdit?.imageUrl || '')
-      setLinkText(notificationToEdit?.link?.text || '')
-      setLinkUrl(notificationToEdit?.link?.url || '')
-      setScheduledFor(notificationToEdit?.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined)
-      setEndDate(notificationToEdit?.endDate ? new Date(notificationToEdit.endDate) : undefined)
+      if (isEditMode && notificationToEdit) {
+        setContent(notificationToEdit.content || '');
+        setTitle(notificationToEdit.title || '');
+        setCategory(notificationToEdit.category || (currentUser?.role === 'Employee' ? 'Employee' : undefined));
+        setImageUrl(notificationToEdit.imageUrl || '');
+        setLinkText(notificationToEdit.link?.text || '');
+        setLinkUrl(notificationToEdit.link?.url || '');
+        setScheduledFor(notificationToEdit.scheduledFor ? new Date(notificationToEdit.scheduledFor) : undefined);
+        setEndDate(notificationToEdit.endDate ? new Date(notificationToEdit.endDate) : undefined);
+      } else {
+        setContent('');
+        setTitle('');
+        setCategory(currentUser?.role === 'Employee' ? 'Employee' : undefined);
+        setImageUrl('');
+        setLinkText('');
+        setLinkUrl('');
+        setScheduledFor(undefined);
+        setEndDate(undefined);
+      }
     }
-  }, [open, notificationToEdit, currentUser?.role]);
+  }, [open, isEditMode, notificationToEdit, currentUser?.role]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
