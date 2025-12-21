@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,13 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-import { RichTextEditor } from './ui/rich-text-editor'
+import { Skeleton } from './ui/skeleton'
+
+const RichTextEditor = dynamic(() => import('./ui/rich-text-editor').then(mod => mod.RichTextEditor), {
+    ssr: false,
+    loading: () => <Skeleton className="h-48 w-full" />,
+});
+
 
 type CreateNotificationDialogProps = {
     children: React.ReactNode;
