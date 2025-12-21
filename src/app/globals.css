@@ -88,57 +88,8 @@ body {
 }
 
 /* CKEditor Styles */
-.ck-editor__main {
-  position: relative;
-}
-
-.ck-editor__editable_inline {
-    min-height: 150px;
-    border: 1px solid hsl(var(--border)) !important;
-    border-top: none !important;
-    border-radius: 0 0 var(--radius) var(--radius) !important;
-}
-
-.ck-toolbar {
-    border: 1px solid hsl(var(--border)) !important;
-    border-bottom: none !important;
-    border-radius: var(--radius) var(--radius) 0 0 !important;
-}
-
-.ck.ck-balloon-panel,
-.ck.ck-dropdown__panel {
+.ck.ck-balloon-panel {
     z-index: 9999 !important;
-}
-
-.dark .ck-editor__editable_inline {
-  color: hsl(var(--foreground));
-  background-color: hsl(var(--card));
-}
-
-.dark .ck-toolbar {
-  background-color: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-.dark .ck.ck-button, .dark .ck.ck-button:not(.ck-disabled):hover {
-  background-color: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-.dark .ck.ck-input {
-   background-color: hsl(var(--muted)) !important;
-   color: hsl(var(--foreground)) !important;
-   border-color: hsl(var(--border)) !important;
-}
-
-.dark .ck.ck-list__item .ck-button:hover:not(.ck-disabled) {
-    background: hsl(var(--muted)) !important;
-}
-
-.dark .ck.ck-dropdown__panel {
-    background: hsl(var(--card)) !important;
-    border: 1px solid hsl(var(--border)) !important;
 }
 
 .ck-content ul, .ck-content ol {
