@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +30,6 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-import { Skeleton } from './ui/skeleton'
 import { RichTextEditor } from './ui/rich-text-editor'
 
 
@@ -107,11 +105,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
     if (!currentUser) return;
     const finalCategory = currentUser.role === 'Employee' ? 'Employee' : category
 
-    if (!title || !content || !imageUrl || !scheduledFor || !endDate) {
+    if (!title || !content || !finalCategory || !scheduledFor || !endDate) {
         toast({
             variant: "destructive",
             title: "Missing Required Fields",
-            description: "Please fill out Title, Content, Image, Schedule Date and End Date.",
+            description: "Please fill out Title, Content, Category, Schedule Date and End Date.",
         })
         return
     }

@@ -16,8 +16,8 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
   useEffect(() => {
     const loadEditor = async () => {
       const { CKEditor } = await import('@ckeditor/ckeditor5-react');
-      const CustomEditor = await import('@/lib/ckeditor/custom-editor');
-      editorRef.current = { CKEditor, CustomEditor: CustomEditor.default };
+      const CustomEditor = (await import('@/lib/ckeditor/custom-editor')).default;
+      editorRef.current = { CKEditor, CustomEditor };
       setEditorLoaded(true);
     };
 
@@ -66,6 +66,7 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
               'imageUpload',
               'blockQuote',
               'insertTable',
+              '|',
               'removeFormat',
               '|',
               'undo',
@@ -73,6 +74,7 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
             ],
           },
           image: {
+            resizeUnit: 'px',
             toolbar: [
                 'imageStyle:inline',
                 'imageStyle:block',
