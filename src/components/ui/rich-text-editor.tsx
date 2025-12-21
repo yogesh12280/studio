@@ -12,8 +12,15 @@ interface RichTextEditorProps {
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
   const editorRef = useRef<any>(null);
   const [editorLoaded, setEditorLoaded] = useState(false);
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const loadEditor = async () => {
       const { CKEditor } = await import('@ckeditor/ckeditor5-react');
       const CustomEditor = (await import('@/lib/ckeditor/custom-editor')).default;
@@ -22,9 +29,9 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
     };
 
     loadEditor();
-  }, []);
+  }, [isClient]);
 
-  if (!editorLoaded || !editorRef.current) {
+  if (!isClient || !editorLoaded || !editorRef.current) {
     return <Skeleton className="h-48 w-full" />;
   }
 
