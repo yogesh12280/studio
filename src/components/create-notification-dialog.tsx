@@ -30,7 +30,7 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-import { RichTextEditor } from './ui/rich-text-editor'
+import { Textarea } from './ui/textarea'
 
 
 type CreateNotificationDialogProps = {
@@ -184,9 +184,11 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                   Content
                 </Label>
                 <div className="col-span-3" >
-                  <RichTextEditor
+                  <Textarea
+                    id="content"
                     value={content}
-                    onChange={setContent}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="min-h-[150px]"
                   />
                 </div>
               </div>

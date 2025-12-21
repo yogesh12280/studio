@@ -86,32 +86,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
-/* CKEditor Styles */
-:root {
-    --ck-z-default: 100;
-    --ck-z-modal: calc( var(--ck-z-default) + 999 );
-}
-
-.ck.ck-editor__main > .ck-editor__editable {
-  @apply bg-background;
-}
-
-.ck.ck-toolbar {
-  @apply bg-background border-border;
-}
-
-.ck.ck-button:not(.ck-disabled):hover,
-a.ck.ck-button:not(.ck-disabled):hover {
-  @apply bg-muted;
-}
-
-.ck.ck-button.ck-on,
-a.ck.ck-button.ck-on {
-  @apply bg-muted;
-}
-
-.ck.ck-button.ck-on:not(.ck-disabled):hover,
-a.ck.ck-button.ck-on:not(.ck-disabled):hover {
-  @apply bg-muted;
-}
