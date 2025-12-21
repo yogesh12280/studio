@@ -172,11 +172,12 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                 <Label htmlFor="content" className="text-right pt-2">
                   Content
                 </Label>
-                <RichTextEditor 
-                  value={content}
-                  onChange={setContent}
-                  className="col-span-3"
-                />
+                <div className="col-span-3" >
+                  <RichTextEditor
+                    value={content}
+                    onChange={setContent}
+                  />
+                </div>
               </div>
               {currentUser.role === 'Admin' ? (
                 <div className="grid grid-cols-4 items-center gap-4">
