@@ -1,7 +1,77 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Skeleton } from './skeleton';
+
+// Dynamically import to ensure it's client-side only
+const CKEditor = (props: any) => {
+  const { CKEditor: CKEditorComponent, CustomEditor } = props.editorModule;
+  return (
+    <CKEditorComponent
+      editor={CustomEditor}
+      data={props.value}
+      config={{
+        toolbar: [
+          'heading',
+          '|',
+          'bold',
+          'italic',
+          'underline',
+          'strikethrough',
+          '|',
+          'fontFamily',
+          'fontSize',
+          'fontColor',
+          'fontBackgroundColor',
+          '|',
+          'alignment',
+          '|',
+          'bulletedList',
+          'numberedList',
+          '|',
+          'link',
+          'insertTable',
+          '|',
+          'imageUpload',
+          '|',
+          'undo',
+          'redo',
+        ],
+        image: {
+          toolbar: [
+            'imageTextAlternative',
+            'imageStyle:inline',
+            'imageStyle:block',
+            'imageStyle:side',
+            'resizeImage',
+          ],
+          resizeOptions: [
+            { name: 'resizeImage:original', value: null },
+            { name: 'resizeImage:50', value: '50' },
+            { name: 'resizeImage:75', value: '75' },
+          ],
+        },
+        fontFamily: {
+          options: [
+            'default',
+            'Arial, Helvetica, sans-serif',
+            'Courier New, Courier, monospace',
+            'Georgia, serif',
+            'Times New Roman, Times, serif',
+            'Verdana, Geneva, sans-serif',
+          ],
+        },
+        fontSize: {
+          options: [10, 12, 14, 'default', 18, 20, 24, 32],
+        },
+      }}
+      onChange={(event: any, editor: any) => {
+        props.onChange(editor.getData());
+      }}
+    />
+  );
+};
+
 
 interface RichTextEditorProps {
   value: string;
@@ -11,90 +81,36 @@ interface RichTextEditorProps {
 
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
   const editorRef = useRef<any>(null);
-  const { CKEditor, CustomEditor } = editorRef.current || {};
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    import('@ckeditor/ckeditor5-react').then(editorModule => {
-        import('@/lib/ckeditor/custom-editor').then(customEditorModule => {
+    // Dynamically import the editor and the build
+    import('@ckeditor/ckeditor5-react')
+      .then(editorModule => {
+        import('@/lib/ckeditor/custom-editor')
+          .then(customEditorModule => {
             editorRef.current = {
-                CKEditor: editorModule.CKEditor,
-                CustomEditor: customEditorModule.default,
+              CKEditor: editorModule.CKEditor,
+              CustomEditor: customEditorModule.default,
             };
             setIsMounted(true);
-        });
-    });
-
-    return () => {
-        setIsMounted(false);
-    }
+          })
+          .catch(error => {
+            console.error("Error loading custom editor build:", error);
+          });
+      })
+      .catch(error => {
+        console.error("Error loading CKEditor component:", error);
+      });
   }, []);
-  
-  if (!isMounted || !CKEditor || !CustomEditor) {
+
+  if (!isMounted || !editorRef.current) {
     return <Skeleton className="h-48 w-full" />;
   }
 
   return (
     <div className={className}>
-      <CKEditor
-        editor={CustomEditor}
-        data={value}
-        onChange={(event: any, editor: any) => {
-          const data = editor.getData();
-          onChange(data);
-        }}
-        config={{
-          toolbar: {
-            items: [
-              'heading',
-              '|',
-              'fontFamily',
-              'fontSize',
-              'fontColor',
-              'fontBackgroundColor',
-              '|',
-              'bold',
-              'italic',
-              'underline',
-              'strikethrough',
-              '|',
-              'alignment',
-              '|',
-              'numberedList',
-              'bulletedList',
-              '|',
-              'outdent',
-              'indent',
-              '|',
-              'link',
-              'imageUpload',
-              'blockQuote',
-              'insertTable',
-              '|',
-              'removeFormat',
-              '|',
-              'undo',
-              'redo',
-            ],
-          },
-          image: {
-            resizeUnit: 'px',
-            toolbar: [
-                'imageStyle:inline',
-                'imageStyle:block',
-                'imageStyle:side',
-                '|',
-                'toggleImageCaption',
-                'imageTextAlternative',
-                '|',
-                'linkImage'
-            ],
-          },
-          table: {
-            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
-          },
-        }}
-      />
+      <CKEditor editorModule={editorRef.current} value={value} onChange={onChange} />
     </div>
   );
 };
