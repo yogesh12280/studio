@@ -78,12 +78,16 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
             ],
           },
           image: {
+            resizeUnit: 'px',
             toolbar: [
+              'imageStyle:inline',
+              'imageStyle:block',
+              'imageStyle:side',
+              '|',
+              'toggleImageCaption',
               'imageTextAlternative',
               '|',
-              'imageStyle:alignLeft',
-              'imageStyle:full',
-              'imageStyle:alignRight'
+              'linkImage'
             ],
             styles: [
                 'full',
