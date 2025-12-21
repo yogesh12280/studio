@@ -88,6 +88,10 @@ body {
 }
 
 /* CKEditor Styles */
+.ck-editor__main {
+  position: relative;
+}
+
 .ck-editor__editable_inline {
     min-height: 150px;
     border: 1px solid hsl(var(--border)) !important;
@@ -101,6 +105,11 @@ body {
     border-radius: var(--radius) var(--radius) 0 0 !important;
 }
 
+.ck.ck-balloon-panel,
+.ck.ck-dropdown__panel {
+    z-index: 9999 !important;
+}
+
 .dark .ck-editor__editable_inline {
   color: hsl(var(--foreground));
   background-color: hsl(var(--card));
@@ -109,6 +118,7 @@ body {
 .dark .ck-toolbar {
   background-color: hsl(var(--card)) !important;
   color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 .dark .ck.ck-button, .dark .ck.ck-button:not(.ck-disabled):hover {
@@ -119,6 +129,7 @@ body {
 .dark .ck.ck-input {
    background-color: hsl(var(--muted)) !important;
    color: hsl(var(--foreground)) !important;
+   border-color: hsl(var(--border)) !important;
 }
 
 .dark .ck.ck-list__item .ck-button:hover:not(.ck-disabled) {
@@ -131,8 +142,8 @@ body {
 }
 
 .ck-content ul, .ck-content ol {
-  list-style-position: inside;
-  padding-left: 25px; /* Add padding to the list container */
+  list-style-position: inside !important;
+  padding-left: 25px !important;
 }
 
 .ck-content ul {
@@ -144,5 +155,5 @@ body {
 }
 
 .ck-content li {
-  display: list-item !important; /* Ensure it's treated as a list item */
+  display: list-item !important;
 }
