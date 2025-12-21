@@ -88,24 +88,30 @@ body {
 }
 
 /* CKEditor Styles */
-.ck.ck-balloon-panel,
-.ck.ck-dropdown__panel {
-    z-index: 9999 !important;
+:root {
+    --ck-z-default: 100;
+    --ck-z-modal: calc( var(--ck-z-default) + 999 );
 }
 
-.ck-content ul, .ck-content ol {
-  list-style-position: inside !important;
-  padding-left: 25px !important;
+.ck.ck-editor__main > .ck-editor__editable {
+  @apply bg-background;
 }
 
-.ck-content ul {
-  list-style-type: disc !important;
+.ck.ck-toolbar {
+  @apply bg-background border-border;
 }
 
-.ck-content ol {
-  list-style-type: decimal !important;
+.ck.ck-button:not(.ck-disabled):hover,
+a.ck.ck-button:not(.ck-disabled):hover {
+  @apply bg-muted;
 }
 
-.ck-content li {
-  display: list-item !important;
+.ck.ck-button.ck-on,
+a.ck.ck-button.ck-on {
+  @apply bg-muted;
+}
+
+.ck.ck-button.ck-on:not(.ck-disabled):hover,
+a.ck.ck-button.ck-on:not(.ck-disabled):hover {
+  @apply bg-muted;
 }

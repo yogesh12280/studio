@@ -10,8 +10,8 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const editorRef = useRef<any>(null);
-  const [isClient, setIsClient] = useState(false);
   const { CKEditor, CustomEditor } = editorRef.current || {};
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -39,68 +39,70 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   }
 
   return (
-    <CKEditor
-      editor={CustomEditor}
-      data={value}
-      config={{
-        toolbar: [
-          "heading",
-          "|",
-          "bold",
-          "italic",
-          "underline",
-          "strikethrough",
-          "|",
-          "fontFamily",
-          "fontSize",
-          "fontColor",
-          "fontBackgroundColor",
-          "|",
-          "alignment",
-          "|",
-          "bulletedList",
-          "numberedList",
-          "|",
-          "link",
-          "insertTable",
-          "|",
-          "imageUpload",
-          "|",
-          "undo",
-          "redo",
-        ],
-        image: {
+    <div className="prose dark:prose-invert max-w-none [&>.ck-editor]:w-full">
+      <CKEditor
+        editor={CustomEditor}
+        data={value}
+        config={{
           toolbar: [
-            "imageTextAlternative",
-            "imageStyle:inline",
-            "imageStyle:block",
-            "imageStyle:side",
-            "resizeImage",
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "|",
+            "fontFamily",
+            "fontSize",
+            "fontColor",
+            "fontBackgroundColor",
+            "|",
+            "alignment",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "link",
+            "insertTable",
+            "|",
+            "imageUpload",
+            "|",
+            "undo",
+            "redo",
           ],
-          resizeOptions: [
-            { name: "resizeImage:original", value: null },
-            { name: "resizeImage:50", value: "50" },
-            { name: "resizeImage:75", value: "75" },
-          ],
-        },
-        fontFamily: {
-          options: [
-            "default",
-            "Arial, Helvetica, sans-serif",
-            "Courier New, Courier, monospace",
-            "Georgia, serif",
-            "Times New Roman, Times, serif",
-            "Verdana, Geneva, sans-serif",
-          ],
-        },
-        fontSize: {
-          options: [10, 12, 14, "default", 18, 20, 24, 32],
-        },
-      }}
-      onChange={(event: any, editor: any) => {
-        const data = editor.getData();
-        onChange(data);
-      }}
-    />
+          image: {
+            toolbar: [
+              "imageTextAlternative",
+              "imageStyle:inline",
+              "imageStyle:block",
+              "imageStyle:side",
+              "resizeImage",
+            ],
+            resizeOptions: [
+              { name: "resizeImage:original", value: null },
+              { name: "resizeImage:50", value: "50" },
+              { name: "resizeImage:75", value: "75" },
+            ],
+          },
+          fontFamily: {
+            options: [
+              "default",
+              "Arial, Helvetica, sans-serif",
+              "Courier New, Courier, monospace",
+              "Georgia, serif",
+              "Times New Roman, Times, serif",
+              "Verdana, Geneva, sans-serif",
+            ],
+          },
+          fontSize: {
+            options: [10, 12, 14, "default", 18, 20, 24, 32],
+          },
+        }}
+        onChange={(event: any, editor: any) => {
+          const data = editor.getData();
+          onChange(data);
+        }}
+      />
+    </div>
   );
 }
