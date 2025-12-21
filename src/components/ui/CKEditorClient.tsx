@@ -26,10 +26,10 @@ import {
     ImageResize,
     ImageUpload,
     ImageCaption,
-    PasteFromOffice,
     Table,
     Autoformat,
     SimpleUploadAdapter,
+    PasteFromOffice,
 } from 'ckeditor5';
 
 import 'ckeditor5/ckeditor5.css';
@@ -68,10 +68,10 @@ export default function CKEditorClient({ value, onChange }: CKEditorClientProps)
             ImageResize,
             ImageUpload,
             ImageCaption,
-            PasteFromOffice,
             Table,
             Autoformat,
-            SimpleUploadAdapter
+            SimpleUploadAdapter,
+            PasteFromOffice,
         ],
         toolbar: [
           "heading",
