@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import CustomEditor from '@/lib/ckeditor/custom-editor';
 
 interface RichTextEditorProps {
   value: string;
@@ -8,39 +10,10 @@ interface RichTextEditorProps {
   className?: string;
 }
 
-function SimpleUploadAdapterPlugin(editor: any) {
-  editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
-    return {
-      upload: async () => {
-        const file = await loader.file;
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            resolve({ default: reader.result });
-          };
-          reader.onerror = error => {
-            reject(error);
-          };
-          reader.readAsDataURL(file);
-        });
-      },
-      abort: () => {
-        // This is intentionally left blank.
-      },
-    };
-  };
-}
-
 export const RichTextEditor = ({ value, onChange, className }: RichTextEditorProps) => {
-  const editorRef = useRef<any>();
   const [editorLoaded, setEditorLoaded] = useState(false);
-  const { CKEditor, ClassicEditor } = editorRef.current || {};
 
   useEffect(() => {
-    editorRef.current = {
-      CKEditor: require('@ckeditor/ckeditor5-react').CKEditor,
-      ClassicEditor: require('@ckeditor/ckeditor5-build-classic'),
-    };
     setEditorLoaded(true);
   }, []);
 
@@ -51,61 +24,60 @@ export const RichTextEditor = ({ value, onChange, className }: RichTextEditorPro
   return (
     <div className={className}>
       <CKEditor
-        editor={ClassicEditor}
+        editor={CustomEditor}
+        data={value}
+        onChange={(event: any, editor: any) => {
+          const data = editor.getData();
+          onChange(data);
+        }}
         config={{
-          extraPlugins: [SimpleUploadAdapterPlugin],
           toolbar: {
             items: [
               'heading',
               '|',
+              'fontFamily',
+              'fontSize',
+              'fontColor',
+              'fontBackgroundColor',
+              '|',
               'bold',
               'italic',
-              'link',
-              'bulletedList',
+              'underline',
+              'strikethrough',
+              '|',
+              'alignment',
+              '|',
               'numberedList',
+              'bulletedList',
               '|',
               'outdent',
               'indent',
               '|',
-              'alignment',
-              '|',
+              'link',
               'imageUpload',
               'blockQuote',
               'insertTable',
-              'mediaEmbed',
+              'removeFormat',
+              '|',
               'undo',
               'redo',
             ],
           },
           image: {
-            resizeUnit: 'px',
             toolbar: [
-              'imageStyle:inline',
-              'imageStyle:block',
-              'imageStyle:side',
-              '|',
-              'toggleImageCaption',
-              'imageTextAlternative',
-              '|',
-              'linkImage'
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                '|',
+                'toggleImageCaption',
+                'imageTextAlternative',
+                '|',
+                'linkImage'
             ],
-            styles: [
-                'full',
-                'alignLeft',
-                'alignRight'
-            ]
           },
           table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
           },
-          alignment: {
-            options: ['left', 'right', 'center', 'justify']
-          }
-        }}
-        data={value}
-        onChange={(event: any, editor: any) => {
-          const data = editor.getData();
-          onChange(data);
         }}
       />
     </div>
