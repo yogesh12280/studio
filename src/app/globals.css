@@ -86,3 +86,21 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+    .ck-editor__editable_inline {
+        min-height: 200px;
+    }
+    .ck-content ul, .ck-content ol {
+        list-style-position: inside;
+    }
+    .ck-content ol {
+        list-style-type: decimal;
+    }
+    .ck-content ul {
+        list-style-type: disc;
+    }
+    .ck.ck-balloon-panel {
+        z-index: 100 !important;
+    }
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,12 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { Notification } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-import { Textarea } from './ui/textarea'
+import { Skeleton } from './ui/skeleton'
+
+const RichTextEditor = dynamic(() => import('./ui/rich-text-editor'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-48 w-full" />,
+})
 
 
 type CreateNotificationDialogProps = {
@@ -184,12 +190,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
                   Content
                 </Label>
                 <div className="col-span-3" >
-                  <Textarea
-                    id="content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[150px]"
-                  />
+                   <RichTextEditor value={content} onChange={setContent} />
                 </div>
               </div>
               {currentUser.role === 'Admin' ? (
