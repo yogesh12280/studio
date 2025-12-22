@@ -1,0 +1,15 @@
+.ck-editor__editable_inline {
+    min-height: 200px;
+}
+.ck-content ul, .ck-content ol {
+    list-style-position: inside !important;
+}
+.ck-content ol {
+    list-style-type: decimal !important;
+}
+.ck-content ul {
+    list-style-type: disc !important;
+}
+.ck.ck-balloon-panel {
+    z-index: 100 !important;
+}
