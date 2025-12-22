@@ -336,7 +336,7 @@ export default function NotificationsPage() {
         <main className="p-4 sm:p-6">
           {loading ? renderLoadingState() : (
             selectedNotification ? (
-              <div className="max-w-2xl mx-auto">
+              <div className="w-[80vw] max-w-[80vw] mx-auto">
                 <Button variant="ghost" onClick={handleBackToList} className="mb-4">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to all notifications
