@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -169,7 +170,7 @@ export function CreateNotificationDialog(props: NotificationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[625px] grid-rows-[auto,1fr,auto] max-h-[90vh]">
+      <DialogContent className="w-[80vw] max-w-[80vw] grid-rows-[auto,1fr,auto] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-headline">{dialogTitle}</DialogTitle>
           <DialogDescription>
