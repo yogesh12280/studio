@@ -28,7 +28,6 @@ import {
     ImageCaption,
     Table,
     Autoformat,
-    SimpleUploadAdapter,
     PasteFromOffice,
 } from 'ckeditor5';
 
@@ -38,6 +37,29 @@ import './ckeditor-styles.css';
 interface CKEditorClientProps {
   value: string;
   onChange: (value: string) => void;
+}
+
+function SimpleUploadAdapterPlugin(editor: any) {
+  editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
+    return {
+      upload: async () => {
+        const file = await loader.file;
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({ default: reader.result });
+          };
+          reader.onerror = error => {
+            reject(error);
+          };
+          reader.readAsDataURL(file);
+        });
+      },
+      abort: () => {
+        // This is intentionally left blank.
+      },
+    };
+  };
 }
 
 export default function CKEditorClient({ value, onChange }: CKEditorClientProps) {
@@ -71,9 +93,9 @@ export default function CKEditorClient({ value, onChange }: CKEditorClientProps)
             ImageCaption,
             Table,
             Autoformat,
-            SimpleUploadAdapter,
             PasteFromOffice,
         ],
+        extraPlugins: [SimpleUploadAdapterPlugin],
         toolbar: [
           "heading",
           "|",
