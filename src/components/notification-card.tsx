@@ -304,9 +304,11 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
             />
           </div>
         )}
-        <p className="text-foreground/90 whitespace-pre-wrap">
-          {notification.content}
-        </p>
+        <div className="prose dark:prose-invert max-w-none">
+          <p className="text-foreground/90 whitespace-pre-wrap">
+            {notification.content}
+          </p>
+        </div>
         {notification.link && (
           <Button asChild variant="link" className="px-0 mt-2">
             <Link href={notification.link.url} target="_blank" rel="noopener noreferrer">
@@ -451,3 +453,5 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
     </Card>
   )
 }
+
+    
