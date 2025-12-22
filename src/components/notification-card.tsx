@@ -230,7 +230,7 @@ export function NotificationCard({ notification, onLikeToggle, onDelete, onAddCo
   }
 
   return (
-    <Card className="max-w-2xl mx-auto overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="flex flex-row items-start gap-4 p-4">
         <Avatar>
           <AvatarImage
