@@ -8,12 +8,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 export const metadata: Metadata = {
   title: 'SembConnect',
   description: 'Efficient and targeted bulletin delivery for your organization.',
-  icons: {
-    icon: {
-      url: "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M22 2 11 13'/%3e%3cpath d='m22 2-7 20-4-9-9-4 20-7z'/%3e%3c/svg%3e",
-      type: 'image/svg+xml',
-    }
-  },
 }
 
 export default function RootLayout({
