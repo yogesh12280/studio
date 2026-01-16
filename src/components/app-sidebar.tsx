@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SembConnectLogo } from '@/components/icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award } from 'lucide-react'
+import { Newspaper, ShieldAlert, Moon, Sun, Vote, Lightbulb, Award, Puzzle } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { useTheme } from 'next-themes'
@@ -50,6 +50,18 @@ export function AppSidebar() {
               <Link href="/notifications">
                 <Newspaper />
                 <span>Notifications</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Reusable Components"
+              isActive={pathname === '/reusable-components'}
+            >
+              <Link href="/reusable-components">
+                <Puzzle />
+                <span>Components</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

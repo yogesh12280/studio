@@ -88,4 +88,44 @@ export type Appreciation = {
   likedBy: string[];
 };
 
+export type Notification = {
+    id: string;
+    author: {
+        name: string;
+        avatarUrl: string;
+    };
+    category: 'Organization' | 'Employee';
+    title: string;
+    content: string;
+    imageUrl?: string;
+    link?: {
+        url: string;
+        text: string;
+    };
+    likes: number;
+    likedBy: string[];
+    viewers: number;
+    viewedBy: string[];
+    comments: Comment[];
+    createdAt: string;
+    scheduledFor?: string;
+    endDate?: string;
+};
+
+export type ReusableComponent = {
+  id: string;
+  technology: 'Web' | 'PC' | 'AI & QC';
+  name: string;
+  description: string;
+  registeredBy: Pick<User, 'name' | 'avatarUrl'>;
+  utilizationByProjects: string[];
+  originProject: string;
+  benefit: string;
+  registeredDate: string;
+  likes: number;
+  likedBy: string[];
+  viewers: number;
+  viewedBy: string[];
+  comments: Comment[];
+};
     
