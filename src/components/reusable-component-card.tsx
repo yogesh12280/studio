@@ -291,7 +291,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
               <div>
                   <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-sm">Utilized In</h3>
-                      <Button variant="outline" size="sm" className="h-6 px-2" onClick={() => setIsUtilizationDialogOpen(true)}>
+                      <Button size="sm" className="h-6 px-2" onClick={() => setIsUtilizationDialogOpen(true)}>
                           Manage
                       </Button>
                   </div>
