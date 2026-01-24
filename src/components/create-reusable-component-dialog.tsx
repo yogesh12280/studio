@@ -33,6 +33,7 @@ type CreateReusableComponentDialogProps = {
     onSave: (newComponent: Omit<ReusableComponent, 'id' | 'registeredBy' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'registeredDate'>) => void;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    initialTechnology?: ReusableComponent['technology'];
 }
 
 type EditReusableComponentDialogProps = {
@@ -75,14 +76,14 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
         setUtilizationByProjects(componentToEdit.utilizationByProjects.join(', '));
       } else {
         setName('');
-        setTechnology(undefined);
+        setTechnology(props.mode === 'create' ? props.initialTechnology : undefined);
         setDescription('');
         setOriginProject('');
         setBenefit('');
         setUtilizationByProjects('');
       }
     }
-  }, [open, isEditMode, componentToEdit]);
+  }, [open, isEditMode, componentToEdit, props]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

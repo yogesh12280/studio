@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
@@ -19,6 +19,7 @@ import { CreateReusableComponentDialog } from '@/components/create-reusable-comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { DeleteReusableComponentDialog } from '@/components/delete-reusable-component-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function ReusableComponentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,6 +41,7 @@ export default function ReusableComponentsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState<ReusableComponent | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('All');
 
   useEffect(() => {
     const fetchComponents = async () => {
@@ -63,6 +65,13 @@ export default function ReusableComponentsPage() {
 
     fetchComponents();
   }, []);
+
+  const componentsForTab = useMemo(() => {
+    if (activeTab === 'All') {
+        return components;
+    }
+    return components.filter(c => c.technology === activeTab);
+  }, [components, activeTab]);
 
   const handlePageSizeChange = (value: string) => {
     setPageSize(Number(value));
@@ -359,6 +368,7 @@ export default function ReusableComponentsPage() {
                 onSave={handleAddComponent} 
                 open={isCreateDialogOpen} 
                 onOpenChange={setIsCreateDialogOpen}
+                initialTechnology={activeTab !== 'All' ? activeTab as ReusableComponent['technology'] : undefined}
               >
                 <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
                     <PlusCircle className="h-4 w-4" />
@@ -386,8 +396,19 @@ export default function ReusableComponentsPage() {
               </div>
             ) : (
               <>
-                <FeaturedReusableComponents components={components} onSelectComponent={handleSelectComponent} />
-                <div className="mb-4 flex flex-col md:flex-row items-center gap-2">
+                <FeaturedReusableComponents components={componentsForTab} onSelectComponent={handleSelectComponent} />
+                
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+                    <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
+                        <TabsTrigger value="All">All</TabsTrigger>
+                        <TabsTrigger value="Web">Web</TabsTrigger>
+                        <TabsTrigger value="PC">PC</TabsTrigger>
+                        <TabsTrigger value="AI">AI</TabsTrigger>
+                        <TabsTrigger value="QC">QC</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
+                <div className="mt-4 mb-4 flex flex-col md:flex-row items-center gap-2">
                     <div className="relative w-full md:flex-grow">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -445,7 +466,7 @@ export default function ReusableComponentsPage() {
                 </div>
                 <ReusableComponentFeed
                   searchQuery={searchQuery}
-                  components={components}
+                  components={componentsForTab}
                   onSelectComponent={handleSelectComponent}
                   dateRange={{from: filterStartDate, to: filterEndDate}}
                   sortBy={sortBy}
