@@ -163,11 +163,12 @@ interface ReusableComponentCardProps {
   onDelete: (componentId: string) => void
   onAddComment: (componentId: string, commentText: string) => void
   onEdit: (component: ReusableComponent) => void
+  onUpdate: (component: ReusableComponent) => void
   onAddReply: (componentId: string, commentId: string, replyText: string) => void;
   currentUser: User | null;
 }
 
-export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAddComment, onEdit, onAddReply, currentUser }: ReusableComponentCardProps) {
+export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAddComment, onEdit, onUpdate, onAddReply, currentUser }: ReusableComponentCardProps) {
   const { users } = useUser()
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
@@ -444,7 +445,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
         onOpenChange={setIsUtilizationDialogOpen}
         component={component}
         currentUser={currentUser}
-        onUpdate={onEdit}
+        onUpdate={onUpdate}
       />
     </>
   )

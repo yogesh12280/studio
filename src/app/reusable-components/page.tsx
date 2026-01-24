@@ -390,6 +390,7 @@ export default function ReusableComponentsPage() {
                   onDelete={() => openDeleteDialog(selectedComponent)}
                   onAddComment={handleAddComment}
                   onEdit={() => openEditDialog(selectedComponent)}
+                  onUpdate={handleEditComponent}
                   onAddReply={handleAddReply}
                   currentUser={currentUser}
                 />
