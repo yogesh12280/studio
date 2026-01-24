@@ -114,7 +114,7 @@ export type Notification = {
 
 export type ReusableComponent = {
   id: string;
-  technology: 'Web' | 'PC' | 'AI & QC';
+  technology: 'Web' | 'PC' | 'AI' | 'QC';
   name: string;
   description: string;
   registeredBy: Pick<User, 'name' | 'avatarUrl'>;

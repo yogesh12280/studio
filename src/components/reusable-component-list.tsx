@@ -25,7 +25,7 @@ export function ReusableComponentList({ components, onSelectComponent }: Reusabl
               <span className="font-medium text-base">{component.name}</span>
               <Badge variant={
                 component.technology === 'Web' ? 'default' 
-                : component.technology === 'AI & QC' ? 'secondary' 
+                : (component.technology === 'AI' || component.technology === 'QC') ? 'secondary' 
                 : 'outline'
               }>
                 {component.technology}

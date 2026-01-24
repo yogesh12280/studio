@@ -56,7 +56,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
   const { toast } = useToast()
 
   const [name, setName] = useState('')
-  const [technology, setTechnology] = useState<'Web' | 'PC' | 'AI & QC' | undefined>()
+  const [technology, setTechnology] = useState<'Web' | 'PC' | 'AI' | 'QC' | undefined>()
   const [description, setDescription] = useState('')
   const [originProject, setOriginProject] = useState('')
   const [benefit, setBenefit] = useState('')
@@ -157,14 +157,15 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
                 <Label htmlFor="technology" className="text-right">
                   Technology
                 </Label>
-                <Select required value={technology} onValueChange={(value: 'Web' | 'PC' | 'AI & QC') => setTechnology(value)}>
+                <Select required value={technology} onValueChange={(value: 'Web' | 'PC' | 'AI' | 'QC') => setTechnology(value)}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a technology" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Web">Web</SelectItem>
                     <SelectItem value="PC">PC</SelectItem>
-                    <SelectItem value="AI & QC">AI & QC</SelectItem>
+                    <SelectItem value="AI">AI</SelectItem>
+                    <SelectItem value="QC">QC</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

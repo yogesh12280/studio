@@ -264,7 +264,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
         <div>
             <Badge variant={
                 component.technology === 'Web' ? 'default' 
-                : component.technology === 'AI & QC' ? 'secondary' 
+                : (component.technology === 'AI' || component.technology === 'QC') ? 'secondary' 
                 : 'outline'
               }>
                 {component.technology}

@@ -242,7 +242,7 @@ export const initialReusableComponents: ReusableComponent[] = [
   },
   {
     id: 'rc-2',
-    technology: 'AI & QC',
+    technology: 'AI',
     name: 'Sentiment Analysis API',
     description: 'A Genkit flow that analyzes user feedback from various sources and returns a sentiment score (positive, negative, neutral) along with key topics mentioned.',
     registeredBy: { name: 'Charlie Green', avatarUrl: getImageUrl('avatar3') },
