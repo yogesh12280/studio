@@ -39,6 +39,7 @@ import type { ReusableComponent, User, Comment } from '@/lib/types'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { ManageUtilizationDialog } from './manage-utilization-dialog'
+import { employees } from '@/lib/data'
 
 interface ReplyInputProps {
   commentId: string;
@@ -170,9 +171,11 @@ interface ReusableComponentCardProps {
 
 export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAddComment, onEdit, onUpdate, onAddReply, currentUser }: ReusableComponentCardProps) {
   const { users } = useUser()
+  const allUsers = [...users, ...employees];
   const [isClient, setIsClient] = useState(false)
   const [likePopoverOpen, setLikePopoverOpen] = useState(false)
   const [viewPopoverOpen, setViewPopoverOpen] = useState(false)
+  const [utilizationPopoverOpen, setUtilizationPopoverOpen] = useState(false);
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -200,11 +203,11 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
     : ''
 
   const likers = component.likedBy
-    .map(userId => users.find(u => u.id === userId))
+    .map(userId => allUsers.find(u => u.id === userId))
     .filter((u): u is User => !!u);
   
   const viewers = (component.viewedBy || [])
-    .map(userId => users.find(u => u.id === userId))
+    .map(userId => allUsers.find(u => u.id === userId))
     .filter((u): u is User => !!u);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
@@ -395,10 +398,44 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
                     </PopoverContent>
                   )}
               </Popover>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Rocket className="h-4 w-4" />
-                  <span>{component.utilizationByProjects.length} projects</span>
-              </div>
+               <Popover open={utilizationPopoverOpen} onOpenChange={setUtilizationPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-2 text-xs text-muted-foreground"
+                    onMouseEnter={() => setUtilizationPopoverOpen(true)}
+                    onMouseLeave={() => setUtilizationPopoverOpen(false)}
+                  >
+                    <Rocket className="h-4 w-4" />
+                    <span>{component.utilizationByProjects.length} projects</span>
+                  </Button>
+                </PopoverTrigger>
+                {component.utilizationByProjects.length > 0 && (
+                  <PopoverContent className="w-auto max-w-xs">
+                    <div className="flex flex-col gap-2">
+                      <p className="font-semibold text-sm">Utilized by</p>
+                      <div className="flex flex-col gap-2">
+                        {component.utilizationByProjects.map(util => {
+                          const user = allUsers.find(u => u.id === util.utilizedBy.id);
+                          return (
+                            <div key={util.projectId} className="flex items-center gap-2 text-xs">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={user?.avatarUrl} alt={util.utilizedBy.name} />
+                                <AvatarFallback>{util.utilizedBy.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                  <span className="font-medium">{util.projectName}</span>
+                                  <span className="text-muted-foreground"> ({util.utilizedBy.name})</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                )}
+              </Popover>
           </div>
         </CardFooter>
         {showComments && (
