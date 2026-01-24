@@ -61,6 +61,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
   const [description, setDescription] = useState('')
   const [originProject, setOriginProject] = useState('')
   const [benefit, setBenefit] = useState('')
+  const [bitBucketUrl, setBitBucketUrl] = useState('')
   
   const componentToEdit = isEditMode ? props.componentToEdit : undefined;
   
@@ -72,12 +73,14 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
         setDescription(componentToEdit.description || '');
         setOriginProject(componentToEdit.originProject || '');
         setBenefit(componentToEdit.benefit || '');
+        setBitBucketUrl(componentToEdit.bitBucketUrl || '');
       } else {
         setName('');
         setTechnology(props.mode === 'create' ? props.initialTechnology : undefined);
         setDescription('');
         setOriginProject('');
         setBenefit('');
+        setBitBucketUrl('');
       }
     }
   }, [open, isEditMode, componentToEdit, props]);
@@ -103,6 +106,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
             description,
             originProject,
             benefit,
+            bitBucketUrl,
         };
         (props.onSave as (component: ReusableComponent) => void)(updatedComponent);
     } else {
@@ -112,6 +116,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
             description,
             originProject,
             benefit,
+            bitBucketUrl,
             utilizationByProjects: [],
             registeredBy: { name: currentUser.name, avatarUrl: currentUser.avatarUrl }
         };
@@ -183,6 +188,12 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
                   Origin Project
                 </Label>
                 <Input id="origin-project" required className="col-span-3" value={originProject} onChange={e => setOriginProject(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="bit-bucket-url" className="text-right">
+                  Bit Bucket URL
+                </Label>
+                <Input id="bit-bucket-url" type="url" className="col-span-3" value={bitBucketUrl} onChange={e => setBitBucketUrl(e.target.value)} placeholder="https://bitbucket.org/..." />
               </div>
             </div>
           </ScrollArea>

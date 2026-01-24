@@ -130,6 +130,7 @@ export type ReusableComponent = {
   utilizationByProjects: ProjectUtilization[];
   originProject: string;
   benefit: string;
+  bitBucketUrl?: string;
   registeredDate: string;
   likes: number;
   likedBy: string[];

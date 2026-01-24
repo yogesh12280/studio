@@ -286,13 +286,25 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
           
           <div className="grid grid-cols-2 gap-4">
               <div>
-                  <h3 className="font-semibold text-sm mb-1">Origin Project</h3>
-                  <p className="text-sm text-foreground/80">{component.originProject}</p>
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-sm mb-1">Origin Project</h3>
+                    <p className="text-sm text-foreground/80">{component.originProject}</p>
+                  </div>
+                   {component.bitBucketUrl && (
+                    <div>
+                      <h3 className="font-semibold text-sm mb-1">Bit Bucket URL</h3>
+                      <Button asChild variant="link" className="p-0 h-auto text-sm text-left">
+                        <a href={component.bitBucketUrl} target="_blank" rel="noopener noreferrer" className="break-all">
+                          {component.bitBucketUrl}
+                        </a>
+                      </Button>
+                    </div>
+                  )}
               </div>
               <div>
                   <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-sm">Utilized In</h3>
-                      <Button size="sm" className="h-6 px-2" onClick={() => setIsUtilizationDialogOpen(true)}>
+                      <Button size="sm" variant="default" className="h-6 px-2" onClick={() => setIsUtilizationDialogOpen(true)}>
                           Manage
                       </Button>
                   </div>
