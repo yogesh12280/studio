@@ -30,7 +30,7 @@ import RichTextEditor from './ui/rich-text-editor'
 type CreateReusableComponentDialogProps = {
     children: React.ReactNode;
     mode?: 'create';
-    onSave: (newComponent: Omit<ReusableComponent, 'id' | 'registeredBy' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'registeredDate'>) => void;
+    onSave: (newComponent: Omit<ReusableComponent, 'id' |'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'registeredDate'>) => void;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     initialTechnology?: ReusableComponent['technology'];
@@ -61,7 +61,6 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
   const [description, setDescription] = useState('')
   const [originProject, setOriginProject] = useState('')
   const [benefit, setBenefit] = useState('')
-  const [utilizationByProjects, setUtilizationByProjects] = useState('')
   
   const componentToEdit = isEditMode ? props.componentToEdit : undefined;
   
@@ -73,14 +72,12 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
         setDescription(componentToEdit.description || '');
         setOriginProject(componentToEdit.originProject || '');
         setBenefit(componentToEdit.benefit || '');
-        setUtilizationByProjects(componentToEdit.utilizationByProjects.join(', '));
       } else {
         setName('');
         setTechnology(props.mode === 'create' ? props.initialTechnology : undefined);
         setDescription('');
         setOriginProject('');
         setBenefit('');
-        setUtilizationByProjects('');
       }
     }
   }, [open, isEditMode, componentToEdit, props]);
@@ -98,8 +95,6 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
         return
     }
 
-    const projects = utilizationByProjects.split(',').map(p => p.trim()).filter(p => p);
-
     if (isEditMode && componentToEdit) {
         const updatedComponent: ReusableComponent = {
             ...componentToEdit,
@@ -108,7 +103,6 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
             description,
             originProject,
             benefit,
-            utilizationByProjects: projects,
         };
         (props.onSave as (component: ReusableComponent) => void)(updatedComponent);
     } else {
@@ -118,7 +112,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
             description,
             originProject,
             benefit,
-            utilizationByProjects: projects,
+            utilizationByProjects: [],
             registeredBy: { name: currentUser.name, avatarUrl: currentUser.avatarUrl }
         };
         (props.onSave as (component: Omit<ReusableComponent, 'id' | 'likes' | 'likedBy' | 'viewers' | 'viewedBy' | 'comments' | 'registeredDate'>) => void)(newComponentData);
@@ -189,18 +183,6 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
                   Origin Project
                 </Label>
                 <Input id="origin-project" required className="col-span-3" value={originProject} onChange={e => setOriginProject(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="utilization" className="text-right pt-2">
-                  Utilization by Projects
-                </Label>
-                <Textarea 
-                    id="utilization" 
-                    className="col-span-3" 
-                    value={utilizationByProjects} 
-                    onChange={e => setUtilizationByProjects(e.target.value)} 
-                    placeholder="Enter project names, separated by commas"
-                />
               </div>
             </div>
           </ScrollArea>

@@ -112,13 +112,22 @@ export type Notification = {
     endDate?: string;
 };
 
+export type ProjectUtilization = {
+  projectId: string;
+  projectName: string;
+  utilizedBy: {
+    id: string;
+    name: string;
+  };
+};
+
 export type ReusableComponent = {
   id: string;
   technology: 'Web' | 'PC' | 'AI' | 'QC';
   name: string;
   description: string;
   registeredBy: Pick<User, 'name' | 'avatarUrl'>;
-  utilizationByProjects: string[];
+  utilizationByProjects: ProjectUtilization[];
   originProject: string;
   benefit: string;
   registeredDate: string;
