@@ -191,6 +191,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
 
   const isLiked = component.likedBy.includes(currentUser.id)
   const isCreator = component.registeredBy.name === currentUser.name;
+  const canModify = isCreator && component.utilizationByProjects.length === 0;
   
   const createdAtDate = new Date(component.registeredDate);
   
@@ -239,7 +240,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
                   )}
                 </p>
               </div>
-              {isCreator && (
+              {canModify && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
