@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useUser } from '@/contexts/user-context'
 import type { User } from '@/lib/types'
 import { employees } from '@/lib/data'
+import { ThemeToggle } from './theme-toggle'
 
 interface AppHeaderProps {
   title: string
@@ -88,6 +89,7 @@ export function AppHeader({
             <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ThemeToggle />
       </div>
     </header>
   )
