@@ -25,7 +25,6 @@ import { useUser } from '@/contexts/user-context'
 import { useToast } from '@/hooks/use-toast'
 import type { ReusableComponent } from '@/lib/types'
 import { ScrollArea } from './ui/scroll-area'
-import RichTextEditor from './ui/rich-text-editor'
 
 type CreateReusableComponentDialogProps = {
     children: React.ReactNode;
@@ -173,9 +172,7 @@ export function CreateReusableComponentDialog(props: ReusableComponentDialogProp
                 <Label htmlFor="description" className="text-right pt-2">
                   Description
                 </Label>
-                <div className="col-span-3" >
-                   <RichTextEditor value={description} onChange={setDescription} />
-                </div>
+                <Textarea id="description" required className="col-span-3 min-h-[120px]" value={description} onChange={e => setDescription(e.target.value)} />
               </div>
                <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="benefit" className="text-right pt-2">

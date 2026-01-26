@@ -257,7 +257,7 @@ export function ReusableComponentCard({ component, onLikeToggle, onDelete, onAdd
               <h2 className="text-xl font-bold font-headline mt-2">{component.name}</h2>
           </div>
           
-          <div className="prose dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: component.description }} />
+          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{component.description}</p>
           
           <div>
               <h3 className="font-semibold text-sm mb-1">Benefit</h3>
