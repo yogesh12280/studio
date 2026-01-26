@@ -1,9 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Search, PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,32 +12,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { useUser } from '@/contexts/user-context'
-import { CreatePollDialog } from './create-poll-dialog'
-import { CreateAppreciationDialog } from './create-appreciation-dialog'
-import { CreateSuggestionDialog } from './create-suggestion-dialog'
-import type { Notification, Poll, Appreciation, User, Suggestion, Grievance } from '@/lib/types'
+import type { User } from '@/lib/types'
 import { employees } from '@/lib/data'
-import { RegisterGrievanceDialog } from './register-grievance-dialog'
 
 interface AppHeaderProps {
-  searchQuery: string
-  setSearchQuery: (query: string) => void
   title: string
-  onAddPoll?: (newPoll: Omit<Poll, 'id' | 'author' | 'votedBy' | 'createdAt'>) => void;
-  onAddAppreciation?: (newAppreciation: Omit<Appreciation, 'id' | 'fromUser' | 'createdAt' | 'likes' | 'likedBy'>) => void;
-  onAddSuggestion?: (newSuggestion: Omit<Suggestion, 'id' | 'employeeId' | 'employeeName' | 'employeeAvatarUrl' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void;
-  onAddGrievance?: (newGrievance: Omit<Grievance, 'id' | 'createdAt'>) => void;
   children?: React.ReactNode;
 }
 
 export function AppHeader({
-  searchQuery,
-  setSearchQuery,
   title,
-  onAddPoll,
-  onAddAppreciation,
-  onAddSuggestion,
-  onAddGrievance,
   children
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
@@ -54,7 +36,7 @@ export function AppHeader({
   
   const handleSwitchUser = (user: User) => {
     setCurrentUser(user);
-    router.push('/');
+    router.push('/reusable-components');
   }
 
   if (!currentUser) return null;
@@ -65,61 +47,9 @@ export function AppHeader({
         {title}
       </h1>
       <div className="relative flex-1">
-        {title !== 'Dashboard' && title !== 'Reusable Components' && title !== 'Polling' && title !== 'Notifications' && title !== 'Suggestions' && title !== 'Grievance' && title !== 'Appreciation' && (
-          <>
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder={`Search ${title.toLowerCase()}...`}
-              className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </>
-        )}
       </div>
       <div className="flex items-center gap-2">
         {children}
-        {currentUser.role !== 'Employee' && title === 'Polling' && onAddPoll && (
-          <CreatePollDialog mode="create" onSave={onAddPoll}>
-            <Button size="sm" className="gap-1">
-              <PlusCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Create Poll</span>
-            </Button>
-          </CreatePollDialog>
-        )}
-         {currentUser.role === 'Employee' && title === 'Polling' && onAddPoll && (
-          <CreatePollDialog mode="create" onSave={onAddPoll}>
-            <Button size="sm" className="gap-1">
-              <PlusCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Create Poll</span>
-            </Button>
-          </CreatePollDialog>
-        )}
-        {title === 'Appreciation' && onAddAppreciation && (
-            <CreateAppreciationDialog onSave={onAddAppreciation} mode="create">
-                <Button size="sm" className="gap-1">
-                <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Send Appreciation</span>
-                </Button>
-            </CreateAppreciationDialog>
-        )}
-        {title === 'Suggestions' && onAddSuggestion && (
-          <CreateSuggestionDialog mode="create" onSuggestionSubmit={onAddSuggestion}>
-            <Button size="sm" className="gap-1">
-              <PlusCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Suggestion</span>
-            </Button>
-          </CreateSuggestionDialog>
-        )}
-        {title === 'Grievance' && onAddGrievance && (
-          <RegisterGrievanceDialog mode="create" onGrievanceSubmit={onAddGrievance}>
-            <Button size="sm" className="gap-1">
-              <PlusCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">New Grievance</span>
-            </Button>
-          </RegisterGrievanceDialog>
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

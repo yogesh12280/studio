@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   const handleLogin = (user: any) => {
     setCurrentUser(user)
-    router.push('/notifications')
+    router.push('/reusable-components')
   }
 
   const allUsers = [...users, ...employees]

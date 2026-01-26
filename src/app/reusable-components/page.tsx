@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { ReusableComponentFeed } from '@/components/reusable-component-feed'
 import { useUser } from '@/contexts/user-context'
@@ -356,147 +354,142 @@ export default function ReusableComponentsPage() {
   )
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <div className="min-h-screen bg-background md:pl-[3rem]">
-        <AppHeader
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          title="Reusable Components"
-        >
-             <CreateReusableComponentDialog 
-                onSave={handleAddComponent} 
-                open={isCreateDialogOpen} 
-                onOpenChange={setIsCreateDialogOpen}
-                initialTechnology={activeTab !== 'All' ? activeTab as ReusableComponent['technology'] : undefined}
-              >
-                <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
-                    <PlusCircle className="h-4 w-4" />
-                    <span className="hidden sm:inline">Register Component</span>
-                </Button>
-            </CreateReusableComponentDialog>
-        </AppHeader>
-        <main className="p-4 sm:p-6">
-          {loading ? renderLoadingState() : (
-            selectedComponent ? (
-              <div className="mx-auto">
-                <Button variant="ghost" onClick={handleBackToList} className="mb-4">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to all components
-                </Button>
-                <ReusableComponentCard 
-                  component={selectedComponent}
-                  onLikeToggle={handleLikeToggle}
-                  onDelete={() => openDeleteDialog(selectedComponent)}
-                  onAddComment={handleAddComment}
-                  onEdit={() => openEditDialog(selectedComponent)}
-                  onUpdate={handleEditComponent}
-                  onAddReply={handleAddReply}
-                  currentUser={currentUser}
-                />
-              </div>
-            ) : (
-              <>
-                <FeaturedReusableComponents components={componentsForTab} onSelectComponent={handleSelectComponent} />
-                
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
-                    <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
-                        <TabsTrigger value="All">All</TabsTrigger>
-                        <TabsTrigger value="Web">Web</TabsTrigger>
-                        <TabsTrigger value="PC">PC</TabsTrigger>
-                        <TabsTrigger value="AI">AI</TabsTrigger>
-                        <TabsTrigger value="QC">QC</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+    <div className="min-h-screen bg-background">
+      <AppHeader
+        title="Reusable Components"
+      >
+           <CreateReusableComponentDialog 
+              onSave={handleAddComponent} 
+              open={isCreateDialogOpen} 
+              onOpenChange={setIsCreateDialogOpen}
+              initialTechnology={activeTab !== 'All' ? activeTab as ReusableComponent['technology'] : undefined}
+            >
+              <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Register Component</span>
+              </Button>
+          </CreateReusableComponentDialog>
+      </AppHeader>
+      <main className="p-4 sm:p-6">
+        {loading ? renderLoadingState() : (
+          selectedComponent ? (
+            <div className="mx-auto">
+              <Button variant="ghost" onClick={handleBackToList} className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to all components
+              </Button>
+              <ReusableComponentCard 
+                component={selectedComponent}
+                onLikeToggle={handleLikeToggle}
+                onDelete={() => openDeleteDialog(selectedComponent)}
+                onAddComment={handleAddComment}
+                onEdit={() => openEditDialog(selectedComponent)}
+                onUpdate={handleEditComponent}
+                onAddReply={handleAddReply}
+                currentUser={currentUser}
+              />
+            </div>
+          ) : (
+            <>
+              <FeaturedReusableComponents components={componentsForTab} onSelectComponent={handleSelectComponent} />
+              
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+                  <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
+                      <TabsTrigger value="All">All</TabsTrigger>
+                      <TabsTrigger value="Web">Web</TabsTrigger>
+                      <TabsTrigger value="PC">PC</TabsTrigger>
+                      <TabsTrigger value="AI">AI</TabsTrigger>
+                      <TabsTrigger value="QC">QC</TabsTrigger>
+                  </TabsList>
+              </Tabs>
 
-                <div className="mt-4 mb-4 flex flex-col md:flex-row items-center gap-2">
-                    <div className="relative w-full md:flex-grow">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                        type="search"
-                        placeholder="Search components..."
-                        className="w-full rounded-lg bg-background pl-8"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex w-full md:w-auto items-center gap-2">
-                      <DatePicker 
-                        date={filterStartDate} 
-                        onDateChange={setFilterStartDate} 
-                        placeholder="Start date" 
-                        disabled={{ after: filterEndDate }}
-                        className="w-full md:w-auto"
+              <div className="mt-4 mb-4 flex flex-col md:flex-row items-center gap-2">
+                  <div className="relative w-full md:flex-grow">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                      type="search"
+                      placeholder="Search components..."
+                      className="w-full rounded-lg bg-background pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       />
-                      <DatePicker 
-                        date={filterEndDate} 
-                        onDateChange={setFilterEndDate} 
-                        placeholder="End date" 
-                        disabled={{ before: filterStartDate }}
-                        className="w-full md:w-auto"
-                      />
-                    </div>
-                    <div className="flex w-full md:w-auto items-center gap-2">
-                      <Label htmlFor="sort-by" className="text-sm font-medium shrink-0">Sort by:</Label>
-                      <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-full md:w-[180px]" id="sort-by">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Most Recent">Most Recent</SelectItem>
-                          <SelectItem value="Most Liked">Most Liked</SelectItem>
-                          <SelectItem value="Most Utilized">Most Utilized</SelectItem>
-                          <SelectItem value="Most Commented">Most Commented</SelectItem>
-                          <SelectItem value="Most Viewed">Most Viewed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex w-full md:w-auto items-center gap-2">
-                      <Label htmlFor="page-size" className="shrink-0">Show:</Label>
-                      <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                        <SelectTrigger className="w-full md:w-[70px]" id="page-size">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[5, 10, 20, 50].map(size => (
-                            <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                   </div>
+                  <div className="flex w-full md:w-auto items-center gap-2">
+                    <DatePicker 
+                      date={filterStartDate} 
+                      onDateChange={setFilterStartDate} 
+                      placeholder="Start date" 
+                      disabled={{ after: filterEndDate }}
+                      className="w-full md:w-auto"
+                    />
+                    <DatePicker 
+                      date={filterEndDate} 
+                      onDateChange={setFilterEndDate} 
+                      placeholder="End date" 
+                      disabled={{ before: filterStartDate }}
+                      className="w-full md:w-auto"
+                    />
+                  </div>
+                  <div className="flex w-full md:w-auto items-center gap-2">
+                    <Label htmlFor="sort-by" className="text-sm font-medium shrink-0">Sort by:</Label>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-full md:w-[180px]" id="sort-by">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Most Recent">Most Recent</SelectItem>
+                        <SelectItem value="Most Liked">Most Liked</SelectItem>
+                        <SelectItem value="Most Utilized">Most Utilized</SelectItem>
+                        <SelectItem value="Most Commented">Most Commented</SelectItem>
+                        <SelectItem value="Most Viewed">Most Viewed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex w-full md:w-auto items-center gap-2">
+                    <Label htmlFor="page-size" className="shrink-0">Show:</Label>
+                    <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                      <SelectTrigger className="w-full md:w-[70px]" id="page-size">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[5, 10, 20, 50].map(size => (
+                          <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
-                <ReusableComponentFeed
-                  searchQuery={searchQuery}
-                  components={componentsForTab}
-                  onSelectComponent={handleSelectComponent}
-                  dateRange={{from: filterStartDate, to: filterEndDate}}
-                  sortBy={sortBy}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  setCurrentPage={setCurrentPage}
-                />
-              </>
-            )
-          )}
-        </main>
-         {componentToEdit && (
-          <CreateReusableComponentDialog
-            mode="edit"
-            componentToEdit={componentToEdit}
-            onSave={handleEditComponent}
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
-          />
+              </div>
+              <ReusableComponentFeed
+                searchQuery={searchQuery}
+                components={componentsForTab}
+                onSelectComponent={handleSelectComponent}
+                dateRange={{from: filterStartDate, to: filterEndDate}}
+                sortBy={sortBy}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                setCurrentPage={setCurrentPage}
+              />
+            </>
+          )
         )}
-        {componentToDelete && (
-          <DeleteReusableComponentDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-            onConfirm={() => handleDelete(componentToDelete.id)}
-            component={componentToDelete}
-          />
-        )}
-      </div>
-    </SidebarProvider>
+      </main>
+       {componentToEdit && (
+        <CreateReusableComponentDialog
+          mode="edit"
+          componentToEdit={componentToEdit}
+          onSave={handleEditComponent}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+        />
+      )}
+      {componentToDelete && (
+        <DeleteReusableComponentDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={() => handleDelete(componentToDelete.id)}
+          component={componentToDelete}
+        />
+      )}
+    </div>
   )
 }
