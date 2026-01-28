@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Search, PlusCircle } from 'lucide-react'
 import { FeaturedReusableComponents } from '@/components/featured-reusable-components'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { CreateReusableComponentDialog } from '@/components/create-reusable-component-dialog'
@@ -393,82 +393,89 @@ export default function ReusableComponentsPage() {
             <>
               <FeaturedReusableComponents components={componentsForTab} onSelectComponent={handleSelectComponent} />
               
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
-                  <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
-                      <TabsTrigger value="All">All</TabsTrigger>
-                      <TabsTrigger value="Web">Web</TabsTrigger>
-                      <TabsTrigger value="PC">PC</TabsTrigger>
-                      <TabsTrigger value="AI">AI</TabsTrigger>
-                      <TabsTrigger value="QC">QC</TabsTrigger>
-                  </TabsList>
-              </Tabs>
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>All Components</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                      <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto">
+                          <TabsTrigger value="All">All</TabsTrigger>
+                          <TabsTrigger value="Web">Web</TabsTrigger>
+                          <TabsTrigger value="PC">PC</TabsTrigger>
+                          <TabsTrigger value="AI">AI</TabsTrigger>
+                          <TabsTrigger value="QC">QC</TabsTrigger>
+                      </TabsList>
+                  </Tabs>
 
-              <div className="mt-4 mb-4 flex flex-col md:flex-row items-center gap-2">
-                  <div className="relative w-full md:flex-grow">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                      type="search"
-                      placeholder="Search components..."
-                      className="w-full rounded-lg bg-background pl-8"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      />
+                  <div className="mt-4 flex flex-col md:flex-row items-center gap-2">
+                      <div className="relative w-full md:flex-grow">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                          type="search"
+                          placeholder="Search components..."
+                          className="w-full rounded-lg bg-background pl-8"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                      </div>
+                      <div className="flex w-full md:w-auto items-center gap-2">
+                        <DatePicker 
+                          date={filterStartDate} 
+                          onDateChange={setFilterStartDate} 
+                          placeholder="Start date" 
+                          disabled={{ after: filterEndDate }}
+                          className="w-full md:w-auto"
+                        />
+                        <DatePicker 
+                          date={filterEndDate} 
+                          onDateChange={setFilterEndDate} 
+                          placeholder="End date" 
+                          disabled={{ before: filterStartDate }}
+                          className="w-full md:w-auto"
+                        />
+                      </div>
+                      <div className="flex w-full md:w-auto items-center gap-2">
+                        <Label htmlFor="sort-by" className="text-sm font-medium shrink-0">Sort by:</Label>
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                          <SelectTrigger className="w-full md:w-[180px]" id="sort-by">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Most Recent">Most Recent</SelectItem>
+                            <SelectItem value="Most Liked">Most Liked</SelectItem>
+                            <SelectItem value="Most Utilized">Most Utilized</SelectItem>
+                            <SelectItem value="Most Commented">Most Commented</SelectItem>
+                            <SelectItem value="Most Viewed">Most Viewed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex w-full md:w-auto items-center gap-2">
+                        <Label htmlFor="page-size" className="shrink-0">Show:</Label>
+                        <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                          <SelectTrigger className="w-full md:w-[70px]" id="page-size">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[5, 10, 20, 50].map(size => (
+                              <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                    </div>
                   </div>
-                  <div className="flex w-full md:w-auto items-center gap-2">
-                    <DatePicker 
-                      date={filterStartDate} 
-                      onDateChange={setFilterStartDate} 
-                      placeholder="Start date" 
-                      disabled={{ after: filterEndDate }}
-                      className="w-full md:w-auto"
-                    />
-                    <DatePicker 
-                      date={filterEndDate} 
-                      onDateChange={setFilterEndDate} 
-                      placeholder="End date" 
-                      disabled={{ before: filterStartDate }}
-                      className="w-full md:w-auto"
-                    />
-                  </div>
-                  <div className="flex w-full md:w-auto items-center gap-2">
-                    <Label htmlFor="sort-by" className="text-sm font-medium shrink-0">Sort by:</Label>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="w-full md:w-[180px]" id="sort-by">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Most Recent">Most Recent</SelectItem>
-                        <SelectItem value="Most Liked">Most Liked</SelectItem>
-                        <SelectItem value="Most Utilized">Most Utilized</SelectItem>
-                        <SelectItem value="Most Commented">Most Commented</SelectItem>
-                        <SelectItem value="Most Viewed">Most Viewed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex w-full md:w-auto items-center gap-2">
-                    <Label htmlFor="page-size" className="shrink-0">Show:</Label>
-                    <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                      <SelectTrigger className="w-full md:w-[70px]" id="page-size">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[5, 10, 20, 50].map(size => (
-                          <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                </div>
-              </div>
-              <ReusableComponentFeed
-                searchQuery={searchQuery}
-                components={componentsForTab}
-                onSelectComponent={handleSelectComponent}
-                dateRange={{from: filterStartDate, to: filterEndDate}}
-                sortBy={sortBy}
-                currentPage={currentPage}
-                pageSize={pageSize}
-                setCurrentPage={setCurrentPage}
-              />
+                  <ReusableComponentFeed
+                    searchQuery={searchQuery}
+                    components={componentsForTab}
+                    onSelectComponent={handleSelectComponent}
+                    dateRange={{from: filterStartDate, to: filterEndDate}}
+                    sortBy={sortBy}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </CardContent>
+              </Card>
             </>
           )
         )}
