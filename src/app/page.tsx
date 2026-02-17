@@ -7,7 +7,7 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/reusable-components');
+    router.replace('/internet-reimbursement');
   }, [router]);
 
   return null;

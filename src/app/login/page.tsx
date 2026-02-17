@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   const handleLogin = (user: any) => {
     setCurrentUser(user)
-    router.push('/reusable-components')
+    router.push('/internet-reimbursement')
   }
 
   const allUsers = [...users, ...employees]
@@ -66,7 +66,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 w-full">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center mb-4">

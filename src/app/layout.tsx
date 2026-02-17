@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils'
 import { UserProvider } from '@/contexts/user-context'
 import { AuthChecker } from '@/components/auth-checker'
 import { ThemeProvider } from '@/components/theme-provider'
+import { Sidebar } from '@/components/sidebar'
 
 export const metadata: Metadata = {
   title: 'SembConnect',
-  description: 'Efficient and targeted bulletin delivery for your organization.',
+  description: 'Internet Bill Reimbursement Management',
 }
 
 export default function RootLayout({
@@ -33,9 +34,14 @@ export default function RootLayout({
             disableTransitionOnChange
         >
             <UserProvider>
-            <AuthChecker>
-                {children}
-            </AuthChecker>
+              <AuthChecker>
+                <div className="flex min-h-screen">
+                  <Sidebar />
+                  <div className="flex-1 flex flex-col">
+                    {children}
+                  </div>
+                </div>
+              </AuthChecker>
             </UserProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,8 +15,6 @@ import { useUser } from '@/contexts/user-context'
 import type { User } from '@/lib/types'
 import { employees } from '@/lib/data'
 import { ThemeToggle } from './theme-toggle'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
 
 interface AppHeaderProps {
   title: string
@@ -29,7 +27,6 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
-  const pathname = usePathname()
   
   const allUsers = [...users, ...employees];
 
@@ -40,37 +37,18 @@ export function AppHeader({
   
   const handleSwitchUser = (user: User) => {
     setCurrentUser(user);
-    router.push('/reusable-components');
+    router.push('/internet-reimbursement');
   }
 
   if (!currentUser) return null;
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      <h1 className="text-xl font-semibold md:text-2xl font-headline hidden sm:block whitespace-nowrap">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 w-full">
+      <h1 className="text-xl font-semibold md:text-2xl font-headline whitespace-nowrap">
         {title}
       </h1>
       
-      <nav className="flex items-center gap-4 ml-4 flex-1">
-        <Link 
-          href="/reusable-components" 
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            pathname === '/reusable-components' ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          Components
-        </Link>
-        <Link 
-          href="/reimbursements" 
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            pathname === '/reimbursements' ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          Reimbursements
-        </Link>
-      </nav>
+      <div className="flex-1"></div>
 
       <div className="flex items-center gap-2">
         {children}

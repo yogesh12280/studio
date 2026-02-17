@@ -1,4 +1,4 @@
-import type { User, Employee, ReusableComponent, Reimbursement } from './types';
+import type { User, Employee, Reimbursement } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -18,52 +18,6 @@ export const employees: Employee[] = [
 ];
 
 const now = new Date();
-
-export const initialReusableComponents: ReusableComponent[] = [
-  {
-    id: 'rc-1',
-    technology: 'Web',
-    name: 'Dynamic Form Generator',
-    description: 'A React component that generates complex forms from a JSON schema. Supports validation, conditional fields, and custom styling.',
-    registeredBy: { name: 'Yogesh Patel', avatarUrl: getImageUrl('avatar2') },
-    utilizationByProjects: [
-      { projectId: 'proj-1', projectName: 'Project Phoenix', utilizedBy: { id: 'user-2', name: 'Yogesh Patel' } },
-      { projectId: 'proj-2', projectName: 'Internal Tools', utilizedBy: { id: 'emp-1', name: 'Charlie Green' } }
-    ],
-    originProject: 'Internal Tools',
-    benefit: 'Reduces form development time by up to 70%. Ensures consistency across applications.',
-    bitBucketUrl: 'https://bitbucket.org/example/dynamic-form-generator',
-    registeredDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-    likes: 22,
-    likedBy: ['user-1'],
-    viewers: 150,
-    viewedBy: ['user-1', 'user-2'],
-    comments: [],
-  },
-  {
-    id: 'rc-2',
-    technology: 'AI',
-    name: 'Sentiment Analysis API',
-    description: 'A Genkit flow that analyzes user feedback from various sources and returns a sentiment score (positive, negative, neutral) along with key topics mentioned.',
-    registeredBy: { name: 'Charlie Green', avatarUrl: getImageUrl('avatar3') },
-    utilizationByProjects: [
-      { projectId: 'proj-3', projectName: 'Customer Support Dashboard', utilizedBy: { id: 'emp-2', name: 'Diana Prince' } }
-    ],
-    originProject: 'Customer Support Dashboard',
-    benefit: 'Automates feedback analysis, provides real-time insights into customer sentiment, and helps prioritize product improvements.',
-    bitBucketUrl: 'https://bitbucket.org/example/sentiment-analysis-api',
-    registeredDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-    likes: 45,
-    likedBy: ['user-1', 'user-2'],
-    viewers: 210,
-    viewedBy: ['user-1', 'user-2'],
-    comments: [
-      { id: 'rc-comment-1', user: { name: 'Neha M', avatarUrl: getImageUrl('avatar1') }, text: 'This has been incredibly useful for the product team!', timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 3).toISOString(), replies: [] }
-    ],
-  },
-];
-
-export let reusableComponents: ReusableComponent[] = [...initialReusableComponents];
 
 export let reimbursements: Reimbursement[] = [
   {
