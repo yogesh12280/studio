@@ -1,4 +1,4 @@
-import type { User, Employee, ReusableComponent } from './types';
+import type { User, Employee, ReusableComponent, Reimbursement } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImageUrl = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
@@ -64,3 +64,28 @@ export const initialReusableComponents: ReusableComponent[] = [
 ];
 
 export let reusableComponents: ReusableComponent[] = [...initialReusableComponents];
+
+export let reimbursements: Reimbursement[] = [
+  {
+    id: 're-1',
+    userId: 'user-2',
+    userName: 'Yogesh Patel',
+    userAvatar: getImageUrl('avatar2'),
+    amount: 45.50,
+    billDate: new Date(now.getFullYear(), now.getMonth(), 5).toISOString(),
+    description: 'Internet bill for current month',
+    status: 'Pending',
+    submittedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: 're-2',
+    userId: 'emp-1',
+    userName: 'Charlie Green',
+    userAvatar: getImageUrl('avatar3'),
+    amount: 55.00,
+    billDate: new Date(now.getFullYear(), now.getMonth() - 1, 10).toISOString(),
+    description: 'Last month high-speed internet',
+    status: 'Approved',
+    submittedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+  }
+];

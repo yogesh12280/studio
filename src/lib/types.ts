@@ -50,4 +50,18 @@ export type ReusableComponent = {
   viewedBy: string[];
   comments: Comment[];
 };
-    
+
+export type ReimbursementStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export type Reimbursement = {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  amount: number;
+  billDate: string;
+  description: string;
+  receiptUrl?: string;
+  status: ReimbursementStatus;
+  submittedAt: string;
+};
