@@ -21,9 +21,9 @@ export function Sidebar() {
       <div className="flex h-16 items-center px-6 border-b">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <div className="h-8 w-8 rounded-bg bg-primary flex items-center justify-center text-primary-foreground">
-             SC
+             RM
           </div>
-          <span>SembConnect</span>
+          <span>Reimbursement Mgmt</span>
         </Link>
       </div>
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">

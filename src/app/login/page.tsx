@@ -72,7 +72,7 @@ export default function LoginPage() {
             <div className="flex justify-center items-center mb-4">
                 <SembConnectLogo className="h-10 w-10 text-primary" />
             </div>
-          <CardTitle className="text-2xl font-headline">Welcome to SembConnect</CardTitle>
+          <CardTitle className="text-2xl font-headline">Welcome to Reimbursement Mgmt</CardTitle>
           <CardDescription>
             Please select a user to log in.
           </CardDescription>

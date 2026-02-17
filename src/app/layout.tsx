@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Sidebar } from '@/components/sidebar'
 
 export const metadata: Metadata = {
-  title: 'SembConnect',
+  title: 'Reimbursement Mgmt',
   description: 'Internet Bill Reimbursement Management',
 }
 
