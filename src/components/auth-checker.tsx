@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useUser } from '@/contexts/user-context'
 import { SembConnectLogo } from './icons'
+import { Sidebar } from './sidebar'
 
 export function AuthChecker({ children }: { children: React.ReactNode }) {
   const { currentUser } = useUser()
@@ -25,5 +26,18 @@ export function AuthChecker({ children }: { children: React.ReactNode }) {
     )
   }
 
-  return <>{children}</>
+  // If we are on the login page, render children without the sidebar shell
+  if (pathname === '/login') {
+    return <>{children}</>
+  }
+
+  // Authenticated layout with Sidebar
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        {children}
+      </div>
+    </div>
+  )
 }

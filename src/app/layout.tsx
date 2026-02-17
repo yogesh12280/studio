@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import { UserProvider } from '@/contexts/user-context'
 import { AuthChecker } from '@/components/auth-checker'
 import { ThemeProvider } from '@/components/theme-provider'
-import { Sidebar } from '@/components/sidebar'
 
 export const metadata: Metadata = {
   title: 'Reimbursement Mgmt',
@@ -35,12 +34,7 @@ export default function RootLayout({
         >
             <UserProvider>
               <AuthChecker>
-                <div className="flex min-h-screen">
-                  <Sidebar />
-                  <div className="flex-1 flex flex-col">
-                    {children}
-                  </div>
-                </div>
+                {children}
               </AuthChecker>
             </UserProvider>
         </ThemeProvider>
