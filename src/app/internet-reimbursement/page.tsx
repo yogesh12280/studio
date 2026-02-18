@@ -51,6 +51,14 @@ export default function InternetReimbursementPage() {
 
   const isAdmin = currentUser?.role === 'Admin'
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   const fetchReimbursements = async () => {
     if (!currentUser) return
     try {
@@ -216,7 +224,7 @@ export default function InternetReimbursementPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Bill Amount (₹)</Label>
+                  <Label htmlFor="amount">Bill Amount ({'\u20B9'})</Label>
                   <Input id="amount" type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} />
                 </div>
                 <div className="space-y-2">
@@ -312,7 +320,7 @@ export default function InternetReimbursementPage() {
                           <TableCell className="font-medium">{item.userName}</TableCell>
                         )}
                         <TableCell>{format(parseISO(item.billDate), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>₹{item.amount.toFixed(2)}</TableCell>
+                        <TableCell>{formatCurrency(item.amount)}</TableCell>
                         <TableCell className="hidden md:table-cell max-w-[200px] truncate">{item.description}</TableCell>
                         <TableCell>{statusBadge(item.status)}</TableCell>
                         <TableCell className="text-right">
