@@ -35,6 +35,7 @@ export default function InternetReimbursementPage() {
   const [loading, setLoading] = useState(true)
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -58,6 +59,32 @@ export default function InternetReimbursementPage() {
       maximumFractionDigits: 2,
     }).format(value);
   };
+
+  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().endsWith('.pdf')
+
+  // Convert base64 to Blob URL for PDF viewing to avoid Edge/Chrome blocks
+  useEffect(() => {
+    if (viewingReceipt && isPDF(viewingReceipt)) {
+      try {
+        const base64Data = viewingReceipt.split(',')[1]
+        const byteCharacters = atob(base64Data)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: 'application/pdf' })
+        const url = URL.createObjectURL(blob)
+        setPdfBlobUrl(url)
+        return () => URL.revokeObjectURL(url)
+      } catch (e) {
+        console.error("Error creating PDF blob", e)
+        setPdfBlobUrl(null)
+      }
+    } else {
+      setPdfBlobUrl(null)
+    }
+  }, [viewingReceipt])
 
   const fetchReimbursements = async () => {
     if (!currentUser) return
@@ -187,8 +214,6 @@ export default function InternetReimbursementPage() {
       default: return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>
     }
   }
-
-  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().endsWith('.pdf')
 
   if (!currentUser) return null
 
@@ -376,11 +401,15 @@ export default function InternetReimbursementPage() {
           <div className="flex-1 overflow-auto bg-muted/30 p-4 flex items-center justify-center">
             {viewingReceipt && (
               isPDF(viewingReceipt) ? (
-                <iframe 
-                  src={viewingReceipt} 
-                  className="w-full h-full rounded-md border" 
-                  title="PDF Receipt"
-                />
+                pdfBlobUrl ? (
+                  <iframe 
+                    src={pdfBlobUrl} 
+                    className="w-full h-full rounded-md border" 
+                    title="PDF Receipt"
+                  />
+                ) : (
+                  <p className="text-muted-foreground">Preparing PDF viewer...</p>
+                )
               ) : (
                 <img 
                   src={viewingReceipt} 
