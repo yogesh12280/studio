@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -24,13 +25,14 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { employees } from '@/lib/data'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import * as XLSX from 'xlsx'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -324,6 +326,38 @@ export default function InternetReimbursementPage() {
     setSelectedIds([]);
   }
 
+  const exportToExcel = () => {
+    const dataToExport = filteredItems.map(item => ({
+      'Employee Name': item.userName,
+      'Employee ID': item.userId,
+      'Bill Date': format(parseISO(item.billDate), 'yyyy-MM-dd'),
+      'Amount (INR)': item.amount,
+      'Description': item.description,
+      'Status': item.status,
+      'Submitted At': format(parseISO(item.submittedAt), 'yyyy-MM-dd HH:mm'),
+      'Paid At': item.paidAt ? format(parseISO(item.paidAt), 'yyyy-MM-dd') : '-',
+      'Approved By': item.approvedBy || '-',
+      'Transaction ID': item.transactionId || '-',
+      'Remarks': item.remarks || '-'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reimbursements');
+    
+    // Set column widths
+    const wscols = [
+      { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, 
+      { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 30 }
+    ];
+    worksheet['!cols'] = wscols;
+
+    const fileName = `Reimbursement_Report_${format(new Date(), 'yyyy-MM-dd_HHmm')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    
+    toast({ title: 'Export Successful', description: `Report saved as ${fileName}` });
+  }
+
   const statusBadge = (status: ReimbursementStatus) => {
     switch (status) {
       case 'Approved': return <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200"><CheckCircle className="h-3 w-3" /> Approved</Badge>
@@ -369,7 +403,7 @@ export default function InternetReimbursementPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="date">Bill Date</Label>
-                  <Input id="date" type="date" required value={billDate} onChange={e => billDate && setBillDate(e.target.value)} />
+                  <Input id="date" type="date" required value={billDate} onChange={e => setBillDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="desc">Description</Label>
@@ -393,9 +427,15 @@ export default function InternetReimbursementPage() {
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         {isAdmin && (
           <Card>
-            <CardHeader>
-              <CardTitle>Management Filters</CardTitle>
-              <CardDescription>Filter claims by month/year or search by employee.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div className="space-y-1">
+                <CardTitle>Management Filters</CardTitle>
+                <CardDescription>Filter claims by month/year or search by employee.</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" className="gap-2" onClick={exportToExcel} disabled={filteredItems.length === 0}>
+                <Download className="h-4 w-4" />
+                Export to Excel
+              </Button>
             </CardHeader>
             <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-1">
