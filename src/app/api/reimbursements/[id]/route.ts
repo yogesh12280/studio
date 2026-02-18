@@ -24,11 +24,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
+  
   const index = reimbursements.findIndex(r => r.id === id);
+  
   if (index === -1) {
     return NextResponse.json({ message: 'Reimbursement not found' }, { status: 404 });
   }
 
+  // Directly modifying the array reference
   reimbursements.splice(index, 1);
+  
   return NextResponse.json({ message: 'Deleted successfully' });
 }

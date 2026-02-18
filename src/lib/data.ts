@@ -19,7 +19,7 @@ export const employees: Employee[] = [
 
 const now = new Date();
 
-export let reimbursements: Reimbursement[] = [
+const initialReimbursements: Reimbursement[] = [
   {
     id: 're-1',
     userId: 'user-2',
@@ -43,3 +43,8 @@ export let reimbursements: Reimbursement[] = [
     submittedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 25).toISOString(),
   }
 ];
+
+// Singleton pattern for in-memory data across Next.js bundles
+const globalForReimbursements = global as unknown as { reimbursements: Reimbursement[] };
+export const reimbursements = globalForReimbursements.reimbursements || initialReimbursements;
+if (process.env.NODE_ENV !== 'production') globalForReimbursements.reimbursements = reimbursements;
