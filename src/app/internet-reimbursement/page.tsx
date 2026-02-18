@@ -58,10 +58,10 @@ export default function InternetReimbursementPage() {
   const [description, setDescription] = useState('')
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>()
 
-  // Filter state (Initialized with placeholders to avoid hydration mismatch)
-  const [filterYear, setFilterYear] = useState('2024')
-  const [filterMonth, setFilterMonth] = useState('1')
-  const [availableYears, setAvailableYears] = useState<string[]>(['2023', '2024'])
+  // Filter state
+  const [filterYear, setFilterYear] = useState('')
+  const [filterMonth, setFilterMonth] = useState('')
+  const [availableYears, setAvailableYears] = useState<string[]>([])
   
   const [nameSearch, setNameSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('') 
@@ -81,7 +81,6 @@ export default function InternetReimbursementPage() {
   const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().includes('application/pdf') || url.toLowerCase().endsWith('.pdf')
 
   useEffect(() => {
-    // Dynamic year calculation and filter initialization to prevent hydration error
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = (now.getMonth() + 1).toString();
@@ -93,7 +92,9 @@ export default function InternetReimbursementPage() {
     setAvailableYears(yearList);
     setFilterYear(currentYear.toString());
     setFilterMonth(currentMonth);
+  }, []);
 
+  useEffect(() => {
     if (viewingReceipt && isPDF(viewingReceipt)) {
       try {
         if (viewingReceipt.startsWith('data:')) {
@@ -172,7 +173,6 @@ export default function InternetReimbursementPage() {
   const filteredItems = useMemo(() => {
     let list = items;
 
-    // Apply status filter first
     if (statusFilter !== 'All') {
       list = list.filter(item => item.status === statusFilter);
     }
@@ -359,7 +359,6 @@ export default function InternetReimbursementPage() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Reimbursements');
     
-    // Set column widths
     const wscols = [
       { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, 
       { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 30 }
@@ -412,7 +411,7 @@ export default function InternetReimbursementPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Bill Amount (₹)</Label>
+                  <Label htmlFor="amount">Bill Amount (&#8377;)</Label>
                   <Input id="amount" type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} />
                 </div>
                 <div className="space-y-2">
