@@ -30,6 +30,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { employees } from '@/lib/data'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -56,12 +57,13 @@ export default function InternetReimbursementPage() {
   const [description, setDescription] = useState('')
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>()
 
-  // Filter state for Admin
+  // Filter state
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
   const [nameSearch, setNameSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('') 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>('All')
 
   const isAdmin = currentUser?.role === 'Admin'
 
@@ -152,18 +154,24 @@ export default function InternetReimbursementPage() {
   }, [employeeSuggestions, nameSearch]);
 
   const filteredItems = useMemo(() => {
-    if (!isAdmin) return items;
-    return items.filter(item => {
-      const date = parseISO(item.billDate);
-      const dateMatch = date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
-      
+    let list = items;
+
+    // Apply status filter first
+    if (statusFilter !== 'All') {
+      list = list.filter(item => item.status === statusFilter);
+    }
+
+    if (!isAdmin) return list;
+
+    return list.filter(item => {
       if (activeFilter) {
         return item.userName.toLowerCase().includes(activeFilter.toLowerCase()) || 
                item.userId.toLowerCase().includes(activeFilter.toLowerCase());
       }
-      return dateMatch;
+      const date = parseISO(item.billDate);
+      return date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
     });
-  }, [items, isAdmin, filterYear, filterMonth, activeFilter]);
+  }, [items, isAdmin, filterYear, filterMonth, activeFilter, statusFilter]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -361,7 +369,7 @@ export default function InternetReimbursementPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="date">Bill Date</Label>
-                  <Input id="date" type="date" required value={billDate} onChange={e => setBillDate(e.target.value)} />
+                  <Input id="date" type="date" required value={billDate} onChange={e => billDate && setBillDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="desc">Description</Label>
@@ -482,8 +490,16 @@ export default function InternetReimbursementPage() {
         )}
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>{isAdmin ? 'All Employee Claims' : 'My Claim History'}</CardTitle>
+            <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
+              <TabsList>
+                <TabsTrigger value="All">All</TabsTrigger>
+                <TabsTrigger value="Pending">Pending</TabsTrigger>
+                <TabsTrigger value="Approved">Approved</TabsTrigger>
+                <TabsTrigger value="Rejected">Rejected</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -491,7 +507,7 @@ export default function InternetReimbursementPage() {
             ) : filteredItems.length === 0 ? (
               <div className="text-center py-12 border rounded-lg bg-muted/20">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground font-medium">No claims found.</p>
+                <p className="text-muted-foreground font-medium">No {statusFilter !== 'All' ? statusFilter.toLowerCase() : ''} claims found.</p>
               </div>
             ) : (
               <div className="rounded-md border overflow-x-auto">
