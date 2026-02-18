@@ -24,8 +24,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -36,6 +37,7 @@ export default function InternetReimbursementPage() {
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   
   // Form state
   const [amount, setAmount] = useState('')
@@ -91,6 +93,8 @@ export default function InternetReimbursementPage() {
     if (!currentUser || isSubmitting) return
 
     setIsSubmitting(true)
+    setSubmitError(null)
+
     const payload = {
       userId: currentUser.id,
       userName: currentUser.name,
@@ -120,6 +124,7 @@ export default function InternetReimbursementPage() {
         setDescription('')
         setReceiptBase64(undefined)
       } else {
+        setSubmitError(data.message || 'Failed to submit request.')
         toast({ 
           variant: 'destructive', 
           title: 'Submission Failed', 
@@ -127,6 +132,7 @@ export default function InternetReimbursementPage() {
         })
       }
     } catch (err) {
+      setSubmitError('An unexpected error occurred. Please try again.')
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit request.' })
     } finally {
       setIsSubmitting(false)
@@ -182,7 +188,10 @@ export default function InternetReimbursementPage() {
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Internet Reimbursement">
         {!isAdmin && (
-          <Dialog open={isSubmitOpen} onOpenChange={setIsSubmitOpen}>
+          <Dialog open={isSubmitOpen} onOpenChange={(val) => {
+            setIsSubmitOpen(val)
+            if (!val) setSubmitError(null)
+          }}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1">
                 <PlusCircle className="h-4 w-4" />
@@ -194,6 +203,17 @@ export default function InternetReimbursementPage() {
                 <DialogTitle>Submit New Claim</DialogTitle>
                 <DialogDescription>Fill in the details for your internet bill reimbursement. Note: Only one claim is allowed per month.</DialogDescription>
               </DialogHeader>
+              
+              {submitError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Validation Error</AlertTitle>
+                  <AlertDescription>
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="amount">Bill Amount (₹)</Label>
