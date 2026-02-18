@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
@@ -60,31 +60,47 @@ export default function InternetReimbursementPage() {
     }).format(value);
   };
 
-  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().endsWith('.pdf')
+  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().includes('application/pdf') || url.toLowerCase().endsWith('.pdf')
 
   // Convert base64 to Blob URL for PDF viewing to avoid Edge/Chrome blocks
   useEffect(() => {
     if (viewingReceipt && isPDF(viewingReceipt)) {
       try {
-        const base64Data = viewingReceipt.split(',')[1]
-        const byteCharacters = atob(base64Data)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        if (viewingReceipt.startsWith('data:')) {
+          const parts = viewingReceipt.split(',');
+          if (parts.length < 2) return;
+          const base64Data = parts[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
+          
+          for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+          }
+          
+          const blob = new Blob(byteArrays, { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          setPdfBlobUrl(url);
+          return () => {
+            URL.revokeObjectURL(url);
+            setPdfBlobUrl(null);
+          };
+        } else {
+          setPdfBlobUrl(viewingReceipt);
         }
-        const byteArray = new Uint8Array(byteNumbers)
-        const blob = new Blob([byteArray], { type: 'application/pdf' })
-        const url = URL.createObjectURL(blob)
-        setPdfBlobUrl(url)
-        return () => URL.revokeObjectURL(url)
       } catch (e) {
-        console.error("Error creating PDF blob", e)
-        setPdfBlobUrl(null)
+        console.error("Error creating PDF blob", e);
+        setPdfBlobUrl(null);
       }
     } else {
-      setPdfBlobUrl(null)
+      setPdfBlobUrl(null);
     }
-  }, [viewingReceipt])
+  }, [viewingReceipt]);
 
   const fetchReimbursements = async () => {
     if (!currentUser) return
@@ -402,13 +418,27 @@ export default function InternetReimbursementPage() {
             {viewingReceipt && (
               isPDF(viewingReceipt) ? (
                 pdfBlobUrl ? (
-                  <iframe 
-                    src={pdfBlobUrl} 
-                    className="w-full h-full rounded-md border" 
-                    title="PDF Receipt"
-                  />
+                  <object
+                    data={pdfBlobUrl}
+                    type="application/pdf"
+                    className="w-full h-full rounded-md border"
+                  >
+                    <div className="flex flex-col items-center justify-center p-12 text-center bg-background rounded-lg border max-w-md">
+                      <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                      <p className="text-xl font-semibold mb-2">Preview Unavailable</p>
+                      <p className="text-sm text-muted-foreground mb-6">
+                        Your browser or current settings are preventing this PDF from being previewed inline.
+                      </p>
+                      <Button asChild>
+                        <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Open in New Tab
+                        </a>
+                      </Button>
+                    </div>
+                  </object>
                 ) : (
-                  <p className="text-muted-foreground">Preparing PDF viewer...</p>
+                  <p className="text-muted-foreground animate-pulse">Initializing document viewer...</p>
                 )
               ) : (
                 <img 
@@ -419,8 +449,16 @@ export default function InternetReimbursementPage() {
               )
             )}
           </div>
-          <DialogFooter className="p-4 border-t">
-            <Button variant="secondary" onClick={() => setViewingReceipt(null)}>Close</Button>
+          <DialogFooter className="p-4 border-t gap-2">
+            <Button variant="outline" onClick={() => setViewingReceipt(null)}>Close</Button>
+            {pdfBlobUrl && (
+              <Button asChild variant="secondary">
+                <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">
+                   <ExternalLink className="h-4 w-4 mr-2" />
+                   Open in New Tab
+                </a>
+              </Button>
+            )}
             {viewingReceipt && (
               <Button asChild>
                 <a href={viewingReceipt} download={`receipt-${Date.now()}`}>Download</a>
