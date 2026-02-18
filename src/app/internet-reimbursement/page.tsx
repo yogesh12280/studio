@@ -23,6 +23,7 @@ export default function InternetReimbursementPage() {
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
   
   // Form state
   const [amount, setAmount] = useState('')
@@ -131,6 +132,8 @@ export default function InternetReimbursementPage() {
       default: return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>
     }
   }
+
+  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().endsWith('.pdf')
 
   if (!currentUser) return null
 
@@ -252,10 +255,13 @@ export default function InternetReimbursementPage() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                              {item.receiptUrl && (
-                                <Button size="icon" variant="ghost" asChild title="View Receipt">
-                                  <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer">
-                                    <Eye className="h-4 w-4" />
-                                  </a>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  title="View Receipt"
+                                  onClick={() => setViewingReceipt(item.receiptUrl!)}
+                                >
+                                  <Eye className="h-4 w-4" />
                                 </Button>
                               )}
                             {isAdmin && item.status === 'Pending' && (
@@ -279,6 +285,39 @@ export default function InternetReimbursementPage() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 border-b">
+            <DialogTitle>Receipt Document</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto bg-muted/30 p-4 flex items-center justify-center">
+            {viewingReceipt && (
+              isPDF(viewingReceipt) ? (
+                <iframe 
+                  src={viewingReceipt} 
+                  className="w-full h-full rounded-md border" 
+                  title="PDF Receipt"
+                />
+              ) : (
+                <img 
+                  src={viewingReceipt} 
+                  alt="Receipt" 
+                  className="max-w-full max-h-full object-contain shadow-lg rounded-md" 
+                />
+              )
+            )}
+          </div>
+          <DialogFooter className="p-4 border-t">
+            <Button variant="secondary" onClick={() => setViewingReceipt(null)}>Close</Button>
+            {viewingReceipt && (
+              <Button asChild>
+                <a href={viewingReceipt} download={`receipt-${Date.now()}`}>Download</a>
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
