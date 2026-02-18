@@ -35,6 +35,7 @@ export default function InternetReimbursementPage() {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
   const [itemToDelete, setItemToDelete] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Form state
   const [amount, setAmount] = useState('')
@@ -87,8 +88,9 @@ export default function InternetReimbursementPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) return
+    if (!currentUser || isSubmitting) return
 
+    setIsSubmitting(true)
     const payload = {
       userId: currentUser.id,
       userName: currentUser.name,
@@ -105,6 +107,9 @@ export default function InternetReimbursementPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
+      
+      const data = await res.json()
+
       if (res.ok) {
         toast({ title: 'Success', description: 'Reimbursement request submitted.' })
         setIsSubmitOpen(false)
@@ -114,9 +119,17 @@ export default function InternetReimbursementPage() {
         setBillDate('')
         setDescription('')
         setReceiptBase64(undefined)
+      } else {
+        toast({ 
+          variant: 'destructive', 
+          title: 'Submission Failed', 
+          description: data.message || 'Failed to submit request.' 
+        })
       }
     } catch (err) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit request.' })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -179,7 +192,7 @@ export default function InternetReimbursementPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Submit New Claim</DialogTitle>
-                <DialogDescription>Fill in the details for your internet bill reimbursement.</DialogDescription>
+                <DialogDescription>Fill in the details for your internet bill reimbursement. Note: Only one claim is allowed per month.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -199,7 +212,9 @@ export default function InternetReimbursementPage() {
                   <Input id="receipt" type="file" accept="image/*,application/pdf" onChange={handleFileChange} />
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Submit Request</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
