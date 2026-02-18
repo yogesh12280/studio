@@ -24,9 +24,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare, Square } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -42,8 +43,10 @@ export default function InternetReimbursementPage() {
   
   // Admin approval state
   const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
+  const [isBulkApproving, setIsBulkApproving] = useState(false)
   const [transactionId, setTransactionId] = useState('')
   const [adminRemarks, setAdminRemarks] = useState('')
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   // Form state
   const [amount, setAmount] = useState('')
@@ -54,6 +57,7 @@ export default function InternetReimbursementPage() {
   // Filter state for Admin
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
+  const [nameSearch, setNameSearch] = useState('')
 
   const isAdmin = currentUser?.role === 'Admin'
 
@@ -128,9 +132,16 @@ export default function InternetReimbursementPage() {
     if (!isAdmin) return items;
     return items.filter(item => {
       const date = parseISO(item.billDate);
-      return date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
+      const dateMatch = date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
+      const nameMatch = nameSearch ? item.userName.toLowerCase().includes(nameSearch.toLowerCase()) : false;
+      
+      // If name search is active, show matches OR show date-filtered results if no search
+      if (nameSearch.trim() !== '') {
+        return nameMatch;
+      }
+      return dateMatch;
     });
-  }, [items, isAdmin, filterYear, filterMonth]);
+  }, [items, isAdmin, filterYear, filterMonth, nameSearch]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -194,24 +205,35 @@ export default function InternetReimbursementPage() {
   }
 
   const handleApprove = async () => {
-    if (!approvingItem) return
+    if (!approvingItem && !isBulkApproving) return
+    
+    const idsToApprove = isBulkApproving ? selectedIds : [approvingItem!.id];
     
     try {
-      const res = await fetch(`/api/reimbursements/${approvingItem.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          status: 'Approved',
-          transactionId,
-          remarks: adminRemarks, // No fallback to transactionId here
-          paidAt: new Date().toISOString()
+      const promises = idsToApprove.map(id => 
+        fetch(`/api/reimbursements/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            status: 'Approved',
+            transactionId,
+            remarks: adminRemarks,
+            paidAt: new Date().toISOString()
+          })
         })
-      })
-      if (res.ok) {
-        toast({ title: 'Updated', description: `Request approved and marked as paid.` })
+      );
+
+      const results = await Promise.all(promises);
+      if (results.every(res => res.ok)) {
+        toast({ title: 'Updated', description: `${idsToApprove.length} request(s) approved and marked as paid.` })
         setApprovingItem(null)
+        setIsBulkApproving(false)
         setTransactionId('')
         setAdminRemarks('')
+        setSelectedIds([])
+        fetchReimbursements()
+      } else {
+        toast({ variant: 'destructive', title: 'Partial Error', description: 'Some updates might have failed.' })
         fetchReimbursements()
       }
     } catch (err) {
@@ -220,7 +242,7 @@ export default function InternetReimbursementPage() {
   }
 
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
-    if (status === 'Approved') return; // Handled by dialog
+    if (status === 'Approved') return;
 
     try {
       const res = await fetch(`/api/reimbursements/${id}`, {
@@ -251,6 +273,21 @@ export default function InternetReimbursementPage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete claim.' })
     } finally {
       setItemToDelete(null)
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  }
+
+  const toggleSelectAll = () => {
+    const pendingIds = filteredItems.filter(item => item.status === 'Pending').map(item => item.id);
+    if (selectedIds.length === pendingIds.length && pendingIds.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingIds);
     }
   }
 
@@ -327,12 +364,12 @@ export default function InternetReimbursementPage() {
           <Card>
             <CardHeader>
               <CardTitle>Management Filters</CardTitle>
-              <CardDescription>Filter claims by month and year to manage organizational reimbursements.</CardDescription>
+              <CardDescription>Filter claims by month/year or search by employee name.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
+            <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-1">
                 <Label>Year</Label>
-                <Select value={filterYear} onValueChange={setFilterYear}>
+                <Select value={filterYear} onValueChange={setFilterYear} disabled={!!nameSearch}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -343,7 +380,7 @@ export default function InternetReimbursementPage() {
               </div>
               <div className="space-y-1">
                 <Label>Month</Label>
-                <Select value={filterMonth} onValueChange={setFilterMonth}>
+                <Select value={filterMonth} onValueChange={setFilterMonth} disabled={!!nameSearch}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -356,6 +393,31 @@ export default function InternetReimbursementPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1 flex-1 min-w-[200px]">
+                <Label htmlFor="search">Employee Name</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="search"
+                    placeholder="Search by name..." 
+                    className="pl-8" 
+                    value={nameSearch}
+                    onChange={(e) => {
+                      setNameSearch(e.target.value);
+                      setSelectedIds([]);
+                    }}
+                  />
+                </div>
+              </div>
+              {selectedIds.length > 0 && (
+                <Button 
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  onClick={() => setIsBulkApproving(true)}
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  Approve Selected ({selectedIds.length})
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
@@ -377,6 +439,14 @@ export default function InternetReimbursementPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {isAdmin && (
+                        <TableHead className="w-[50px]">
+                          <Checkbox 
+                            checked={selectedIds.length === filteredItems.filter(i => i.status === 'Pending').length && filteredItems.filter(i => i.status === 'Pending').length > 0}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
+                      )}
                       {isAdmin && <TableHead>Employee</TableHead>}
                       <TableHead>Bill Date</TableHead>
                       <TableHead>Amount</TableHead>
@@ -390,6 +460,15 @@ export default function InternetReimbursementPage() {
                   <TableBody>
                     {filteredItems.map((item) => (
                       <TableRow key={item.id}>
+                        {isAdmin && (
+                          <TableCell>
+                            <Checkbox 
+                              disabled={item.status !== 'Pending'}
+                              checked={selectedIds.includes(item.id)}
+                              onCheckedChange={() => toggleSelect(item.id)}
+                            />
+                          </TableCell>
+                        )}
                         {isAdmin && (
                           <TableCell className="font-medium whitespace-nowrap">{item.userName}</TableCell>
                         )}
@@ -461,12 +540,23 @@ export default function InternetReimbursementPage() {
         </Card>
       </main>
 
-      <Dialog open={!!approvingItem} onOpenChange={(open) => !open && setApprovingItem(null)}>
+      {/* Approve Single/Bulk Dialog */}
+      <Dialog open={!!approvingItem || isBulkApproving} onOpenChange={(open) => {
+        if (!open) {
+          setApprovingItem(null);
+          setIsBulkApproving(false);
+          setTransactionId('');
+          setAdminRemarks('');
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Reimbursement</DialogTitle>
+            <DialogTitle>Approve Reimbursement{isBulkApproving ? 's' : ''}</DialogTitle>
             <DialogDescription>
-              Mark the claim for {approvingItem?.userName} as paid. Entering a transaction number is required.
+              {isBulkApproving 
+                ? `Mark ${selectedIds.length} claims as paid. Enter a single transaction number for this batch.`
+                : `Mark the claim for ${approvingItem?.userName} as paid. Entering a transaction number is required.`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -490,7 +580,10 @@ export default function InternetReimbursementPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => {
+              setApprovingItem(null);
+              setIsBulkApproving(false);
+            }}>Cancel</Button>
             <Button onClick={handleApprove} disabled={!transactionId.trim()}>Confirm Payment</Button>
           </DialogFooter>
         </DialogContent>
