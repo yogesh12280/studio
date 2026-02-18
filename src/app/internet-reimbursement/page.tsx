@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -59,9 +58,11 @@ export default function InternetReimbursementPage() {
   const [description, setDescription] = useState('')
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>()
 
-  // Filter state
-  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
-  const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
+  // Filter state (Initialized with placeholders to avoid hydration mismatch)
+  const [filterYear, setFilterYear] = useState('2024')
+  const [filterMonth, setFilterMonth] = useState('1')
+  const [availableYears, setAvailableYears] = useState<string[]>(['2023', '2024'])
+  
   const [nameSearch, setNameSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('') 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -80,6 +81,19 @@ export default function InternetReimbursementPage() {
   const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().includes('application/pdf') || url.toLowerCase().endsWith('.pdf')
 
   useEffect(() => {
+    // Dynamic year calculation and filter initialization to prevent hydration error
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = (now.getMonth() + 1).toString();
+    
+    const yearList = [];
+    for (let y = 2023; y <= currentYear; y++) {
+      yearList.push(y.toString());
+    }
+    setAvailableYears(yearList);
+    setFilterYear(currentYear.toString());
+    setFilterMonth(currentMonth);
+
     if (viewingReceipt && isPDF(viewingReceipt)) {
       try {
         if (viewingReceipt.startsWith('data:')) {
@@ -445,7 +459,7 @@ export default function InternetReimbursementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['2023', '2024', '2025'].map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                    {availableYears.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
