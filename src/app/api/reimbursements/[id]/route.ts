@@ -7,14 +7,20 @@ export async function PUT(
 ) {
   const { id } = params;
   const body = await request.json();
-  const { status } = body;
+  const { status, transactionId, remarks, paidAt } = body;
 
   const index = reimbursements.findIndex(r => r.id === id);
   if (index === -1) {
     return NextResponse.json({ message: 'Reimbursement not found' }, { status: 404 });
   }
 
-  reimbursements[index] = { ...reimbursements[index], status };
+  reimbursements[index] = { 
+    ...reimbursements[index], 
+    status,
+    transactionId: transactionId || reimbursements[index].transactionId,
+    remarks: remarks || reimbursements[index].remarks,
+    paidAt: paidAt || reimbursements[index].paidAt
+  };
 
   return NextResponse.json(reimbursements[index]);
 }

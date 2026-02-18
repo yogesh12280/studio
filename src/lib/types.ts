@@ -29,4 +29,7 @@ export type Reimbursement = {
   receiptUrl?: string;
   status: ReimbursementStatus;
   submittedAt: string;
+  paidAt?: string;
+  transactionId?: string;
+  remarks?: string;
 };

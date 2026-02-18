@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
@@ -40,6 +40,11 @@ export default function InternetReimbursementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
+  // Admin approval state
+  const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
+  const [transactionId, setTransactionId] = useState('')
+  const [adminRemarks, setAdminRemarks] = useState('')
+
   // Form state
   const [amount, setAmount] = useState('')
   const [billDate, setBillDate] = useState('')
@@ -62,7 +67,6 @@ export default function InternetReimbursementPage() {
 
   const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().includes('application/pdf') || url.toLowerCase().endsWith('.pdf')
 
-  // Convert base64 to Blob URL for PDF viewing to avoid Edge/Chrome blocks
   useEffect(() => {
     if (viewingReceipt && isPDF(viewingReceipt)) {
       try {
@@ -169,7 +173,6 @@ export default function InternetReimbursementPage() {
         toast({ title: 'Success', description: 'Reimbursement request submitted.' })
         setIsSubmitOpen(false)
         fetchReimbursements()
-        // Reset form
         setAmount('')
         setBillDate('')
         setDescription('')
@@ -190,7 +193,35 @@ export default function InternetReimbursementPage() {
     }
   }
 
+  const handleApprove = async () => {
+    if (!approvingItem) return
+    
+    try {
+      const res = await fetch(`/api/reimbursements/${approvingItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: 'Approved',
+          transactionId,
+          remarks: adminRemarks || transactionId,
+          paidAt: new Date().toISOString()
+        })
+      })
+      if (res.ok) {
+        toast({ title: 'Updated', description: `Request approved and marked as paid.` })
+        setApprovingItem(null)
+        setTransactionId('')
+        setAdminRemarks('')
+        fetchReimbursements()
+      }
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update status.' })
+    }
+  }
+
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
+    if (status === 'Approved') return; // Handled by dialog
+
     try {
       const res = await fetch(`/api/reimbursements/${id}`, {
         method: 'PUT',
@@ -291,7 +322,7 @@ export default function InternetReimbursementPage() {
         )}
       </AppHeader>
 
-      <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+      <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         {isAdmin && (
           <Card>
             <CardHeader>
@@ -349,7 +380,9 @@ export default function InternetReimbursementPage() {
                       {isAdmin && <TableHead>Employee</TableHead>}
                       <TableHead>Bill Date</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead className="hidden md:table-cell">Description</TableHead>
+                      <TableHead className="hidden lg:table-cell">Description</TableHead>
+                      <TableHead>Paid</TableHead>
+                      <TableHead>Remarks</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -358,11 +391,24 @@ export default function InternetReimbursementPage() {
                     {filteredItems.map((item) => (
                       <TableRow key={item.id}>
                         {isAdmin && (
-                          <TableCell className="font-medium">{item.userName}</TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">{item.userName}</TableCell>
                         )}
-                        <TableCell>{format(parseISO(item.billDate), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>{formatCurrency(item.amount)}</TableCell>
-                        <TableCell className="hidden md:table-cell max-w-[200px] truncate">{item.description}</TableCell>
+                        <TableCell className="whitespace-nowrap">{format(parseISO(item.billDate), 'MMM d, yyyy')}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
+                        <TableCell className="hidden lg:table-cell max-w-[200px] truncate">{item.description}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {item.paidAt ? (
+                            <div className="flex flex-col text-xs">
+                              <span>{format(parseISO(item.paidAt), 'MMM d, yyyy')}</span>
+                              {item.transactionId && <span className="text-muted-foreground font-mono">#{item.transactionId}</span>}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground italic text-xs">Pending</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-sm">
+                          {item.remarks || '-'}
+                        </TableCell>
                         <TableCell>{statusBadge(item.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -389,8 +435,14 @@ export default function InternetReimbursementPage() {
                             )}
                             {isAdmin && item.status === 'Pending' && (
                               <>
-                                <Button size="icon" variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleUpdateStatus(item.id, 'Approved')} title="Approve">
-                                  <CheckCircle className="h-4 w-4" />
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50" 
+                                  onClick={() => setApprovingItem(item)} 
+                                  title="Approve & Pay"
+                                >
+                                  <CreditCard className="h-4 w-4" />
                                 </Button>
                                 <Button size="icon" variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
                                   <XCircle className="h-4 w-4" />
@@ -408,6 +460,41 @@ export default function InternetReimbursementPage() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!approvingItem} onOpenChange={(open) => !open && setApprovingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Reimbursement</DialogTitle>
+            <DialogDescription>
+              Mark the claim for {approvingItem?.userName} as paid. Entering a transaction number is required.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="txId">Transaction Number / ID</Label>
+              <Input 
+                id="txId" 
+                placeholder="e.g. TXN12345678" 
+                value={transactionId} 
+                onChange={e => setTransactionId(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="remarks">Remarks (Optional)</Label>
+              <Textarea 
+                id="remarks" 
+                placeholder="If left blank, transaction ID will be used as remarks." 
+                value={adminRemarks} 
+                onChange={e => setAdminRemarks(e.target.value)} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
+            <Button onClick={handleApprove} disabled={!transactionId.trim()}>Confirm Payment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
         <DialogContent className="max-w-4xl w-[90vw] h-[90vh] flex flex-col p-0 overflow-hidden">
