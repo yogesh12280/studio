@@ -11,6 +11,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
@@ -24,6 +34,7 @@ export default function InternetReimbursementPage() {
   const [loading, setLoading] = useState(true)
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null)
   
   // Form state
   const [amount, setAmount] = useState('')
@@ -125,10 +136,10 @@ export default function InternetReimbursementPage() {
     }
   }
 
-  const handleDeleteClaim = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this pending claim?')) return
+  const handleDeleteClaim = async () => {
+    if (!itemToDelete) return
     try {
-      const res = await fetch(`/api/reimbursements/${id}`, {
+      const res = await fetch(`/api/reimbursements/${itemToDelete}`, {
         method: 'DELETE',
       })
       if (res.ok) {
@@ -137,6 +148,8 @@ export default function InternetReimbursementPage() {
       }
     } catch (err) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete claim.' })
+    } finally {
+      setItemToDelete(null)
     }
   }
 
@@ -284,7 +297,7 @@ export default function InternetReimbursementPage() {
                                   size="icon" 
                                   variant="ghost" 
                                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => handleDeleteClaim(item.id)}
+                                  onClick={() => setItemToDelete(item.id)}
                                   title="Delete Claim"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -344,6 +357,23 @@ export default function InternetReimbursementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your pending reimbursement claim.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteClaim} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Claim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
