@@ -14,12 +14,13 @@ export async function PUT(
     return NextResponse.json({ message: 'Reimbursement not found' }, { status: 404 });
   }
 
+  // Update only fields that are provided in the body
   reimbursements[index] = { 
     ...reimbursements[index], 
-    status,
-    transactionId: transactionId || reimbursements[index].transactionId,
-    remarks: remarks || reimbursements[index].remarks,
-    paidAt: paidAt || reimbursements[index].paidAt
+    status: status !== undefined ? status : reimbursements[index].status,
+    transactionId: transactionId !== undefined ? transactionId : reimbursements[index].transactionId,
+    remarks: remarks !== undefined ? remarks : reimbursements[index].remarks,
+    paidAt: paidAt !== undefined ? paidAt : reimbursements[index].paidAt
   };
 
   return NextResponse.json(reimbursements[index]);

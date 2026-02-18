@@ -203,7 +203,7 @@ export default function InternetReimbursementPage() {
         body: JSON.stringify({ 
           status: 'Approved',
           transactionId,
-          remarks: adminRemarks || transactionId,
+          remarks: adminRemarks, // No fallback to transactionId here
           paidAt: new Date().toISOString()
         })
       })
@@ -483,7 +483,7 @@ export default function InternetReimbursementPage() {
               <Label htmlFor="remarks">Remarks (Optional)</Label>
               <Textarea 
                 id="remarks" 
-                placeholder="If left blank, transaction ID will be used as remarks." 
+                placeholder="Add optional remarks for this payment." 
                 value={adminRemarks} 
                 onChange={e => setAdminRemarks(e.target.value)} 
               />
