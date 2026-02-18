@@ -7,7 +7,7 @@ export async function PUT(
 ) {
   const { id } = params;
   const body = await request.json();
-  const { status, transactionId, remarks, paidAt } = body;
+  const { status, transactionId, remarks, paidAt, approvedBy } = body;
 
   const index = reimbursements.findIndex(r => r.id === id);
   if (index === -1) {
@@ -20,7 +20,8 @@ export async function PUT(
     status: status !== undefined ? status : reimbursements[index].status,
     transactionId: transactionId !== undefined ? transactionId : reimbursements[index].transactionId,
     remarks: remarks !== undefined ? remarks : reimbursements[index].remarks,
-    paidAt: paidAt !== undefined ? paidAt : reimbursements[index].paidAt
+    paidAt: paidAt !== undefined ? paidAt : reimbursements[index].paidAt,
+    approvedBy: approvedBy !== undefined ? approvedBy : reimbursements[index].approvedBy
   };
 
   return NextResponse.json(reimbursements[index]);

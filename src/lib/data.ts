@@ -41,6 +41,7 @@ const initialReimbursements: Reimbursement[] = [
     description: 'Last month high-speed internet',
     status: 'Approved',
     submittedAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+    approvedBy: 'Neha M'
   }
 ];
 

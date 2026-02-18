@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare, ChevronDown, X } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -60,7 +60,7 @@ export default function InternetReimbursementPage() {
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
   const [nameSearch, setNameSearch] = useState('')
-  const [activeFilter, setActiveFilter] = useState('') // Only set when a user is chosen from dropdown
+  const [activeFilter, setActiveFilter] = useState('') 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const isAdmin = currentUser?.role === 'Admin'
@@ -222,6 +222,7 @@ export default function InternetReimbursementPage() {
 
   const handleApprove = async () => {
     if (!approvingItem && !isBulkApproving) return
+    if (!currentUser) return
     
     const idsToApprove = isBulkApproving ? selectedIds : [approvingItem!.id];
     
@@ -234,7 +235,8 @@ export default function InternetReimbursementPage() {
             status: 'Approved',
             transactionId,
             remarks: adminRemarks,
-            paidAt: new Date().toISOString()
+            paidAt: new Date().toISOString(),
+            approvedBy: currentUser.name
           })
         })
       );
@@ -259,12 +261,13 @@ export default function InternetReimbursementPage() {
 
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
     if (status === 'Approved') return;
+    if (!currentUser) return
 
     try {
       const res = await fetch(`/api/reimbursements/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, approvedBy: currentUser.name })
       })
       if (res.ok) {
         toast({ title: 'Updated', description: `Request ${status.toLowerCase()}.` })
@@ -508,6 +511,7 @@ export default function InternetReimbursementPage() {
                       <TableHead>Amount</TableHead>
                       <TableHead className="hidden lg:table-cell">Description</TableHead>
                       <TableHead>Paid</TableHead>
+                      <TableHead>Approved By</TableHead>
                       <TableHead>Remarks</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -546,6 +550,7 @@ export default function InternetReimbursementPage() {
                             <span className="text-muted-foreground italic text-xs">Pending</span>
                           )}
                         </TableCell>
+                        <TableCell className="whitespace-nowrap">{item.approvedBy || '-'}</TableCell>
                         <TableCell className="max-w-[200px] truncate text-sm">{item.remarks || '-'}</TableCell>
                         <TableCell>{statusBadge(item.status)}</TableCell>
                         <TableCell className="text-right">

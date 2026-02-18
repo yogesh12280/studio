@@ -32,4 +32,5 @@ export type Reimbursement = {
   paidAt?: string;
   transactionId?: string;
   remarks?: string;
+  approvedBy?: string;
 };
