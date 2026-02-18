@@ -60,7 +60,7 @@ export default function InternetReimbursementPage() {
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
   const [nameSearch, setNameSearch] = useState('')
-  const [activeFilter, setActiveFilter] = useState('') // The filter that is actually applied to the table
+  const [activeFilter, setActiveFilter] = useState('') // Only set when a user is chosen from dropdown
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const isAdmin = currentUser?.role === 'Admin'
@@ -132,20 +132,14 @@ export default function InternetReimbursementPage() {
     fetchReimbursements()
   }, [currentUser, isAdmin])
 
-  // Get unique employees for suggestions
   const employeeSuggestions = useMemo(() => {
     const uniqueEmployees = new Map<string, { name: string, id: string }>();
-    
-    // From items
     items.forEach(item => {
       uniqueEmployees.set(item.userId, { name: item.userName, id: item.userId });
     });
-
-    // From employees data
     employees.forEach(emp => {
       uniqueEmployees.set(emp.id, { name: emp.name, id: emp.id });
     });
-
     return Array.from(uniqueEmployees.values());
   }, [items]);
 
@@ -218,15 +212,9 @@ export default function InternetReimbursementPage() {
         setReceiptBase64(undefined)
       } else {
         setSubmitError(data.message || 'Failed to submit request.')
-        toast({ 
-          variant: 'destructive', 
-          title: 'Submission Failed', 
-          description: data.message || 'Failed to submit request.' 
-        })
       }
     } catch (err) {
       setSubmitError('An unexpected error occurred. Please try again.')
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit request.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -352,22 +340,20 @@ export default function InternetReimbursementPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Submit New Claim</DialogTitle>
-                <DialogDescription>Fill in the details for your internet bill reimbursement. Note: Only one claim is allowed per month.</DialogDescription>
+                <DialogDescription>Fill in the details for your internet bill reimbursement.</DialogDescription>
               </DialogHeader>
               
               {submitError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Validation Error</AlertTitle>
-                  <AlertDescription>
-                    {submitError}
-                  </AlertDescription>
+                  <AlertDescription>{submitError}</AlertDescription>
                 </Alert>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Bill Amount ({'\u20B9'})</Label>
+                  <Label htmlFor="amount">Bill Amount (₹)</Label>
                   <Input id="amount" type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} />
                 </div>
                 <div className="space-y-2">
@@ -398,7 +384,7 @@ export default function InternetReimbursementPage() {
           <Card>
             <CardHeader>
               <CardTitle>Management Filters</CardTitle>
-              <CardDescription>Filter claims by month/year or search by employee name/ID.</CardDescription>
+              <CardDescription>Filter claims by month/year or search by employee.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-1">
@@ -442,26 +428,20 @@ export default function InternetReimbursementPage() {
                           setNameSearch(e.target.value);
                           if (!e.target.value) {
                             setActiveFilter('');
+                            setSelectedIds([]);
                           }
                           setIsSearchOpen(true);
                         }}
                       />
                       {nameSearch && (
-                        <button 
-                          onClick={clearSearch}
-                          className="absolute right-8 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground"
-                        >
+                        <button onClick={clearSearch} className="absolute right-8 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground">
                           <X className="h-4 w-4" />
                         </button>
                       )}
                       <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent 
-                    className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" 
-                    align="start"
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
+                  <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                     <div className="flex flex-col">
                       {filteredSuggestions.length > 0 ? (
                         filteredSuggestions.map((emp) => (
@@ -479,24 +459,17 @@ export default function InternetReimbursementPage() {
                             <span className="text-xs text-muted-foreground font-mono">{emp.id}</span>
                           </button>
                         ))
-                      ) : nameSearch ? (
-                        <div className="p-4 text-sm text-muted-foreground text-center">
-                          No employees found matching &quot;{nameSearch}&quot;
-                        </div>
                       ) : (
                         <div className="p-4 text-sm text-muted-foreground text-center">
-                          Start typing to see suggestions...
+                          {nameSearch ? `No employees found matching "${nameSearch}"` : 'Start typing to see suggestions...'}
                         </div>
                       )}
                     </div>
                   </PopoverContent>
                 </Popover>
               </div>
-              {selectedIds.length > 0 && (
-                <Button 
-                  className="gap-2 bg-green-600 hover:bg-green-700"
-                  onClick={() => setIsBulkApproving(true)}
-                >
+              {isAdmin && activeFilter && selectedIds.length > 0 && (
+                <Button className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => setIsBulkApproving(true)}>
                   <CheckSquare className="h-4 w-4" />
                   Approve Selected ({selectedIds.length})
                 </Button>
@@ -515,14 +488,14 @@ export default function InternetReimbursementPage() {
             ) : filteredItems.length === 0 ? (
               <div className="text-center py-12 border rounded-lg bg-muted/20">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground font-medium">No claims found for this period.</p>
+                <p className="text-muted-foreground font-medium">No claims found.</p>
               </div>
             ) : (
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isAdmin && (
+                      {isAdmin && activeFilter && (
                         <TableHead className="w-[50px]">
                           <Checkbox 
                             checked={selectedIds.length === filteredItems.filter(i => i.status === 'Pending').length && filteredItems.filter(i => i.status === 'Pending').length > 0}
@@ -543,7 +516,7 @@ export default function InternetReimbursementPage() {
                   <TableBody>
                     {filteredItems.map((item) => (
                       <TableRow key={item.id}>
-                        {isAdmin && (
+                        {isAdmin && activeFilter && (
                           <TableCell>
                             <Checkbox 
                               disabled={item.status !== 'Pending'}
@@ -573,45 +546,26 @@ export default function InternetReimbursementPage() {
                             <span className="text-muted-foreground italic text-xs">Pending</span>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-sm">
-                          {item.remarks || '-'}
-                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-sm">{item.remarks || '-'}</TableCell>
                         <TableCell>{statusBadge(item.status)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                              {item.receiptUrl && (
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  title="View Receipt"
-                                  onClick={() => setViewingReceipt(item.receiptUrl!)}
-                                >
+                                <Button size="icon" variant="ghost" title="View Receipt" onClick={() => setViewingReceipt(item.receiptUrl!)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               )}
                             {item.status === 'Pending' && (
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => setItemToDelete(item.id)}
-                                  title="Delete Claim"
-                                >
+                                <Button size="icon" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => setItemToDelete(item.id)} title="Delete">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                             )}
                             {isAdmin && item.status === 'Pending' && (
                               <>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50" 
-                                  onClick={() => setApprovingItem(item)} 
-                                  title="Approve & Pay"
-                                >
+                                <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => setApprovingItem(item)} title="Approve">
                                   <CreditCard className="h-4 w-4" />
                                 </Button>
-                                <Button size="icon" variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
+                                <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
                                   <XCircle className="h-4 w-4" />
                                 </Button>
                               </>
@@ -628,7 +582,6 @@ export default function InternetReimbursementPage() {
         </Card>
       </main>
 
-      {/* Approve Single/Bulk Dialog */}
       <Dialog open={!!approvingItem || isBulkApproving} onOpenChange={(open) => {
         if (!open) {
           setApprovingItem(null);
@@ -642,36 +595,23 @@ export default function InternetReimbursementPage() {
             <DialogTitle>Approve Reimbursement{isBulkApproving ? 's' : ''}</DialogTitle>
             <DialogDescription>
               {isBulkApproving 
-                ? `Mark ${selectedIds.length} claims as paid. Enter a single transaction number for this batch.`
-                : `Mark the claim for ${approvingItem?.userName} as paid. Entering a transaction number is required.`
+                ? `Mark ${selectedIds.length} claims as paid.`
+                : `Mark the claim for ${approvingItem?.userName} as paid.`
               }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="txId">Transaction Number / ID</Label>
-              <Input 
-                id="txId" 
-                placeholder="e.g. TXN12345678" 
-                value={transactionId} 
-                onChange={e => setTransactionId(e.target.value)} 
-              />
+              <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="remarks">Remarks (Optional)</Label>
-              <Textarea 
-                id="remarks" 
-                placeholder="Add optional remarks for this payment." 
-                value={adminRemarks} 
-                onChange={e => setAdminRemarks(e.target.value)} 
-              />
+              <Textarea id="remarks" placeholder="Add optional remarks." value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setApprovingItem(null);
-              setIsBulkApproving(false);
-            }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setApprovingItem(null); setIsBulkApproving(false); }}>Cancel</Button>
             <Button onClick={handleApprove} disabled={!transactionId.trim()}>Confirm Payment</Button>
           </DialogFooter>
         </DialogContent>
@@ -686,52 +626,20 @@ export default function InternetReimbursementPage() {
             {viewingReceipt && (
               isPDF(viewingReceipt) ? (
                 pdfBlobUrl ? (
-                  <object
-                    data={pdfBlobUrl}
-                    type="application/pdf"
-                    className="w-full h-full rounded-md border"
-                  >
+                  <object data={pdfBlobUrl} type="application/pdf" className="w-full h-full rounded-md border">
                     <div className="flex flex-col items-center justify-center p-12 text-center bg-background rounded-lg border max-w-md">
                       <FileText className="h-16 w-16 text-muted-foreground mb-4" />
                       <p className="text-xl font-semibold mb-2">Preview Unavailable</p>
-                      <p className="text-sm text-muted-foreground mb-6">
-                        Your browser or current settings are preventing this PDF from being previewed inline.
-                      </p>
-                      <Button asChild>
-                        <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Open in New Tab
-                        </a>
-                      </Button>
+                      <Button asChild><a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">Open in New Tab</a></Button>
                     </div>
                   </object>
-                ) : (
-                  <p className="text-muted-foreground animate-pulse">Initializing document viewer...</p>
-                )
-              ) : (
-                <img 
-                  src={viewingReceipt} 
-                  alt="Receipt" 
-                  className="max-w-full max-h-full object-contain shadow-lg rounded-md" 
-                />
-              )
+                ) : <p className="animate-pulse">Loading viewer...</p>
+              ) : <img src={viewingReceipt} alt="Receipt" className="max-w-full max-h-full object-contain shadow-lg rounded-md" />
             )}
           </div>
           <DialogFooter className="p-4 border-t gap-2">
             <Button variant="outline" onClick={() => setViewingReceipt(null)}>Close</Button>
-            {pdfBlobUrl && (
-              <Button asChild variant="secondary">
-                <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">
-                   <ExternalLink className="h-4 w-4 mr-2" />
-                   Open in New Tab
-                </a>
-              </Button>
-            )}
-            {viewingReceipt && (
-              <Button asChild>
-                <a href={viewingReceipt} download={`receipt-${Date.now()}`}>Download</a>
-              </Button>
-            )}
+            {viewingReceipt && <Button asChild><a href={viewingReceipt} download={`receipt-${Date.now()}`}>Download</a></Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -739,16 +647,12 @@ export default function InternetReimbursementPage() {
       <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your pending reimbursement claim.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteClaim} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete Claim
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteClaim} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete Claim</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
