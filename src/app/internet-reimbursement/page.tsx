@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -25,10 +24,13 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare, ChevronDown } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { employees } from '@/lib/data'
+import { cn } from '@/lib/utils'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -59,6 +61,7 @@ export default function InternetReimbursementPage() {
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
   const [nameSearch, setNameSearch] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const isAdmin = currentUser?.role === 'Admin'
 
@@ -128,6 +131,31 @@ export default function InternetReimbursementPage() {
   useEffect(() => {
     fetchReimbursements()
   }, [currentUser, isAdmin])
+
+  // Get unique employees for suggestions
+  const employeeSuggestions = useMemo(() => {
+    const uniqueEmployees = new Map<string, { name: string, id: string }>();
+    
+    // From items
+    items.forEach(item => {
+      uniqueEmployees.set(item.userId, { name: item.userName, id: item.userId });
+    });
+
+    // From employees data
+    employees.forEach(emp => {
+      uniqueEmployees.set(emp.id, { name: emp.name, id: emp.id });
+    });
+
+    return Array.from(uniqueEmployees.values());
+  }, [items]);
+
+  const filteredSuggestions = useMemo(() => {
+    if (!nameSearch.trim()) return [];
+    return employeeSuggestions.filter(emp => 
+      emp.name.toLowerCase().includes(nameSearch.toLowerCase()) || 
+      emp.id.toLowerCase().includes(nameSearch.toLowerCase())
+    ).slice(0, 10); // Limit suggestions
+  }, [employeeSuggestions, nameSearch]);
 
   const filteredItems = useMemo(() => {
     if (!isAdmin) return items;
@@ -393,21 +421,58 @@ export default function InternetReimbursementPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1 flex-1 min-w-[200px]">
+              <div className="space-y-1 flex-1 min-w-[280px]">
                 <Label htmlFor="search">Employee Name or ID</Label>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="search"
-                    placeholder="Search by name or ID..." 
-                    className="pl-8" 
-                    value={nameSearch}
-                    onChange={(e) => {
-                      setNameSearch(e.target.value);
-                      setSelectedIds([]);
-                    }}
-                  />
-                </div>
+                <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="relative group">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="search"
+                        placeholder="Search by name or ID..." 
+                        className="pl-8" 
+                        value={nameSearch}
+                        onChange={(e) => {
+                          setNameSearch(e.target.value);
+                          setSelectedIds([]);
+                          setIsSearchOpen(true);
+                        }}
+                      />
+                      <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" 
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <div className="flex flex-col">
+                      {filteredSuggestions.length > 0 ? (
+                        filteredSuggestions.map((emp) => (
+                          <button
+                            key={emp.id}
+                            className="flex flex-col items-start px-4 py-2 hover:bg-accent text-sm text-left border-b last:border-0"
+                            onClick={() => {
+                              setNameSearch(emp.name);
+                              setIsSearchOpen(false);
+                            }}
+                          >
+                            <span className="font-medium">{emp.name}</span>
+                            <span className="text-xs text-muted-foreground font-mono">{emp.id}</span>
+                          </button>
+                        ))
+                      ) : nameSearch ? (
+                        <div className="p-4 text-sm text-muted-foreground text-center">
+                          No employees found matching &quot;{nameSearch}&quot;
+                        </div>
+                      ) : (
+                        <div className="p-4 text-sm text-muted-foreground text-center">
+                          Start typing to see suggestions...
+                        </div>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               {selectedIds.length > 0 && (
                 <Button 
