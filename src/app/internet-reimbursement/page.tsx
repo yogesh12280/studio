@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 
 export default function InternetReimbursementPage() {
@@ -122,6 +122,21 @@ export default function InternetReimbursementPage() {
       }
     } catch (err) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to update status.' })
+    }
+  }
+
+  const handleDeleteClaim = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this pending claim?')) return
+    try {
+      const res = await fetch(`/api/reimbursements/${id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        toast({ title: 'Deleted', description: 'Reimbursement claim removed successfully.' })
+        fetchReimbursements()
+      }
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete claim.' })
     }
   }
 
@@ -264,6 +279,17 @@ export default function InternetReimbursementPage() {
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               )}
+                            {item.status === 'Pending' && (
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeleteClaim(item.id)}
+                                  title="Delete Claim"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
                             {isAdmin && item.status === 'Pending' && (
                               <>
                                 <Button size="icon" variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleUpdateStatus(item.id, 'Approved')} title="Approve">
