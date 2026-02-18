@@ -24,13 +24,12 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare, ChevronDown } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, ExternalLink, CreditCard, Search, CheckSquare, ChevronDown, X } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { employees } from '@/lib/data'
-import { cn } from '@/lib/utils'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
@@ -61,6 +60,7 @@ export default function InternetReimbursementPage() {
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
   const [filterMonth, setFilterMonth] = useState((new Date().getMonth() + 1).toString())
   const [nameSearch, setNameSearch] = useState('')
+  const [activeFilter, setActiveFilter] = useState('') // The filter that is actually applied to the table
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const isAdmin = currentUser?.role === 'Admin'
@@ -154,7 +154,7 @@ export default function InternetReimbursementPage() {
     return employeeSuggestions.filter(emp => 
       emp.name.toLowerCase().includes(nameSearch.toLowerCase()) || 
       emp.id.toLowerCase().includes(nameSearch.toLowerCase())
-    ).slice(0, 10); // Limit suggestions
+    ).slice(0, 10);
   }, [employeeSuggestions, nameSearch]);
 
   const filteredItems = useMemo(() => {
@@ -162,14 +162,14 @@ export default function InternetReimbursementPage() {
     return items.filter(item => {
       const date = parseISO(item.billDate);
       const dateMatch = date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
-      const nameMatch = nameSearch ? item.userName.toLowerCase().includes(nameSearch.toLowerCase()) || item.userId.toLowerCase().includes(nameSearch.toLowerCase()) : false;
       
-      if (nameSearch.trim() !== '') {
-        return nameMatch;
+      if (activeFilter) {
+        return item.userName.toLowerCase().includes(activeFilter.toLowerCase()) || 
+               item.userId.toLowerCase().includes(activeFilter.toLowerCase());
       }
       return dateMatch;
     });
-  }, [items, isAdmin, filterYear, filterMonth, nameSearch]);
+  }, [items, isAdmin, filterYear, filterMonth, activeFilter]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -319,6 +319,12 @@ export default function InternetReimbursementPage() {
     }
   }
 
+  const clearSearch = () => {
+    setNameSearch('');
+    setActiveFilter('');
+    setSelectedIds([]);
+  }
+
   const statusBadge = (status: ReimbursementStatus) => {
     switch (status) {
       case 'Approved': return <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200"><CheckCircle className="h-3 w-3" /> Approved</Badge>
@@ -397,7 +403,7 @@ export default function InternetReimbursementPage() {
             <CardContent className="flex flex-wrap items-end gap-4">
               <div className="space-y-1">
                 <Label>Year</Label>
-                <Select value={filterYear} onValueChange={setFilterYear} disabled={!!nameSearch}>
+                <Select value={filterYear} onValueChange={setFilterYear} disabled={!!activeFilter}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -408,7 +414,7 @@ export default function InternetReimbursementPage() {
               </div>
               <div className="space-y-1">
                 <Label>Month</Label>
-                <Select value={filterMonth} onValueChange={setFilterMonth} disabled={!!nameSearch}>
+                <Select value={filterMonth} onValueChange={setFilterMonth} disabled={!!activeFilter}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -430,14 +436,24 @@ export default function InternetReimbursementPage() {
                       <Input 
                         id="search"
                         placeholder="Search by name or ID..." 
-                        className="pl-8" 
+                        className="pl-8 pr-8" 
                         value={nameSearch}
                         onChange={(e) => {
                           setNameSearch(e.target.value);
-                          setSelectedIds([]);
+                          if (!e.target.value) {
+                            setActiveFilter('');
+                          }
                           setIsSearchOpen(true);
                         }}
                       />
+                      {nameSearch && (
+                        <button 
+                          onClick={clearSearch}
+                          className="absolute right-8 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
                       <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </PopoverTrigger>
@@ -454,6 +470,8 @@ export default function InternetReimbursementPage() {
                             className="flex flex-col items-start px-4 py-2 hover:bg-accent text-sm text-left border-b last:border-0"
                             onClick={() => {
                               setNameSearch(emp.name);
+                              setActiveFilter(emp.name);
+                              setSelectedIds([]);
                               setIsSearchOpen(false);
                             }}
                           >
