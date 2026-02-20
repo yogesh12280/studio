@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield, Edit } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -49,11 +49,12 @@ export default function InternetReimbursementPage() {
   const isAdmin = currentUser?.role === 'Admin'
   const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(isAdmin ? 'Management' : 'Personal')
 
-  // Admin approval state
+  // Admin approval/modify state
   const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
   const [isBulkApproving, setIsBulkApproving] = useState(false)
   const [transactionId, setTransactionId] = useState('')
   const [adminRemarks, setAdminRemarks] = useState('')
+  const [editStatus, setEditStatus] = useState<ReimbursementStatus>('Approved')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   // Form state
@@ -139,7 +140,6 @@ export default function InternetReimbursementPage() {
     if (!currentUser) return
     try {
       setLoading(true)
-      // If admin and in management mode, fetch all. Otherwise fetch personal.
       const fetchAdminData = isAdmin && viewMode === 'Management';
       const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=${fetchAdminData}`)
       const data = await res.json()
@@ -255,23 +255,31 @@ export default function InternetReimbursementPage() {
     const idsToApprove = isBulkApproving ? selectedIds : [approvingItem!.id];
     
     try {
-      const promises = idsToApprove.map(id => 
-        fetch(`/api/reimbursements/${id}`, {
+      const promises = idsToApprove.map(id => {
+        const payload: any = { 
+          status: isBulkApproving ? 'Approved' : editStatus,
+          remarks: adminRemarks,
+          approvedBy: currentUser.name
+        };
+
+        if ((isBulkApproving || editStatus === 'Approved')) {
+           payload.transactionId = transactionId;
+           payload.paidAt = new Date().toISOString();
+        } else {
+           payload.transactionId = null;
+           payload.paidAt = null;
+        }
+
+        return fetch(`/api/reimbursements/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            status: 'Approved',
-            transactionId,
-            remarks: adminRemarks,
-            paidAt: new Date().toISOString(),
-            approvedBy: currentUser.name
-          })
-        })
-      );
+          body: JSON.stringify(payload)
+        });
+      });
 
       const results = await Promise.all(promises);
       if (results.every(res => res.ok)) {
-        toast({ title: 'Updated', description: `${idsToApprove.length} request(s) approved and marked as paid.` })
+        toast({ title: 'Updated', description: `${idsToApprove.length} request(s) processed.` })
         setApprovingItem(null)
         setIsBulkApproving(false)
         setTransactionId('')
@@ -550,7 +558,10 @@ export default function InternetReimbursementPage() {
                 </Popover>
               </div>
               {isAdmin && activeFilter && selectedIds.length > 0 && (
-                <Button className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => setIsBulkApproving(true)}>
+                <Button className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => {
+                  setIsBulkApproving(true);
+                  setEditStatus('Approved');
+                }}>
                   <CheckSquare className="h-4 w-4" />
                   Approve Selected ({selectedIds.length})
                 </Button>
@@ -648,14 +659,32 @@ export default function InternetReimbursementPage() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                             )}
-                            {isAdmin && viewMode === 'Management' && item.status === 'Pending' && (
+                            {isAdmin && viewMode === 'Management' && (
                               <>
-                                <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => setApprovingItem(item)} title="Approve">
-                                  <CreditCard className="h-4 w-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
+                                {item.status === 'Pending' ? (
+                                  <>
+                                    <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => {
+                                      setApprovingItem(item);
+                                      setEditStatus('Approved');
+                                      setTransactionId('');
+                                      setAdminRemarks('');
+                                    }} title="Approve">
+                                      <CreditCard className="h-4 w-4" />
+                                    </Button>
+                                    <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
+                                      <XCircle className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/10" onClick={() => {
+                                    setApprovingItem(item);
+                                    setEditStatus(item.status);
+                                    setTransactionId(item.transactionId || '');
+                                    setAdminRemarks(item.remarks || '');
+                                  }} title="Modify">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </>
                             )}
                           </div>
@@ -680,19 +709,37 @@ export default function InternetReimbursementPage() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Reimbursement{isBulkApproving ? 's' : ''}</DialogTitle>
+            <DialogTitle>
+              {isBulkApproving ? 'Bulk Approve Claims' : (approvingItem?.status === 'Pending' ? 'Approve Claim' : 'Modify Claim')}
+            </DialogTitle>
             <DialogDescription>
               {isBulkApproving 
-                ? `Mark ${selectedIds.length} claims as paid.`
-                : `Mark the claim for ${approvingItem?.userName} as paid.`
+                ? `Update ${selectedIds.length} pending claims.`
+                : `Update claim details for ${approvingItem?.userName}.`
               }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="txId">Transaction Number / ID</Label>
-              <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
-            </div>
+            {!isBulkApproving && approvingItem?.status !== 'Pending' && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {(isBulkApproving || editStatus === 'Approved') && (
+              <div className="space-y-2">
+                <Label htmlFor="txId">Transaction Number / ID</Label>
+                <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="remarks">Remarks (Optional)</Label>
               <Textarea id="remarks" placeholder="Add optional remarks." value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
@@ -700,7 +747,9 @@ export default function InternetReimbursementPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setApprovingItem(null); setIsBulkApproving(false); }}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={!transactionId.trim()}>Confirm Payment</Button>
+            <Button onClick={handleApprove} disabled={(isBulkApproving || editStatus === 'Approved') && !transactionId.trim()}>
+              Confirm {isBulkApproving || approvingItem?.status === 'Pending' ? 'Approval' : 'Changes'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
