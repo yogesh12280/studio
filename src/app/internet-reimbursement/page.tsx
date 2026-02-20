@@ -593,7 +593,7 @@ export default function InternetReimbursementPage() {
                           />
                         </TableHead>
                       )}
-                      {(isAdmin && viewMode === 'Management') && <TableHead>Employee (ID)</TableHead>}
+                      {(isAdmin && viewMode === 'Management') && <TableHead>Employee</TableHead>}
                       <TableHead>Bill Date</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead className="hidden lg:table-cell">Description</TableHead>
@@ -618,10 +618,7 @@ export default function InternetReimbursementPage() {
                         )}
                         {(isAdmin && viewMode === 'Management') && (
                           <TableCell className="font-medium whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span>{item.userName}</span>
-                              <span className="text-xs text-muted-foreground font-mono">{item.userId}</span>
-                            </div>
+                            {item.userName}
                           </TableCell>
                         )}
                         <TableCell className="whitespace-nowrap">{format(parseISO(item.billDate), 'MMM d, yyyy')}</TableCell>
