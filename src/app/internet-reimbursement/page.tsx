@@ -347,7 +347,6 @@ export default function InternetReimbursementPage() {
   const exportToExcel = () => {
     const dataToExport = filteredItems.map(item => ({
       'Employee Name': item.userName,
-      'Employee ID': item.userId,
       'Bill Date': format(parseISO(item.billDate), 'yyyy-MM-dd'),
       'Amount (INR)': item.amount,
       'Description': item.description,
@@ -364,7 +363,7 @@ export default function InternetReimbursementPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Reimbursements');
     
     const wscols = [
-      { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, 
+      { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 30 }, 
       { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 30 }
     ];
     worksheet['!cols'] = wscols;
@@ -496,14 +495,14 @@ export default function InternetReimbursementPage() {
                 </Select>
               </div>
               <div className="space-y-1 flex-1 min-w-[280px]">
-                <Label htmlFor="search">Employee Name or ID</Label>
+                <Label htmlFor="search">Employee Name</Label>
                 <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
                   <PopoverTrigger asChild>
                     <div className="relative group">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input 
                         id="search"
-                        placeholder="Search by name or ID..." 
+                        placeholder="Search by name..." 
                         className="pl-8 pr-8" 
                         value={nameSearch}
                         onChange={(e) => {
@@ -644,7 +643,7 @@ export default function InternetReimbursementPage() {
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               )}
-                            {item.status === 'Pending' && (
+                            {item.status === 'Pending' && !isAdmin && (
                                 <Button size="icon" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => setItemToDelete(item.id)} title="Delete">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
