@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -45,6 +45,10 @@ export default function InternetReimbursementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
+  // Admin view state
+  const isAdmin = currentUser?.role === 'Admin'
+  const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(isAdmin ? 'Management' : 'Personal')
+
   // Admin approval state
   const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
   const [isBulkApproving, setIsBulkApproving] = useState(false)
@@ -67,8 +71,6 @@ export default function InternetReimbursementPage() {
   const [activeFilter, setActiveFilter] = useState('') 
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('All')
-
-  const isAdmin = currentUser?.role === 'Admin'
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -137,7 +139,9 @@ export default function InternetReimbursementPage() {
     if (!currentUser) return
     try {
       setLoading(true)
-      const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=${isAdmin}`)
+      // If admin and in management mode, fetch all. Otherwise fetch personal.
+      const fetchAdminData = isAdmin && viewMode === 'Management';
+      const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=${fetchAdminData}`)
       const data = await res.json()
       setItems(data)
     } catch (err) {
@@ -149,7 +153,7 @@ export default function InternetReimbursementPage() {
 
   useEffect(() => {
     fetchReimbursements()
-  }, [currentUser, isAdmin])
+  }, [currentUser, isAdmin, viewMode])
 
   const employeeSuggestions = useMemo(() => {
     const uniqueEmployees = new Map<string, { name: string, id: string }>();
@@ -177,7 +181,7 @@ export default function InternetReimbursementPage() {
       list = list.filter(item => item.status === statusFilter);
     }
 
-    if (!isAdmin) return list;
+    if (!isAdmin || viewMode === 'Personal') return list;
 
     return list.filter(item => {
       if (activeFilter) {
@@ -187,7 +191,7 @@ export default function InternetReimbursementPage() {
       const date = parseISO(item.billDate);
       return date.getFullYear().toString() === filterYear && (date.getMonth() + 1).toString() === filterMonth;
     });
-  }, [items, isAdmin, filterYear, filterMonth, activeFilter, statusFilter]);
+  }, [items, isAdmin, viewMode, filterYear, filterMonth, activeFilter, statusFilter]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -384,7 +388,21 @@ export default function InternetReimbursementPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Internet Reimbursement">
-        {!isAdmin && (
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+             <Tabs value={viewMode} onValueChange={(val: any) => setViewMode(val)} className="w-auto mr-2">
+              <TabsList>
+                <TabsTrigger value="Personal" className="gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  My Claims
+                </TabsTrigger>
+                <TabsTrigger value="Management" className="gap-2">
+                  <Shield className="h-4 w-4" />
+                  Management
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
           <Dialog open={isSubmitOpen} onOpenChange={(val) => {
             setIsSubmitOpen(val)
             if (!val) setSubmitError(null)
@@ -434,11 +452,11 @@ export default function InternetReimbursementPage() {
               </form>
             </DialogContent>
           </Dialog>
-        )}
+        </div>
       </AppHeader>
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
-        {isAdmin && (
+        {isAdmin && viewMode === 'Management' && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div className="space-y-1">
@@ -544,7 +562,7 @@ export default function InternetReimbursementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle>{isAdmin ? 'All Employee Claims' : 'My Claim History'}</CardTitle>
+            <CardTitle>{isAdmin && viewMode === 'Management' ? 'All Employee Claims' : 'My Claim History'}</CardTitle>
             <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
               <TabsList>
                 <TabsTrigger value="All">All</TabsTrigger>
@@ -567,7 +585,7 @@ export default function InternetReimbursementPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {isAdmin && activeFilter && (
+                      {isAdmin && viewMode === 'Management' && activeFilter && (
                         <TableHead className="w-[50px]">
                           <Checkbox 
                             checked={selectedIds.length === filteredItems.filter(i => i.status === 'Pending').length && filteredItems.filter(i => i.status === 'Pending').length > 0}
@@ -575,7 +593,7 @@ export default function InternetReimbursementPage() {
                           />
                         </TableHead>
                       )}
-                      {isAdmin && <TableHead>Employee (ID)</TableHead>}
+                      {(isAdmin && viewMode === 'Management') && <TableHead>Employee (ID)</TableHead>}
                       <TableHead>Bill Date</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead className="hidden lg:table-cell">Description</TableHead>
@@ -589,7 +607,7 @@ export default function InternetReimbursementPage() {
                   <TableBody>
                     {filteredItems.map((item) => (
                       <TableRow key={item.id}>
-                        {isAdmin && activeFilter && (
+                        {isAdmin && viewMode === 'Management' && activeFilter && (
                           <TableCell>
                             <Checkbox 
                               disabled={item.status !== 'Pending'}
@@ -598,7 +616,7 @@ export default function InternetReimbursementPage() {
                             />
                           </TableCell>
                         )}
-                        {isAdmin && (
+                        {(isAdmin && viewMode === 'Management') && (
                           <TableCell className="font-medium whitespace-nowrap">
                             <div className="flex flex-col">
                               <span>{item.userName}</span>
@@ -634,7 +652,7 @@ export default function InternetReimbursementPage() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                             )}
-                            {isAdmin && item.status === 'Pending' && (
+                            {isAdmin && viewMode === 'Management' && item.status === 'Pending' && (
                               <>
                                 <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => setApprovingItem(item)} title="Approve">
                                   <CreditCard className="h-4 w-4" />
