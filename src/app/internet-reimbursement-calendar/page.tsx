@@ -266,25 +266,14 @@ export default function InternetReimbursementCalendarPage() {
                           {activeClaim.paidAt && <p><span className="font-semibold">Paid:</span> {format(parseISO(activeClaim.paidAt), 'MMM d, yyyy')}</p>}
                         </div>
                         <div className="flex gap-2">
-                          {activeClaim.receiptUrl && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="flex-1 gap-2 text-xs h-8"
-                              onClick={() => setViewingReceipt(activeClaim.receiptUrl!)}
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              Receipt
-                            </Button>
-                          )}
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className={cn("gap-2 text-xs h-8", activeClaim.receiptUrl ? "flex-1" : "w-full")}
+                            className="w-full gap-2 text-xs h-8"
                             onClick={() => setViewingMonthHistory({ month: monthName, index, year: selectedYear })}
                           >
                             <History className="h-3.5 w-3.5" />
-                            History
+                            View History
                           </Button>
                         </div>
                       </div>
