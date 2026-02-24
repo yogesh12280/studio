@@ -13,12 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO, startOfMonth, isFuture } from 'date-fns'
-import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon, History, Eye, FileText } from 'lucide-react'
+import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon, History, Eye, FileText, RefreshCw } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 
 export default function InternetReimbursementCalendarPage() {
   const { currentUser } = useUser()
@@ -245,6 +244,9 @@ export default function InternetReimbursementCalendarPage() {
               const monthClaims = getClaimsForMonth(index);
               const activeClaim = monthClaims.find(c => c.status !== 'Rejected') || monthClaims[0];
               const isMonthInFuture = isFuture(startOfMonth(new Date(selectedYear, index, 1)))
+              
+              const hasActionableClaim = monthClaims.some(c => c.status === 'Pending' || c.status === 'Approved');
+              const isOnlyRejected = monthClaims.length > 0 && !hasActionableClaim;
 
               return (
                 <Card key={monthName} className={`flex flex-col h-full border-t-4 transition-all hover:shadow-md ${activeClaim ? (activeClaim.status === 'Approved' ? 'border-t-green-500' : (activeClaim.status === 'Rejected' ? 'border-t-red-500' : 'border-t-yellow-500')) : 'border-t-muted'}`}>
@@ -265,7 +267,7 @@ export default function InternetReimbursementCalendarPage() {
                           <p><span className="font-semibold">Bill Date:</span> {format(parseISO(activeClaim.billDate), 'MMM d, yyyy')}</p>
                           {activeClaim.paidAt && <p><span className="font-semibold">Paid:</span> {format(parseISO(activeClaim.paidAt), 'MMM d, yyyy')}</p>}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2">
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -275,6 +277,17 @@ export default function InternetReimbursementCalendarPage() {
                             <History className="h-3.5 w-3.5" />
                             View History
                           </Button>
+                          {isOnlyRejected && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full gap-2 text-xs h-8 border-primary text-primary hover:bg-primary/5"
+                              onClick={() => openSubmitForMonth(index)}
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                              Re-Submit Claim
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ) : (
