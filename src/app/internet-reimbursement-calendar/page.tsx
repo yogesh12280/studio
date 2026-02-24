@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { format, parseISO, startOfMonth, isFuture } from 'date-fns'
+import { format, parseISO, startOfMonth, isFuture, endOfMonth } from 'date-fns'
 import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon, History, Eye, FileText, RefreshCw } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -27,6 +27,7 @@ export default function InternetReimbursementCalendarPage() {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [activeSubmittingMonth, setActiveSubmittingMonth] = useState<number | null>(null)
   
   // History View State
   const [viewingMonthHistory, setViewingMonthHistory] = useState<{ month: string, index: number, year: number } | null>(null)
@@ -173,6 +174,7 @@ export default function InternetReimbursementCalendarPage() {
   }
 
   const openSubmitForMonth = (monthIndex: number) => {
+    setActiveSubmittingMonth(monthIndex)
     const date = new Date(selectedYear, monthIndex, 1)
     setBillDate(format(date, 'yyyy-MM-dd'))
     setDescription(`Internet bill for ${format(date, 'MMMM yyyy')}`)
@@ -208,6 +210,14 @@ export default function InternetReimbursementCalendarPage() {
   }
 
   if (!currentUser) return null
+
+  // Date boundaries for the submit form based on the selected month box
+  const minBillDate = activeSubmittingMonth !== null 
+    ? format(new Date(selectedYear, activeSubmittingMonth, 1), 'yyyy-MM-dd') 
+    : undefined
+  const maxBillDate = activeSubmittingMonth !== null 
+    ? format(endOfMonth(new Date(selectedYear, activeSubmittingMonth, 1)), 'yyyy-MM-dd') 
+    : undefined
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -423,7 +433,10 @@ export default function InternetReimbursementCalendarPage() {
 
       <Dialog open={isSubmitOpen} onOpenChange={(val) => {
         setIsSubmitOpen(val)
-        if (!val) setSubmitError(null)
+        if (!val) {
+          setSubmitError(null)
+          setActiveSubmittingMonth(null)
+        }
       }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -446,7 +459,20 @@ export default function InternetReimbursementCalendarPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="date">Bill Date</Label>
-              <Input id="date" type="date" required value={billDate} onChange={e => setBillDate(e.target.value)} />
+              <Input 
+                id="date" 
+                type="date" 
+                required 
+                value={billDate} 
+                min={minBillDate}
+                max={maxBillDate}
+                onChange={e => setBillDate(e.target.value)} 
+              />
+              {activeSubmittingMonth !== null && (
+                <p className="text-[10px] text-muted-foreground italic">
+                  * Limited to {months[activeSubmittingMonth]} {selectedYear}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="desc">Description</Label>
