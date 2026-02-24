@@ -18,6 +18,7 @@ import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 export default function InternetReimbursementCalendarPage() {
   const { currentUser } = useUser()
@@ -264,15 +265,28 @@ export default function InternetReimbursementCalendarPage() {
                           <p><span className="font-semibold">Bill Date:</span> {format(parseISO(activeClaim.billDate), 'MMM d, yyyy')}</p>
                           {activeClaim.paidAt && <p><span className="font-semibold">Paid:</span> {format(parseISO(activeClaim.paidAt), 'MMM d, yyyy')}</p>}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full gap-2 text-xs h-8"
-                          onClick={() => setViewingMonthHistory({ month: monthName, index, year: selectedYear })}
-                        >
-                          <History className="h-3.5 w-3.5" />
-                          View Full History
-                        </Button>
+                        <div className="flex gap-2">
+                          {activeClaim.receiptUrl && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1 gap-2 text-xs h-8"
+                              onClick={() => setViewingReceipt(activeClaim.receiptUrl!)}
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              Receipt
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={cn("gap-2 text-xs h-8", activeClaim.receiptUrl ? "flex-1" : "w-full")}
+                            onClick={() => setViewingMonthHistory({ month: monthName, index, year: selectedYear })}
+                          >
+                            <History className="h-3.5 w-3.5" />
+                            History
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center py-4">
@@ -328,7 +342,7 @@ export default function InternetReimbursementCalendarPage() {
                     {claim.receiptUrl && (
                       <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
                         <Eye className="h-4 w-4" />
-                        Receipt
+                        View Receipt
                       </Button>
                     )}
                   </div>
