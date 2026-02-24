@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,9 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO, startOfMonth, isFuture } from 'date-fns'
-import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon } from 'lucide-react'
+import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon, History, Eye, FileText } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 
 export default function InternetReimbursementCalendarPage() {
   const { currentUser } = useUser()
@@ -26,6 +28,11 @@ export default function InternetReimbursementCalendarPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
+  // History View State
+  const [viewingMonthHistory, setViewingMonthHistory] = useState<{ month: string, index: number, year: number } | null>(null)
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
+
   // Year selection
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const availableYears = useMemo(() => {
@@ -51,11 +58,12 @@ export default function InternetReimbursementCalendarPage() {
     }).format(value);
   };
 
+  const isPDF = (url: string) => url.startsWith('data:application/pdf') || url.toLowerCase().includes('application/pdf') || url.toLowerCase().endsWith('.pdf')
+
   const fetchReimbursements = async () => {
     if (!currentUser) return
     try {
       setLoading(true)
-      // Fetch only personal claims for this view as it's an employee-focused calendar
       const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=false`)
       const data = await res.json()
       setItems(data)
@@ -69,6 +77,45 @@ export default function InternetReimbursementCalendarPage() {
   useEffect(() => {
     fetchReimbursements()
   }, [currentUser])
+
+  useEffect(() => {
+    if (viewingReceipt && isPDF(viewingReceipt)) {
+      try {
+        if (viewingReceipt.startsWith('data:')) {
+          const parts = viewingReceipt.split(',');
+          if (parts.length < 2) return;
+          const base64Data = parts[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
+          
+          for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+          }
+          
+          const blob = new Blob(byteArrays, { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          setPdfBlobUrl(url);
+          return () => {
+            URL.revokeObjectURL(url);
+            setPdfBlobUrl(null);
+          };
+        } else {
+          setPdfBlobUrl(viewingReceipt);
+        }
+      } catch (e) {
+        console.error("Error creating PDF blob", e);
+        setPdfBlobUrl(null);
+      }
+    } else {
+      setPdfBlobUrl(null);
+    }
+  }, [viewingReceipt]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -126,9 +173,7 @@ export default function InternetReimbursementCalendarPage() {
   }
 
   const openSubmitForMonth = (monthIndex: number) => {
-    // monthIndex is 0-based
     const date = new Date(selectedYear, monthIndex, 1)
-    // Format as YYYY-MM-DD for input[type="date"]
     setBillDate(format(date, 'yyyy-MM-dd'))
     setDescription(`Internet bill for ${format(date, 'MMMM yyyy')}`)
     setIsSubmitOpen(true)
@@ -153,6 +198,13 @@ export default function InternetReimbursementCalendarPage() {
       case 'Rejected': return <Badge variant="destructive">Rejected</Badge>
       default: return <Badge variant="secondary">Pending</Badge>
     }
+  }
+
+  const getClaimsForMonth = (monthIndex: number) => {
+    return items.filter(item => {
+      const d = parseISO(item.billDate)
+      return d.getFullYear() === selectedYear && d.getMonth() === monthIndex
+    }).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
   }
 
   if (!currentUser) return null
@@ -189,38 +241,38 @@ export default function InternetReimbursementCalendarPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {months.map((monthName, index) => {
-              const claim = items.find(item => {
-                const d = parseISO(item.billDate)
-                return d.getFullYear() === selectedYear && d.getMonth() === index && item.status !== 'Rejected'
-              }) || items.find(item => {
-                // Also check rejected if no active claim exists just to show history
-                const d = parseISO(item.billDate)
-                return d.getFullYear() === selectedYear && d.getMonth() === index
-              })
-
+              const monthClaims = getClaimsForMonth(index);
+              const activeClaim = monthClaims.find(c => c.status !== 'Rejected') || monthClaims[0];
               const isMonthInFuture = isFuture(startOfMonth(new Date(selectedYear, index, 1)))
 
               return (
-                <Card key={monthName} className={`flex flex-col h-full border-t-4 transition-all hover:shadow-md ${claim ? (claim.status === 'Approved' ? 'border-t-green-500' : (claim.status === 'Rejected' ? 'border-t-red-500' : 'border-t-yellow-500')) : 'border-t-muted'}`}>
+                <Card key={monthName} className={`flex flex-col h-full border-t-4 transition-all hover:shadow-md ${activeClaim ? (activeClaim.status === 'Approved' ? 'border-t-green-500' : (activeClaim.status === 'Rejected' ? 'border-t-red-500' : 'border-t-yellow-500')) : 'border-t-muted'}`}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg font-bold">{monthName}</CardTitle>
-                      {claim && getStatusIcon(claim.status)}
+                      {activeClaim && getStatusIcon(activeClaim.status)}
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1 flex flex-col justify-center py-4">
-                    {claim ? (
-                      <div className="space-y-3">
+                    {activeClaim ? (
+                      <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-primary">{formatCurrency(claim.amount)}</span>
-                          {getStatusBadge(claim.status)}
+                          <span className="text-lg font-bold text-primary">{formatCurrency(activeClaim.amount)}</span>
+                          {getStatusBadge(activeClaim.status)}
                         </div>
                         <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-2 rounded-md">
-                          <p><span className="font-semibold">Bill Date:</span> {format(parseISO(claim.billDate), 'MMM d, yyyy')}</p>
-                          {claim.paidAt && <p><span className="font-semibold">Paid:</span> {format(parseISO(claim.paidAt), 'MMM d, yyyy')}</p>}
-                          {claim.approvedBy && <p><span className="font-semibold">By:</span> {claim.approvedBy}</p>}
-                          {claim.transactionId && <p className="font-mono text-[10px] break-all"><span className="font-semibold">ID:</span> {claim.transactionId}</p>}
+                          <p><span className="font-semibold">Bill Date:</span> {format(parseISO(activeClaim.billDate), 'MMM d, yyyy')}</p>
+                          {activeClaim.paidAt && <p><span className="font-semibold">Paid:</span> {format(parseISO(activeClaim.paidAt), 'MMM d, yyyy')}</p>}
                         </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full gap-2 text-xs h-8"
+                          onClick={() => setViewingMonthHistory({ month: monthName, index, year: selectedYear })}
+                        >
+                          <History className="h-3.5 w-3.5" />
+                          View Full History
+                        </Button>
                       </div>
                     ) : (
                       <div className="text-center py-4">
@@ -249,6 +301,109 @@ export default function InternetReimbursementCalendarPage() {
           </div>
         )}
       </main>
+
+      {/* History Dialog */}
+      <Dialog open={!!viewingMonthHistory} onOpenChange={(val) => !val && setViewingMonthHistory(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Claim History: {viewingMonthHistory?.month} {viewingMonthHistory?.year}
+            </DialogTitle>
+            <DialogDescription>Viewing all reimbursement attempts for this period.</DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 -mx-6 px-6 py-4">
+            <div className="space-y-6">
+              {viewingMonthHistory && getClaimsForMonth(viewingMonthHistory.index).map((claim, idx) => (
+                <div key={claim.id} className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold">{formatCurrency(claim.amount)}</span>
+                        {getStatusBadge(claim.status)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
+                    </div>
+                    {claim.receiptUrl && (
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
+                        <Eye className="h-4 w-4" />
+                        Receipt
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm bg-muted/40 p-3 rounded-md border">
+                    <div>
+                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Bill Date</p>
+                      <p>{format(parseISO(claim.billDate), 'MMM d, yyyy')}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Processed By</p>
+                      <p>{claim.approvedBy || '-'}</p>
+                    </div>
+                    {claim.paidAt && (
+                      <div>
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Paid At</p>
+                        <p>{format(parseISO(claim.paidAt), 'MMM d, yyyy')}</p>
+                      </div>
+                    )}
+                    {claim.transactionId && (
+                      <div>
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Transaction ID</p>
+                        <p className="font-mono text-xs">{claim.transactionId}</p>
+                      </div>
+                    )}
+                    <div className="col-span-2">
+                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Description</p>
+                      <p className="text-xs">{claim.description}</p>
+                    </div>
+                    {claim.remarks && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Admin Remarks</p>
+                        <p className="text-xs italic">&ldquo;{claim.remarks}&rdquo;</p>
+                      </div>
+                    )}
+                  </div>
+                  {idx < getClaimsForMonth(viewingMonthHistory.index).length - 1 && <Separator className="mt-6" />}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewingMonthHistory(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Receipt Viewer Dialog */}
+      <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 border-b">
+            <DialogTitle>Receipt Document</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto bg-muted/30 p-4 flex items-center justify-center">
+            {viewingReceipt && (
+              isPDF(viewingReceipt) ? (
+                pdfBlobUrl ? (
+                  <object data={pdfBlobUrl} type="application/pdf" className="w-full h-full rounded-md border">
+                    <div className="flex flex-col items-center justify-center p-12 text-center bg-background rounded-lg border max-w-md">
+                      <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                      <p className="text-xl font-semibold mb-2">Preview Unavailable</p>
+                      <Button asChild><a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer">Open in New Tab</a></Button>
+                    </div>
+                  </object>
+                ) : <p className="animate-pulse">Loading viewer...</p>
+              ) : <img src={viewingReceipt} alt="Receipt" className="max-w-full max-h-full object-contain shadow-lg rounded-md" />
+            )}
+          </div>
+          <DialogFooter className="p-4 border-t gap-2">
+            <Button variant="outline" onClick={() => setViewingReceipt(null)}>Close</Button>
+            {viewingReceipt && <Button asChild><a href={viewingReceipt} download={`receipt-${Date.now()}`}>Download</a></Button>}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isSubmitOpen} onOpenChange={(val) => {
         setIsSubmitOpen(val)
