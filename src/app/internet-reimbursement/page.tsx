@@ -141,7 +141,12 @@ export default function InternetReimbursementPage() {
     try {
       setLoading(true)
       const fetchAdminData = isAdmin && viewMode === 'Management';
-      const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=${fetchAdminData}`)
+      // Adjust API call logic: in management mode we want ALL claims, so don't pass userId
+      const url = fetchAdminData 
+        ? `/api/reimbursements?isAdmin=true` 
+        : `/api/reimbursements?userId=${currentUser.id}&isAdmin=false`;
+      
+      const res = await fetch(url)
       const data = await res.json()
       setItems(data)
     } catch (err) {
@@ -167,10 +172,11 @@ export default function InternetReimbursementPage() {
   }, [items]);
 
   const filteredSuggestions = useMemo(() => {
-    if (!nameSearch.trim()) return [];
+    const query = nameSearch.toLowerCase();
+    if (!query.trim()) return [];
     return employeeSuggestions.filter(emp => 
-      emp.name.toLowerCase().includes(nameSearch.toLowerCase()) || 
-      emp.id.toLowerCase().includes(nameSearch.toLowerCase())
+      emp.name.toLowerCase().includes(query) || 
+      emp.id.toLowerCase().includes(query)
     ).slice(0, 10);
   }, [employeeSuggestions, nameSearch]);
 
@@ -530,7 +536,7 @@ export default function InternetReimbursementPage() {
                       <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start">
                     <div className="flex flex-col">
                       {filteredSuggestions.length > 0 ? (
                         filteredSuggestions.map((emp) => (

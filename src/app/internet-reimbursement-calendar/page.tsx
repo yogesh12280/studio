@@ -28,7 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { employees } from '@/lib/data'
 
 export default function InternetReimbursementCalendarPage() {
-  const { currentUser } = useUser()
+  const { currentUser, users } = useUser()
   const { toast } = useToast()
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
@@ -89,11 +89,13 @@ export default function InternetReimbursementCalendarPage() {
       const isManagement = isAdmin && viewMode === 'Management';
       const targetUserId = isManagement ? (activeEmployee?.id || '') : currentUser.id;
       
+      // If in management mode but no employee selected, clear list and return
       if (isManagement && !targetUserId) {
         setItems([]);
         return;
       }
 
+      // Fetch specific user data. API is now updated to respect userId even for admins.
       const res = await fetch(`/api/reimbursements?userId=${targetUserId}&isAdmin=${isManagement}`)
       const data = await res.json()
       setItems(data)
@@ -250,17 +252,24 @@ export default function InternetReimbursementCalendarPage() {
 
   const employeeSuggestions = useMemo(() => {
     const uniqueEmployees = new Map<string, { name: string, id: string }>();
+    
+    // Include both static employees and dynamic users from context
     employees.forEach(emp => {
       uniqueEmployees.set(emp.id, { name: emp.name, id: emp.id });
     });
+    users.forEach(u => {
+      if (u.name) uniqueEmployees.set(u.id, { name: u.name, id: u.id });
+    });
+    
     return Array.from(uniqueEmployees.values());
-  }, []);
+  }, [users]);
 
   const filteredSuggestions = useMemo(() => {
-    if (!nameSearch.trim()) return [];
+    const query = nameSearch.toLowerCase();
+    if (!query.trim()) return [];
     return employeeSuggestions.filter(emp => 
-      emp.name.toLowerCase().includes(nameSearch.toLowerCase()) || 
-      emp.id.toLowerCase().includes(nameSearch.toLowerCase())
+      emp.name.toLowerCase().includes(query) || 
+      emp.id.toLowerCase().includes(query)
     ).slice(0, 10);
   }, [employeeSuggestions, nameSearch]);
 

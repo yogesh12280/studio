@@ -9,9 +9,16 @@ export async function GET(request: Request) {
 
   let filtered = [...reimbursements];
 
-  if (!isAdmin && userId) {
+  // If a specific userId is requested, always filter by it.
+  // This is crucial for the Calendar view which looks at one person at a time.
+  if (userId) {
     filtered = filtered.filter(r => r.userId === userId);
+  } else if (!isAdmin) {
+    // Regular users must have a userId provided (handled by client, but good to be safe)
+    // If no userId and not admin, return empty to prevent unauthorized access to all data
+    return NextResponse.json([]);
   }
+  // If isAdmin is true and NO userId is provided, return all (used in the main table list view).
 
   // Sort by most recent submission
   filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
