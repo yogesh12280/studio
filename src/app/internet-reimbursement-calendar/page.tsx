@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,11 +13,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO, startOfMonth, isFuture, endOfMonth } from 'date-fns'
-import { PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, Calendar as CalendarIcon, History, Eye, FileText, RefreshCw } from 'lucide-react'
+import { 
+  PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
+  Calendar as CalendarIcon, History, Eye, FileText, 
+  RefreshCw, Search, Shield, User as UserIcon, 
+  ChevronDown, X, CreditCard, Edit
+} from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { employees } from '@/lib/data'
 
 export default function InternetReimbursementCalendarPage() {
   const { currentUser } = useUser()
@@ -29,6 +37,19 @@ export default function InternetReimbursementCalendarPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [activeSubmittingMonth, setActiveSubmittingMonth] = useState<number | null>(null)
   
+  // Admin view state
+  const isAdmin = currentUser?.role === 'Admin'
+  const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(isAdmin ? 'Management' : 'Personal')
+  const [nameSearch, setNameSearch] = useState('')
+  const [activeEmployee, setActiveEmployee] = useState<{ id: string, name: string } | null>(null)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Admin approval/modify state
+  const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
+  const [transactionId, setTransactionId] = useState('')
+  const [adminRemarks, setAdminRemarks] = useState('')
+  const [editStatus, setEditStatus] = useState<ReimbursementStatus>('Approved')
+
   // History View State
   const [viewingMonthHistory, setViewingMonthHistory] = useState<{ month: string, index: number, year: number } | null>(null)
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null)
@@ -65,7 +86,15 @@ export default function InternetReimbursementCalendarPage() {
     if (!currentUser) return
     try {
       setLoading(true)
-      const res = await fetch(`/api/reimbursements?userId=${currentUser.id}&isAdmin=false`)
+      const isManagement = isAdmin && viewMode === 'Management';
+      const targetUserId = isManagement ? (activeEmployee?.id || '') : currentUser.id;
+      
+      if (isManagement && !targetUserId) {
+        setItems([]);
+        return;
+      }
+
+      const res = await fetch(`/api/reimbursements?userId=${targetUserId}&isAdmin=${isManagement}`)
       const data = await res.json()
       setItems(data)
     } catch (err) {
@@ -77,7 +106,7 @@ export default function InternetReimbursementCalendarPage() {
 
   useEffect(() => {
     fetchReimbursements()
-  }, [currentUser])
+  }, [currentUser, viewMode, activeEmployee, selectedYear])
 
   useEffect(() => {
     if (viewingReceipt && isPDF(viewingReceipt)) {
@@ -173,6 +202,44 @@ export default function InternetReimbursementCalendarPage() {
     }
   }
 
+  const handleApprove = async () => {
+    if (!approvingItem || !currentUser) return
+    
+    try {
+      const payload: any = { 
+        status: editStatus,
+        remarks: adminRemarks,
+        approvedBy: currentUser.name
+      };
+
+      if (editStatus === 'Approved') {
+         payload.transactionId = transactionId;
+         payload.paidAt = new Date().toISOString();
+      } else {
+         payload.transactionId = null;
+         payload.paidAt = null;
+      }
+
+      const res = await fetch(`/api/reimbursements/${approvingItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        toast({ title: 'Updated', description: `Request processed successfully.` })
+        setApprovingItem(null)
+        setTransactionId('')
+        setAdminRemarks('')
+        fetchReimbursements()
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update claim.' })
+      }
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred.' })
+    }
+  }
+
   const openSubmitForMonth = (monthIndex: number) => {
     setActiveSubmittingMonth(monthIndex)
     const date = new Date(selectedYear, monthIndex, 1)
@@ -180,6 +247,22 @@ export default function InternetReimbursementCalendarPage() {
     setDescription(`Internet bill for ${format(date, 'MMMM yyyy')}`)
     setIsSubmitOpen(true)
   }
+
+  const employeeSuggestions = useMemo(() => {
+    const uniqueEmployees = new Map<string, { name: string, id: string }>();
+    employees.forEach(emp => {
+      uniqueEmployees.set(emp.id, { name: emp.name, id: emp.id });
+    });
+    return Array.from(uniqueEmployees.values());
+  }, []);
+
+  const filteredSuggestions = useMemo(() => {
+    if (!nameSearch.trim()) return [];
+    return employeeSuggestions.filter(emp => 
+      emp.name.toLowerCase().includes(nameSearch.toLowerCase()) || 
+      emp.id.toLowerCase().includes(nameSearch.toLowerCase())
+    ).slice(0, 10);
+  }, [employeeSuggestions, nameSearch]);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -211,7 +294,6 @@ export default function InternetReimbursementCalendarPage() {
 
   if (!currentUser) return null
 
-  // Date boundaries for the submit form based on the selected month box
   const minBillDate = activeSubmittingMonth !== null 
     ? format(new Date(selectedYear, activeSubmittingMonth, 1), 'yyyy-MM-dd') 
     : undefined
@@ -221,32 +303,113 @@ export default function InternetReimbursementCalendarPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Claims Calendar" />
+      <AppHeader title="Claims Calendar">
+        {isAdmin && (
+          <Tabs value={viewMode} onValueChange={(val: any) => setViewMode(val)} className="w-auto mr-2">
+            <TabsList>
+              <TabsTrigger value="Personal" className="gap-2">
+                <UserIcon className="h-4 w-4" />
+                My Claims
+              </TabsTrigger>
+              <TabsTrigger value="Management" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Management
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+      </AppHeader>
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
-        <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center gap-3">
-            <Label htmlFor="year-select" className="text-base font-medium">Select Year:</Label>
-            <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
-              <SelectTrigger id="year-select" className="w-[140px]">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map(year => (
-                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="year-select" className="text-sm font-medium whitespace-nowrap">Select Year:</Label>
+              <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
+                <SelectTrigger id="year-select" className="w-[120px]">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {isAdmin && viewMode === 'Management' && (
+              <div className="flex items-center gap-3 min-w-[280px]">
+                <Label htmlFor="search" className="text-sm font-medium whitespace-nowrap">Employee:</Label>
+                <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="relative w-full group">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="search"
+                        placeholder="Search by name..." 
+                        className="pl-8 pr-8 w-full" 
+                        value={nameSearch}
+                        onChange={(e) => {
+                          setNameSearch(e.target.value);
+                          if (!e.target.value) setActiveEmployee(null);
+                          setIsSearchOpen(true);
+                        }}
+                      />
+                      {nameSearch && (
+                        <button onClick={() => { setNameSearch(''); setActiveEmployee(null); }} className="absolute right-8 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                      <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start">
+                    <div className="flex flex-col">
+                      {filteredSuggestions.length > 0 ? (
+                        filteredSuggestions.map((emp) => (
+                          <button
+                            key={emp.id}
+                            className="flex flex-col items-start px-4 py-2 hover:bg-accent text-sm text-left border-b last:border-0"
+                            onClick={() => {
+                              setNameSearch(emp.name);
+                              setActiveEmployee(emp);
+                              setIsSearchOpen(false);
+                            }}
+                          >
+                            <span className="font-medium">{emp.name}</span>
+                            <span className="text-xs text-muted-foreground font-mono">{emp.id}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-4 text-sm text-muted-foreground text-center">
+                          {nameSearch ? 'No matches' : 'Type to search...'}
+                        </div>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
           </div>
-          <div className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1 rounded-full">
-            Reviewing {selectedYear} History
+
+          <div className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1 rounded-full text-center">
+            {viewMode === 'Management' 
+              ? (activeEmployee ? `Viewing ${activeEmployee.name}'s ${selectedYear} History` : 'Select an employee')
+              : `Reviewing My ${selectedYear} History`
+            }
           </div>
         </div>
 
         {loading ? (
           <div className="text-center py-20">
             <p className="text-muted-foreground animate-pulse font-medium">Loading calendar data...</p>
+          </div>
+        ) : viewMode === 'Management' && !activeEmployee ? (
+          <div className="text-center py-24 border-2 border-dashed rounded-lg bg-muted/20">
+            <UserIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium">No Employee Selected</h3>
+            <p className="text-muted-foreground">Please select an employee to view their reimbursement calendar.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -287,7 +450,7 @@ export default function InternetReimbursementCalendarPage() {
                             <History className="h-3.5 w-3.5" />
                             View History
                           </Button>
-                          {isOnlyRejected && (
+                          {viewMode === 'Personal' && isOnlyRejected && (
                             <Button 
                               variant="outline" 
                               size="sm" 
@@ -307,7 +470,7 @@ export default function InternetReimbursementCalendarPage() {
                             <Clock className="h-5 w-5 text-muted-foreground/40" />
                             <p className="text-xs text-muted-foreground italic">Future Month</p>
                           </div>
-                        ) : (
+                        ) : viewMode === 'Personal' ? (
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -317,6 +480,11 @@ export default function InternetReimbursementCalendarPage() {
                             <PlusCircle className="h-4 w-4" />
                             Submit Claim
                           </Button>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 py-2">
+                             <AlertCircle className="h-5 w-5 text-muted-foreground/40" />
+                             <p className="text-xs text-muted-foreground italic">No submissions</p>
+                          </div>
                         )}
                       </div>
                     )}
@@ -330,19 +498,21 @@ export default function InternetReimbursementCalendarPage() {
 
       {/* History Dialog */}
       <Dialog open={!!viewingMonthHistory} onOpenChange={(val) => !val && setViewingMonthHistory(null)}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
               Claim History: {viewingMonthHistory?.month} {viewingMonthHistory?.year}
             </DialogTitle>
-            <DialogDescription>Viewing all reimbursement attempts for this period.</DialogDescription>
+            <DialogDescription>
+              {viewMode === 'Management' ? `Reviewing history for ${activeEmployee?.name}` : 'Viewing all your reimbursement attempts for this period.'}
+            </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="flex-1 -mx-6 px-6 py-4">
             <div className="space-y-6">
               {viewingMonthHistory && getClaimsForMonth(viewingMonthHistory.index).map((claim, idx) => (
-                <div key={claim.id} className="space-y-3">
+                <div key={claim.id} className="space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -351,12 +521,54 @@ export default function InternetReimbursementCalendarPage() {
                       </div>
                       <p className="text-xs text-muted-foreground">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
                     </div>
-                    {claim.receiptUrl && (
-                      <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
-                        <Eye className="h-4 w-4" />
-                        View Receipt
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {claim.receiptUrl && (
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
+                          <Eye className="h-4 w-4" />
+                          Receipt
+                        </Button>
+                      )}
+                      {viewMode === 'Management' && (
+                        claim.status === 'Pending' ? (
+                          <>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => {
+                               setApprovingItem(claim);
+                               setEditStatus('Approved');
+                               setTransactionId('');
+                               setAdminRemarks('');
+                            }}>
+                              <CreditCard className="h-3.5 w-3.5" />
+                              Approve
+                            </Button>
+                            <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
+                              try {
+                                await fetch(`/api/reimbursements/${claim.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser.name })
+                                });
+                                fetchReimbursements();
+                              } catch (e) {
+                                toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
+                              }
+                            }}>
+                              <XCircle className="h-3.5 w-3.5" />
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => {
+                             setApprovingItem(claim);
+                             setEditStatus(claim.status);
+                             setTransactionId(claim.transactionId || '');
+                             setAdminRemarks(claim.remarks || '');
+                          }}>
+                            <Edit className="h-3.5 w-3.5" />
+                            Modify
+                          </Button>
+                        )
+                      )}
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm bg-muted/40 p-3 rounded-md border">
@@ -403,6 +615,48 @@ export default function InternetReimbursementCalendarPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Admin Action Dialog */}
+      <Dialog open={!!approvingItem} onOpenChange={(open) => !open && setApprovingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{approvingItem?.status === 'Pending' ? 'Process Claim' : 'Modify Claim'}</DialogTitle>
+            <DialogDescription>Update claim details for {activeEmployee?.name}.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {approvingItem?.status !== 'Pending' && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {editStatus === 'Approved' && (
+              <div className="space-y-2">
+                <Label htmlFor="txId">Transaction Number / ID</Label>
+                <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="remarks">Remarks (Optional)</Label>
+              <Textarea id="remarks" placeholder="Add optional remarks." value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
+            <Button onClick={handleApprove} disabled={editStatus === 'Approved' && !transactionId.trim()}>
+              Confirm Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Receipt Viewer Dialog */}
       <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
         <DialogContent className="max-w-4xl w-[90vw] h-[90vh] flex flex-col p-0 overflow-hidden">
@@ -431,6 +685,7 @@ export default function InternetReimbursementCalendarPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Submit Form Dialog */}
       <Dialog open={isSubmitOpen} onOpenChange={(val) => {
         setIsSubmitOpen(val)
         if (!val) {
