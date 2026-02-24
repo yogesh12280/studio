@@ -3,16 +3,21 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Wifi, Home } from 'lucide-react'
+import { Wifi, Home, Calendar } from 'lucide-react'
 
 export function Sidebar() {
   const pathname = usePathname()
 
   const navItems = [
     {
-      title: 'Internet',
+      title: 'Internet Claims',
       href: '/internet-reimbursement',
       icon: Wifi,
+    },
+    {
+      title: 'Claims Calendar',
+      href: '/internet-reimbursement-calendar',
+      icon: Calendar,
     },
   ]
 
