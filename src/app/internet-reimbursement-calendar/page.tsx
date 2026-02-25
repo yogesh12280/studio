@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -548,119 +549,128 @@ export default function InternetReimbursementCalendarPage() {
           
           <ScrollArea className="flex-1 -mx-6 px-6 py-4">
             <div className="space-y-6">
-              {viewingMonthHistory && getClaimsForMonth(viewingMonthHistory.index).map((claim, idx) => (
-                <div key={claim.id} className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold">{formatCurrency(claim.amount)}</span>
-                        {getStatusBadge(claim.status)}
+              {viewingMonthHistory && getClaimsForMonth(viewingMonthHistory.index).map((claim, idx) => {
+                const monthClaims = getClaimsForMonth(viewingMonthHistory.index);
+                const isSuperseded = monthClaims.some(c => 
+                  new Date(c.submittedAt).getTime() > new Date(claim.submittedAt).getTime()
+                );
+
+                return (
+                  <div key={claim.id} className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold">{formatCurrency(claim.amount)}</span>
+                          {getStatusBadge(claim.status)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      {claim.receiptUrl && (
-                        <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
-                          <Eye className="h-4 w-4" />
-                          Receipt
-                        </Button>
-                      )}
-                      {viewMode === 'Management' && (
-                        <>
-                          {claim.status === 'Pending' ? (
-                            <>
-                              <Button size="sm" variant="outline" className="text-blue-600 gap-1" onClick={async () => {
+                      <div className="flex gap-2">
+                        {claim.receiptUrl && (
+                          <Button variant="outline" size="sm" className="gap-2" onClick={() => setViewingReceipt(claim.receiptUrl!)}>
+                            <Eye className="h-4 w-4" />
+                            Receipt
+                          </Button>
+                        )}
+                        {viewMode === 'Management' && (
+                          <>
+                            {claim.status === 'Pending' ? (
+                              <>
+                                <Button size="sm" variant="outline" className="text-blue-600 gap-1" onClick={async () => {
+                                    try {
+                                      await fetch(`/api/reimbursements/${claim.id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'Approved', approvedBy: currentUser?.name })
+                                      });
+                                      fetchReimbursements();
+                                    } catch (e) {
+                                      toast({ variant: 'destructive', title: 'Error', description: 'Failed to approve.' });
+                                    }
+                                }}>
+                                  <CheckCircle className="h-3.5 w-3.5" />
+                                  Approve
+                                </Button>
+                                <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
                                   try {
                                     await fetch(`/api/reimbursements/${claim.id}`, {
                                       method: 'PUT',
                                       headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: 'Approved', approvedBy: currentUser?.name })
+                                      body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
                                     });
                                     fetchReimbursements();
                                   } catch (e) {
-                                    toast({ variant: 'destructive', title: 'Error', description: 'Failed to approve.' });
+                                    toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
                                   }
-                              }}>
-                                <CheckCircle className="h-3.5 w-3.5" />
-                                Approve
-                              </Button>
-                              <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
-                                try {
-                                  await fetch(`/api/reimbursements/${claim.id}`, {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
-                                  });
-                                  fetchReimbursements();
-                                } catch (e) {
-                                  toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
-                                }
-                              }}>
-                                <XCircle className="h-3.5 w-3.5" />
-                                Reject
-                              </Button>
-                            </>
-                          ) : claim.status === 'Approved' ? (
-                             <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => {
-                                setApprovingItem(claim);
-                                setEditStatus('Paid');
-                                setTransactionId('');
-                                setAdminRemarks(claim.remarks || '');
-                             }}>
-                               <Banknote className="h-3.5 w-3.5" />
-                               Mark as Paid
-                             </Button>
-                          ) : (
-                            <Button size="sm" variant="outline" className="gap-1" onClick={() => {
-                               setApprovingItem(claim);
-                               setEditStatus(claim.status);
-                               setTransactionId(claim.transactionId || '');
-                               setAdminRemarks(claim.remarks || '');
-                            }}>
-                              <Edit className="h-3.5 w-3.5" />
-                              Modify
-                            </Button>
-                          )}
-                        </>
+                                }}>
+                                  <XCircle className="h-3.5 w-3.5" />
+                                  Reject
+                                </Button>
+                              </>
+                            ) : claim.status === 'Approved' ? (
+                               <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => {
+                                  setApprovingItem(claim);
+                                  setEditStatus('Paid');
+                                  setTransactionId('');
+                                  setAdminRemarks(claim.remarks || '');
+                               }}>
+                                 <Banknote className="h-3.5 w-3.5" />
+                                 Mark as Paid
+                               </Button>
+                            ) : (
+                              (claim.status === 'Rejected' && isSuperseded) ? null : (
+                                <Button size="sm" variant="outline" className="gap-1" onClick={() => {
+                                   setApprovingItem(claim);
+                                   setEditStatus(claim.status);
+                                   setTransactionId(claim.transactionId || '');
+                                   setAdminRemarks(claim.remarks || '');
+                                }}>
+                                  <Edit className="h-3.5 w-3.5" />
+                                  Modify
+                                </Button>
+                              )
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm bg-muted/40 p-3 rounded-md border">
+                      <div>
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Bill Date</p>
+                        <p>{format(parseISO(claim.billDate), 'MMM d, yyyy')}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Processed By</p>
+                        <p>{claim.approvedBy || '-'}</p>
+                      </div>
+                      {claim.paidAt && (
+                        <div>
+                          <p className="text-muted-foreground text-[10px] uppercase font-bold">Paid At</p>
+                          <p>{format(parseISO(claim.paidAt), 'MMM d, yyyy')}</p>
+                        </div>
+                      )}
+                      {claim.transactionId && (
+                        <div>
+                          <p className="text-muted-foreground text-[10px] uppercase font-bold">Transaction ID</p>
+                          <p className="font-mono text-xs">{claim.transactionId}</p>
+                        </div>
+                      )}
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Description</p>
+                        <p className="text-xs">{claim.description}</p>
+                      </div>
+                      {claim.remarks && (
+                        <div className="col-span-2">
+                          <p className="text-muted-foreground text-[10px] uppercase font-bold">Admin Remarks</p>
+                          <p className="text-xs italic">&ldquo;{claim.remarks}&rdquo;</p>
+                        </div>
                       )}
                     </div>
+                    {idx < monthClaims.length - 1 && <Separator className="mt-6" />}
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm bg-muted/40 p-3 rounded-md border">
-                    <div>
-                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Bill Date</p>
-                      <p>{format(parseISO(claim.billDate), 'MMM d, yyyy')}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Processed By</p>
-                      <p>{claim.approvedBy || '-'}</p>
-                    </div>
-                    {claim.paidAt && (
-                      <div>
-                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Paid At</p>
-                        <p>{format(parseISO(claim.paidAt), 'MMM d, yyyy')}</p>
-                      </div>
-                    )}
-                    {claim.transactionId && (
-                      <div>
-                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Transaction ID</p>
-                        <p className="font-mono text-xs">{claim.transactionId}</p>
-                      </div>
-                    )}
-                    <div className="col-span-2">
-                      <p className="text-muted-foreground text-[10px] uppercase font-bold">Description</p>
-                      <p className="text-xs">{claim.description}</p>
-                    </div>
-                    {claim.remarks && (
-                      <div className="col-span-2">
-                        <p className="text-muted-foreground text-[10px] uppercase font-bold">Admin Remarks</p>
-                        <p className="text-xs italic">&ldquo;{claim.remarks}&rdquo;</p>
-                      </div>
-                    )}
-                  </div>
-                  {idx < getClaimsForMonth(viewingMonthHistory.index).length - 1 && <Separator className="mt-6" />}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </ScrollArea>
           

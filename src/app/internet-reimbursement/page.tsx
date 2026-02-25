@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -396,6 +397,17 @@ export default function InternetReimbursementPage() {
     }
   }
 
+  const isSuperseded = (item: Reimbursement) => {
+    const itemDate = parseISO(item.billDate);
+    return items.some(other => 
+      other.userId === item.userId &&
+      other.id !== item.id &&
+      parseISO(other.billDate).getMonth() === itemDate.getMonth() &&
+      parseISO(other.billDate).getFullYear() === itemDate.getFullYear() &&
+      new Date(other.submittedAt).getTime() > new Date(item.submittedAt).getTime()
+    );
+  };
+
   if (!currentUser) return null
 
   return (
@@ -693,14 +705,16 @@ export default function InternetReimbursementPage() {
                                   </Button>
                                 )}
                                 {(item.status === 'Rejected' || item.status === 'Paid') && (
-                                  <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/10" onClick={() => {
-                                    setApprovingItem(item);
-                                    setEditStatus(item.status);
-                                    setTransactionId(item.transactionId || '');
-                                    setAdminRemarks(item.remarks || '');
-                                  }} title="Modify">
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
+                                  (item.status === 'Rejected' && isSuperseded(item)) ? null : (
+                                    <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/10" onClick={() => {
+                                      setApprovingItem(item);
+                                      setEditStatus(item.status);
+                                      setTransactionId(item.transactionId || '');
+                                      setAdminRemarks(item.remarks || '');
+                                    }} title="Modify">
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  )
                                 )}
                               </>
                             )}
