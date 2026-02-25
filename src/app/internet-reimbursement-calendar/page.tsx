@@ -48,7 +48,7 @@ export default function InternetReimbursementCalendarPage() {
   const [transactionId, setTransactionId] = useState('')
   const [adminRemarks, setAdminRemarks] = useState('')
   const [editStatus, setEditStatus] = useState<ReimbursementStatus>('Approved')
-  const [paidAmount, setPaidAmount] = useState<string>('')
+  const [paidAmountInput, setPaidAmountInput] = useState<string>('')
 
   // History View State
   const [viewingMonthHistory, setViewingMonthHistory] = useState<{ month: string, index: number, year: number } | null>(null)
@@ -206,7 +206,7 @@ export default function InternetReimbursementCalendarPage() {
     
     // Validation for paid amount
     if (editStatus === 'Paid') {
-      const pAmt = parseFloat(paidAmount);
+      const pAmt = parseFloat(paidAmountInput);
       if (isNaN(pAmt) || pAmt <= 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid payment amount.' });
         return;
@@ -227,10 +227,11 @@ export default function InternetReimbursementCalendarPage() {
       if (editStatus === 'Paid') {
          payload.transactionId = transactionId;
          payload.paidAt = new Date().toISOString();
-         payload.amount = parseFloat(paidAmount);
+         payload.paidAmount = parseFloat(paidAmountInput);
       } else if (editStatus === 'Approved' || editStatus === 'Rejected') {
          payload.transactionId = null;
          payload.paidAt = null;
+         payload.paidAmount = null;
       }
 
       const res = await fetch(`/api/reimbursements/${approvingItem.id}`, {
@@ -244,7 +245,7 @@ export default function InternetReimbursementCalendarPage() {
         setApprovingItem(null)
         setTransactionId('')
         setAdminRemarks('')
-        setPaidAmount('')
+        setPaidAmountInput('')
         fetchReimbursements()
       } else {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to update claim.' })
@@ -501,9 +502,20 @@ export default function InternetReimbursementCalendarPage() {
                   <CardContent className="flex-1 flex flex-col justify-center py-4">
                     {activeClaim ? (
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-primary">{formatCurrency(activeClaim.amount)}</span>
-                          {getStatusBadge(activeClaim.status)}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex justify-between items-center">
+                            <div className="flex flex-col">
+                              <span className="text-xs text-muted-foreground">Claimed</span>
+                              <span className="text-lg font-bold text-primary">{formatCurrency(activeClaim.amount)}</span>
+                            </div>
+                            {getStatusBadge(activeClaim.status)}
+                          </div>
+                          {activeClaim.status === 'Paid' && activeClaim.paidAmount !== undefined && (
+                            <div className="flex flex-col mt-2 pt-2 border-t border-dashed">
+                              <span className="text-[10px] uppercase font-bold text-green-600">Actual Paid</span>
+                              <span className="text-md font-bold text-green-700">{formatCurrency(activeClaim.paidAmount)}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground space-y-1 bg-muted/50 p-2 rounded-md">
                           <p><span className="font-semibold">Bill Date:</span> {format(parseISO(activeClaim.billDate), 'MMM d, yyyy')}</p>
@@ -591,10 +603,19 @@ export default function InternetReimbursementCalendarPage() {
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold">{formatCurrency(claim.amount)}</span>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-muted-foreground font-bold uppercase">Claimed Amount</span>
+                            <span className="text-lg font-bold">{formatCurrency(claim.amount)}</span>
+                          </div>
                           {getStatusBadge(claim.status)}
                         </div>
-                        <p className="text-xs text-muted-foreground">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
+                        {claim.status === 'Paid' && claim.paidAmount !== undefined && (
+                          <div className="flex flex-col mt-1 bg-green-50 p-2 rounded border border-green-100">
+                             <span className="text-[10px] text-green-700 font-bold uppercase">Actual Paid Amount</span>
+                             <span className="text-md font-bold text-green-800">{formatCurrency(claim.paidAmount)}</span>
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">Submitted: {format(parseISO(claim.submittedAt), 'PPP p')}</p>
                       </div>
                       <div className="flex gap-2">
                         {claim.receiptUrl && (
@@ -626,7 +647,7 @@ export default function InternetReimbursementCalendarPage() {
                                   setApprovingItem(claim);
                                   setEditStatus('Rejected');
                                   setAdminRemarks('');
-                                  setPaidAmount('');
+                                  setPaidAmountInput('');
                                 }}>
                                   <XCircle className="h-3.5 w-3.5" />
                                   Reject
@@ -638,7 +659,7 @@ export default function InternetReimbursementCalendarPage() {
                                   setEditStatus('Paid');
                                   setTransactionId('');
                                   setAdminRemarks(claim.remarks || '');
-                                  setPaidAmount(claim.amount.toString());
+                                  setPaidAmountInput(claim.amount.toString());
                                }}>
                                  <Banknote className="h-3.5 w-3.5" />
                                  Mark as Paid
@@ -650,7 +671,7 @@ export default function InternetReimbursementCalendarPage() {
                                    setEditStatus(claim.status);
                                    setTransactionId(claim.transactionId || '');
                                    setAdminRemarks(claim.remarks || '');
-                                   setPaidAmount(claim.amount.toString());
+                                   setPaidAmountInput(claim.paidAmount?.toString() || claim.amount.toString());
                                 }}>
                                   <Edit className="h-3.5 w-3.5" />
                                   Modify
@@ -734,14 +755,14 @@ export default function InternetReimbursementCalendarPage() {
             {editStatus === 'Paid' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="paidAmt">Final Payment Amount (&#8377;)</Label>
+                  <Label htmlFor="paidAmt">Actual Paid Amount (&#8377;)</Label>
                   <Input 
                     id="paidAmt" 
                     type="number" 
                     step="0.01" 
-                    value={paidAmount} 
-                    onChange={e => setPaidAmount(e.target.value)} 
-                    placeholder="Enter amount paid"
+                    value={paidAmountInput} 
+                    onChange={e => setPaidAmountInput(e.target.value)} 
+                    placeholder="Enter final amount paid"
                   />
                   <p className="text-[10px] text-muted-foreground">
                     Original claimed amount: {formatCurrency(approvingItem?.amount || 0)}
@@ -760,7 +781,7 @@ export default function InternetReimbursementCalendarPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && (!transactionId.trim() || !paidAmount)) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
+            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && (!transactionId.trim() || !paidAmountInput)) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
               Confirm Changes
             </Button>
           </DialogFooter>
@@ -830,7 +851,7 @@ export default function InternetReimbursementCalendarPage() {
                 required 
                 value={billDate} 
                 min={minBillDate}
-                max={maxBillDate}
+                max={billDate === '' ? undefined : maxBillDate}
                 onChange={e => setBillDate(e.target.value)} 
               />
               {activeSubmittingMonth !== null && (

@@ -63,7 +63,8 @@ export default function ReportsPage() {
 
   const stats = useMemo(() => {
     const total = filteredData.length
-    const paid = filteredData.filter(r => r.status === 'Paid').reduce((acc, r) => acc + r.amount, 0)
+    const totalClaimed = filteredData.reduce((acc, r) => acc + r.amount, 0)
+    const paid = filteredData.filter(r => r.status === 'Paid').reduce((acc, r) => acc + (r.paidAmount || 0), 0)
     const pending = filteredData.filter(r => r.status === 'Pending' || r.status === 'Approved').reduce((acc, r) => acc + r.amount, 0)
     const countByStatus = {
       Paid: filteredData.filter(r => r.status === 'Paid').length,
@@ -71,7 +72,7 @@ export default function ReportsPage() {
       Pending: filteredData.filter(r => r.status === 'Pending').length,
       Rejected: filteredData.filter(r => r.status === 'Rejected').length,
     }
-    return { total, paid, pending, countByStatus }
+    return { total, totalClaimed, paid, pending, countByStatus }
   }, [filteredData])
 
   const monthlyTrends = useMemo(() => {
@@ -88,8 +89,8 @@ export default function ReportsPage() {
       
       return {
         name,
-        total: monthClaims.reduce((acc, r) => acc + r.amount, 0),
-        paid: monthClaims.filter(r => r.status === 'Paid').reduce((acc, r) => acc + r.amount, 0)
+        totalClaimed: monthClaims.reduce((acc, r) => acc + r.amount, 0),
+        actualPaid: monthClaims.filter(r => r.status === 'Paid').reduce((acc, r) => acc + (r.paidAmount || 0), 0)
       }
     })
 
@@ -115,8 +116,8 @@ export default function ReportsPage() {
     const exportData = monthlyTrends.map(m => ({
       'Month': m.name,
       'Year': selectedYear,
-      'Total Claims (INR)': m.total,
-      'Paid Claims (INR)': m.paid
+      'Claimed Amount (INR)': m.totalClaimed,
+      'Actual Paid Amount (INR)': m.actualPaid
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -186,22 +187,22 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Volume ({selectedYear})</CardTitle>
+              <CardTitle className="text-sm font-medium">Claimed Amount ({selectedYear})</CardTitle>
               <FileBarChart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">{isAdmin ? 'Total organization claims' : 'Your total claims'}</p>
+              <div className="text-2xl font-bold">{formatCurrency(stats.totalClaimed)}</div>
+              <p className="text-xs text-muted-foreground">{stats.total} total claim(s)</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Disbursed ({selectedYear})</CardTitle>
+              <CardTitle className="text-sm font-medium">Actual Paid ({selectedYear})</CardTitle>
               <Banknote className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.paid)}</div>
-              <p className="text-xs text-muted-foreground">Total amount paid</p>
+              <p className="text-xs text-muted-foreground">Successfully disbursed</p>
             </CardContent>
           </Card>
           <Card>
@@ -211,7 +212,7 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pending)}</div>
-              <p className="text-xs text-muted-foreground">Pending processing</p>
+              <p className="text-xs text-muted-foreground">Awaiting final processing</p>
             </CardContent>
           </Card>
           <Card>
@@ -223,7 +224,7 @@ export default function ReportsPage() {
               <div className="text-2xl font-bold">
                 {stats.total > 0 ? Math.round(((stats.countByStatus.Paid + stats.countByStatus.Approved) / stats.total) * 100) : 0}%
               </div>
-              <p className="text-xs text-muted-foreground">Success percentage</p>
+              <p className="text-xs text-muted-foreground">Successful submissions</p>
             </CardContent>
           </Card>
         </div>
@@ -232,7 +233,7 @@ export default function ReportsPage() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Monthly Trends: {selectedYear}</CardTitle>
-              <CardDescription>Breakdown of total volume vs. payouts per month.</CardDescription>
+              <CardDescription>Comparison of Claimed vs. Actual Paid amounts.</CardDescription>
             </CardHeader>
             <CardContent className="h-[350px]">
               {loading ? (
@@ -250,8 +251,8 @@ export default function ReportsPage() {
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
                     <Legend verticalAlign="top" height={36}/>
-                    <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Total Claimed" />
-                    <Bar dataKey="paid" fill="#22c55e" radius={[4, 4, 0, 0]} name="Actual Paid" />
+                    <Bar dataKey="totalClaimed" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Claimed Amount" />
+                    <Bar dataKey="actualPaid" fill="#22c55e" radius={[4, 4, 0, 0]} name="Actual Paid" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -261,7 +262,7 @@ export default function ReportsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Status Distribution</CardTitle>
-              <CardDescription>Overall breakdown for {selectedYear}.</CardDescription>
+              <CardDescription>Breakdown for {selectedYear} by request state.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center">
               {stats.total > 0 ? (
@@ -310,28 +311,28 @@ export default function ReportsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Financial Summary ({selectedYear})</CardTitle>
-            <CardDescription>Monthly snapshot of reimbursement activity.</CardDescription>
+            <CardDescription>Detailed monthly snapshot of internet reimbursement activity.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Month</TableHead>
-                  <TableHead>Total Claims (Value)</TableHead>
-                  <TableHead>Disbursed Amount</TableHead>
-                  <TableHead>Remaining Pipeline</TableHead>
+                  <TableHead>Claimed Amount</TableHead>
+                  <TableHead>Actual Paid Amount</TableHead>
+                  <TableHead>Gap (Adjustment)</TableHead>
                   <TableHead className="text-right">Settlement %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {monthlyTrends.map((m) => {
-                  const rate = m.total > 0 ? Math.round((m.paid / m.total) * 100) : 0
+                  const rate = m.totalClaimed > 0 ? Math.round((m.actualPaid / m.totalClaimed) * 100) : 0
                   return (
                     <TableRow key={m.name}>
                       <TableCell className="font-medium">{m.name} {selectedYear}</TableCell>
-                      <TableCell>{formatCurrency(m.total)}</TableCell>
-                      <TableCell className="text-green-600 font-semibold">{formatCurrency(m.paid)}</TableCell>
-                      <TableCell>{formatCurrency(m.total - m.paid)}</TableCell>
+                      <TableCell>{formatCurrency(m.totalClaimed)}</TableCell>
+                      <TableCell className="text-green-600 font-semibold">{formatCurrency(m.actualPaid)}</TableCell>
+                      <TableCell className="text-muted-foreground italic">{formatCurrency(m.totalClaimed - m.actualPaid)}</TableCell>
                       <TableCell className="text-right">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${rate > 80 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                           {rate}%

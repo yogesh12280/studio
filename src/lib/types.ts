@@ -23,7 +23,8 @@ export type Reimbursement = {
   userId: string;
   userName: string;
   userAvatar?: string;
-  amount: number;
+  amount: number; // Original Claimed Amount
+  paidAmount?: number; // Actual Final Paid Amount
   billDate: string;
   description: string;
   receiptUrl?: string;
