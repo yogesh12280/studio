@@ -17,7 +17,7 @@ import {
   PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
   Calendar as CalendarIcon, History, Eye, FileText, 
   RefreshCw, Shield, User as UserIcon, 
-  CreditCard, Edit, ArrowLeft, CheckSquare
+  Banknote, Edit, ArrowLeft, CheckSquare
 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -208,10 +208,10 @@ export default function InternetReimbursementCalendarPage() {
         approvedBy: currentUser.name
       };
 
-      if (editStatus === 'Approved') {
+      if (editStatus === 'Paid') {
          payload.transactionId = transactionId;
          payload.paidAt = new Date().toISOString();
-      } else {
+      } else if (editStatus === 'Approved' || editStatus === 'Rejected') {
          payload.transactionId = null;
          payload.paidAt = null;
       }
@@ -261,7 +261,7 @@ export default function InternetReimbursementCalendarPage() {
       };
 
       existing.totalClaims += 1;
-      if (item.status === 'Pending') existing.hasPending = true;
+      if (item.status === 'Pending' || item.status === 'Approved') existing.hasPending = true;
       
       summaryMap.set(item.userId, existing);
     });
@@ -276,7 +276,8 @@ export default function InternetReimbursementCalendarPage() {
 
   const getStatusIcon = (status: ReimbursementStatus) => {
     switch (status) {
-      case 'Approved': return <CheckCircle className="h-4 w-4 text-green-600" />
+      case 'Paid': return <CheckCircle className="h-4 w-4 text-green-600" />
+      case 'Approved': return <CheckCircle className="h-4 w-4 text-blue-600" />
       case 'Rejected': return <XCircle className="h-4 w-4 text-red-600" />
       default: return <Clock className="h-4 w-4 text-yellow-600" />
     }
@@ -284,7 +285,8 @@ export default function InternetReimbursementCalendarPage() {
 
   const getStatusBadge = (status: ReimbursementStatus) => {
     switch (status) {
-      case 'Approved': return <Badge variant="success" className="bg-green-100 text-green-800 border-green-200">Approved</Badge>
+      case 'Paid': return <Badge variant="success" className="bg-green-100 text-green-800 border-green-200">Paid</Badge>
+      case 'Approved': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Approved</Badge>
       case 'Rejected': return <Badge variant="destructive">Rejected</Badge>
       default: return <Badge variant="secondary">Pending</Badge>
     }
@@ -294,7 +296,11 @@ export default function InternetReimbursementCalendarPage() {
     return items.filter(item => {
       const d = parseISO(item.billDate)
       return d.getFullYear() === selectedYear && d.getMonth() === monthIndex
-    }).sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    }).sort((a, b) => {
+        // Sort order: Paid > Approved > Pending > Rejected
+        const order = { 'Paid': 0, 'Approved': 1, 'Pending': 2, 'Rejected': 3 };
+        return order[a.status] - order[b.status] || new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+    });
   }
 
   if (!currentUser) return null
@@ -306,7 +312,6 @@ export default function InternetReimbursementCalendarPage() {
     ? format(endOfMonth(new Date(selectedYear, activeSubmittingMonth, 1)), 'yyyy-MM-dd') 
     : undefined
 
-  // Condition to show static year label vs dropdown
   const showStaticYear = isAdmin && viewMode === 'Management' && activeEmployee;
 
   return (
@@ -409,9 +414,9 @@ export default function InternetReimbursementCalendarPage() {
                           <TableCell>{emp.totalClaims} claim(s)</TableCell>
                           <TableCell>
                             {emp.hasPending ? (
-                              <Badge variant="secondary" className="gap-1">
+                              <Badge variant="secondary" className="gap-1 bg-yellow-100 text-yellow-800 border-yellow-200">
                                 <Clock className="h-3 w-3" />
-                                Pending
+                                Action Required
                               </Badge>
                             ) : (
                               <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200">
@@ -440,11 +445,21 @@ export default function InternetReimbursementCalendarPage() {
               const activeClaim = monthClaims.find(c => c.status !== 'Rejected') || monthClaims[0];
               const isMonthInFuture = isFuture(startOfMonth(new Date(selectedYear, index, 1)))
               
-              const hasActionableClaim = monthClaims.some(c => c.status === 'Pending' || c.status === 'Approved');
+              const hasActionableClaim = monthClaims.some(c => c.status === 'Pending' || c.status === 'Approved' || c.status === 'Paid');
               const isOnlyRejected = monthClaims.length > 0 && !hasActionableClaim;
 
+              let borderClass = 'border-t-muted';
+              if (activeClaim) {
+                switch (activeClaim.status) {
+                  case 'Paid': borderClass = 'border-t-green-500'; break;
+                  case 'Approved': borderClass = 'border-t-blue-500'; break;
+                  case 'Rejected': borderClass = 'border-t-red-500'; break;
+                  default: borderClass = 'border-t-yellow-500'; break;
+                }
+              }
+
               return (
-                <Card key={monthName} className={`flex flex-col h-full border-t-4 transition-all hover:shadow-md ${activeClaim ? (activeClaim.status === 'Approved' ? 'border-t-green-500' : (activeClaim.status === 'Rejected' ? 'border-t-red-500' : 'border-t-yellow-500')) : 'border-t-muted'}`}>
+                <Card key={monthName} className={`flex flex-col h-full border-t-4 transition-all hover:shadow-md ${borderClass}`}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg font-bold">{monthName}</CardTitle>
@@ -551,44 +566,62 @@ export default function InternetReimbursementCalendarPage() {
                         </Button>
                       )}
                       {viewMode === 'Management' && (
-                        claim.status === 'Pending' ? (
-                          <>
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => {
+                        <>
+                          {claim.status === 'Pending' ? (
+                            <>
+                              <Button size="sm" variant="outline" className="text-blue-600 gap-1" onClick={async () => {
+                                  try {
+                                    await fetch(`/api/reimbursements/${claim.id}`, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ status: 'Approved', approvedBy: currentUser?.name })
+                                    });
+                                    fetchReimbursements();
+                                  } catch (e) {
+                                    toast({ variant: 'destructive', title: 'Error', description: 'Failed to approve.' });
+                                  }
+                              }}>
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
+                                try {
+                                  await fetch(`/api/reimbursements/${claim.id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
+                                  });
+                                  fetchReimbursements();
+                                } catch (e) {
+                                  toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
+                                }
+                              }}>
+                                <XCircle className="h-3.5 w-3.5" />
+                                Reject
+                              </Button>
+                            </>
+                          ) : claim.status === 'Approved' ? (
+                             <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1" onClick={() => {
+                                setApprovingItem(claim);
+                                setEditStatus('Paid');
+                                setTransactionId('');
+                                setAdminRemarks(claim.remarks || '');
+                             }}>
+                               <Banknote className="h-3.5 w-3.5" />
+                               Mark as Paid
+                             </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" className="gap-1" onClick={() => {
                                setApprovingItem(claim);
-                               setEditStatus('Approved');
-                               setTransactionId('');
-                               setAdminRemarks('');
+                               setEditStatus(claim.status);
+                               setTransactionId(claim.transactionId || '');
+                               setAdminRemarks(claim.remarks || '');
                             }}>
-                              <CreditCard className="h-3.5 w-3.5" />
-                              Approve
+                              <Edit className="h-3.5 w-3.5" />
+                              Modify
                             </Button>
-                            <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
-                              try {
-                                await fetch(`/api/reimbursements/${claim.id}`, {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
-                                });
-                                fetchReimbursements();
-                              } catch (e) {
-                                toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
-                              }
-                            }}>
-                              <XCircle className="h-3.5 w-3.5" />
-                              Reject
-                            </Button>
-                          </>
-                        ) : (
-                          <Button size="sm" variant="outline" className="gap-1" onClick={() => {
-                             setApprovingItem(claim);
-                             setEditStatus(claim.status);
-                             setTransactionId(claim.transactionId || '');
-                             setAdminRemarks(claim.remarks || '');
-                          }}>
-                            <Edit className="h-3.5 w-3.5" />
-                            Modify
-                          </Button>
-                        )
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -641,25 +674,25 @@ export default function InternetReimbursementCalendarPage() {
       <Dialog open={!!approvingItem} onOpenChange={(open) => !open && setApprovingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{approvingItem?.status === 'Pending' ? 'Process Claim' : 'Modify Claim'}</DialogTitle>
+            <DialogTitle>{editStatus === 'Paid' ? 'Complete Payment' : 'Modify Claim'}</DialogTitle>
             <DialogDescription>Update claim details for {activeEmployee?.name || approvingItem?.userName}.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {approvingItem?.status !== 'Pending' && (
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {editStatus === 'Approved' && (
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {editStatus === 'Paid' && (
               <div className="space-y-2">
                 <Label htmlFor="txId">Transaction Number / ID</Label>
                 <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
@@ -672,7 +705,7 @@ export default function InternetReimbursementCalendarPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={editStatus === 'Approved' && !transactionId.trim()}>
+            <Button onClick={handleApprove} disabled={editStatus === 'Paid' && !transactionId.trim()}>
               Confirm Changes
             </Button>
           </DialogFooter>

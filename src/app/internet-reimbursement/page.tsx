@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield, Edit } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield, Edit, Banknote } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -141,7 +141,6 @@ export default function InternetReimbursementPage() {
     try {
       setLoading(true)
       const fetchAdminData = isAdmin && viewMode === 'Management';
-      // Adjust API call logic: in management mode we want ALL claims, so don't pass userId
       const url = fetchAdminData 
         ? `/api/reimbursements?isAdmin=true` 
         : `/api/reimbursements?userId=${currentUser.id}&isAdmin=false`;
@@ -268,10 +267,10 @@ export default function InternetReimbursementPage() {
           approvedBy: currentUser.name
         };
 
-        if ((isBulkApproving || editStatus === 'Approved')) {
+        if ((isBulkApproving || editStatus === 'Paid')) {
            payload.transactionId = transactionId;
            payload.paidAt = new Date().toISOString();
-        } else {
+        } else if (editStatus === 'Approved' || editStatus === 'Rejected') {
            payload.transactionId = null;
            payload.paidAt = null;
         }
@@ -302,7 +301,7 @@ export default function InternetReimbursementPage() {
   }
 
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
-    if (status === 'Approved') return;
+    if (status === 'Paid') return; // Paid requires dialog for TX ID
     if (!currentUser) return
 
     try {
@@ -390,7 +389,8 @@ export default function InternetReimbursementPage() {
 
   const statusBadge = (status: ReimbursementStatus) => {
     switch (status) {
-      case 'Approved': return <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200"><CheckCircle className="h-3 w-3" /> Approved</Badge>
+      case 'Paid': return <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200"><CheckCircle className="h-3 w-3" /> Paid</Badge>
+      case 'Approved': return <Badge variant="secondary" className="gap-1 bg-blue-100 text-blue-800 border-blue-200"><CheckCircle className="h-3 w-3" /> Approved</Badge>
       case 'Rejected': return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Rejected</Badge>
       default: return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>
     }
@@ -564,7 +564,7 @@ export default function InternetReimbursementPage() {
                 </Popover>
               </div>
               {isAdmin && activeFilter && selectedIds.length > 0 && (
-                <Button className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => {
+                <Button className="gap-2 bg-blue-600 hover:bg-blue-700" onClick={() => {
                   setIsBulkApproving(true);
                   setEditStatus('Approved');
                 }}>
@@ -579,14 +579,17 @@ export default function InternetReimbursementPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>{isAdmin && viewMode === 'Management' ? 'All Employee Claims' : 'My Claim History'}</CardTitle>
-            <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
-              <TabsList>
-                <TabsTrigger value="All">All</TabsTrigger>
-                <TabsTrigger value="Pending">Pending</TabsTrigger>
-                <TabsTrigger value="Approved">Approved</TabsTrigger>
-                <TabsTrigger value="Rejected">Rejected</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="overflow-x-auto">
+              <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
+                <TabsList>
+                  <TabsTrigger value="All">All</TabsTrigger>
+                  <TabsTrigger value="Pending">Pending</TabsTrigger>
+                  <TabsTrigger value="Approved">Approved</TabsTrigger>
+                  <TabsTrigger value="Paid">Paid</TabsTrigger>
+                  <TabsTrigger value="Rejected">Rejected</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -613,7 +616,7 @@ export default function InternetReimbursementPage() {
                       <TableHead>Bill Date</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead className="hidden lg:table-cell">Description</TableHead>
-                      <TableHead>Paid</TableHead>
+                      <TableHead>Paid Details</TableHead>
                       <TableHead>Approved By</TableHead>
                       <TableHead>Remarks</TableHead>
                       <TableHead>Status</TableHead>
@@ -641,13 +644,15 @@ export default function InternetReimbursementPage() {
                         <TableCell className="whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
                         <TableCell className="hidden lg:table-cell max-w-[200px] truncate">{item.description}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {item.paidAt ? (
+                          {item.status === 'Paid' && item.paidAt ? (
                             <div className="flex flex-col text-xs">
                               <span>{format(parseISO(item.paidAt), 'MMM d, yyyy')}</span>
                               {item.transactionId && <span className="text-muted-foreground font-mono">#{item.transactionId}</span>}
                             </div>
                           ) : (
-                            <span className="text-muted-foreground italic text-xs">Pending</span>
+                            <span className="text-muted-foreground italic text-xs">
+                              {item.status === 'Approved' ? 'Awaiting Payment' : '-'}
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{item.approvedBy || '-'}</TableCell>
@@ -667,21 +672,27 @@ export default function InternetReimbursementPage() {
                             )}
                             {isAdmin && viewMode === 'Management' && (
                               <>
-                                {item.status === 'Pending' ? (
+                                {item.status === 'Pending' && (
                                   <>
-                                    <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => {
-                                      setApprovingItem(item);
-                                      setEditStatus('Approved');
-                                      setTransactionId('');
-                                      setAdminRemarks('');
-                                    }} title="Approve">
-                                      <CreditCard className="h-4 w-4" />
+                                    <Button size="icon" variant="ghost" className="text-blue-600 hover:bg-blue-50" onClick={() => handleUpdateStatus(item.id, 'Approved')} title="Approve">
+                                      <CheckCircle className="h-4 w-4" />
                                     </Button>
                                     <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
                                       <XCircle className="h-4 w-4" />
                                     </Button>
                                   </>
-                                ) : (
+                                )}
+                                {item.status === 'Approved' && (
+                                  <Button size="icon" variant="ghost" className="text-green-600 hover:bg-green-50" onClick={() => {
+                                    setApprovingItem(item);
+                                    setEditStatus('Paid');
+                                    setTransactionId('');
+                                    setAdminRemarks(item.remarks || '');
+                                  }} title="Mark as Paid">
+                                    <Banknote className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {(item.status === 'Rejected' || item.status === 'Paid') && (
                                   <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/10" onClick={() => {
                                     setApprovingItem(item);
                                     setEditStatus(item.status);
@@ -716,17 +727,17 @@ export default function InternetReimbursementPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isBulkApproving ? 'Bulk Approve Claims' : (approvingItem?.status === 'Pending' ? 'Approve Claim' : 'Modify Claim')}
+              {isBulkApproving ? 'Bulk Approve Claims' : (editStatus === 'Paid' ? 'Complete Payment' : 'Update Claim')}
             </DialogTitle>
             <DialogDescription>
               {isBulkApproving 
-                ? `Update ${selectedIds.length} pending claims.`
-                : `Update claim details for ${approvingItem?.userName}.`
+                ? `Verify ${selectedIds.length} pending claims.`
+                : `Update details for ${approvingItem?.userName}'s claim.`
               }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {!isBulkApproving && approvingItem?.status !== 'Pending' && (
+            {!isBulkApproving && (
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
@@ -734,13 +745,15 @@ export default function InternetReimbursementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
                     <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Paid">Paid</SelectItem>
                     <SelectItem value="Rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             )}
-            {(isBulkApproving || editStatus === 'Approved') && (
+            {(isBulkApproving || editStatus === 'Paid') && (
               <div className="space-y-2">
                 <Label htmlFor="txId">Transaction Number / ID</Label>
                 <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
@@ -753,8 +766,8 @@ export default function InternetReimbursementPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setApprovingItem(null); setIsBulkApproving(false); }}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={(isBulkApproving || editStatus === 'Approved') && !transactionId.trim()}>
-              Confirm {isBulkApproving || approvingItem?.status === 'Pending' ? 'Approval' : 'Changes'}
+            <Button onClick={handleApprove} disabled={editStatus === 'Paid' && !transactionId.trim()}>
+              Confirm Changes
             </Button>
           </DialogFooter>
         </DialogContent>

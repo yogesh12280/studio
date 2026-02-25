@@ -16,7 +16,7 @@ export type Employee = {
     birthdate: string;
 };
 
-export type ReimbursementStatus = 'Pending' | 'Approved' | 'Rejected';
+export type ReimbursementStatus = 'Pending' | 'Approved' | 'Rejected' | 'Paid';
 
 export type Reimbursement = {
   id: string;
