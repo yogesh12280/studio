@@ -28,11 +28,16 @@ export default function ReportsPage() {
   const isAdmin = currentUser?.role === 'Admin'
 
   useEffect(() => {
-    if (!isAdmin) return
+    if (!currentUser) return
     const fetchData = async () => {
       try {
         setLoading(true)
-        const res = await fetch('/api/reimbursements?isAdmin=true')
+        // Fetch data based on role
+        const url = isAdmin 
+          ? '/api/reimbursements?isAdmin=true' 
+          : `/api/reimbursements?userId=${currentUser.id}&isAdmin=false`
+        
+        const res = await fetch(url)
         const items = await res.json()
         setData(items)
       } catch (err) {
@@ -42,7 +47,7 @@ export default function ReportsPage() {
       }
     }
     fetchData()
-  }, [isAdmin])
+  }, [isAdmin, currentUser])
 
   const availableYears = useMemo(() => {
     const years = new Set<string>()
@@ -122,17 +127,9 @@ export default function ReportsPage() {
     toast({ title: 'Report Exported', description: `Summary for ${selectedYear} has been saved.` })
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-muted-foreground">Unauthorized access.</p>
-      </div>
-    )
-  }
-
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Analytics Report">
+      <AppHeader title={isAdmin ? "Organizational Report" : "My Claims Analytics"}>
         <Tabs 
           value="Report" 
           onValueChange={(val: any) => {
@@ -149,10 +146,12 @@ export default function ReportsPage() {
               <UserIcon className="h-4 w-4" />
               My Claims
             </TabsTrigger>
-            <TabsTrigger value="Management" className="gap-2">
-              <Shield className="h-4 w-4" />
-              Management
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="Management" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Management
+              </TabsTrigger>
+            )}
             <TabsTrigger value="Report" className="gap-2">
               <FileBarChart className="h-4 w-4" />
               Report
@@ -179,7 +178,7 @@ export default function ReportsPage() {
               </Select>
             </div>
           </div>
-          <Button variant="outline" className="gap-2" onClick={exportSummary} disabled={loading}>
+          <Button variant="outline" className="gap-2" onClick={exportSummary} disabled={loading || filteredData.length === 0}>
             <Download className="h-4 w-4" />
             Export {selectedYear} Summary
           </Button>
@@ -193,7 +192,7 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">Total claims submitted</p>
+              <p className="text-xs text-muted-foreground">{isAdmin ? 'Total organization claims' : 'Your total claims'}</p>
             </CardContent>
           </Card>
           <Card>
@@ -311,8 +310,8 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Consolidated Summary ({selectedYear})</CardTitle>
-            <CardDescription>Monthly financial snapshot for the organization.</CardDescription>
+            <CardTitle>Financial Summary ({selectedYear})</CardTitle>
+            <CardDescription>Monthly snapshot of reimbursement activity.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>

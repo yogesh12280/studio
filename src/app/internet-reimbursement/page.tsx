@@ -415,34 +415,37 @@ export default function InternetReimbursementPage() {
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Internet Reimbursement">
         <div className="flex items-center gap-2">
-          {isAdmin && (
-             <Tabs 
-              value={viewMode} 
-              onValueChange={(val: any) => {
-                if (val === 'Report') {
-                  router.push('/reports')
-                } else {
-                  setViewMode(val)
-                }
-              }} 
-              className="w-auto mr-2"
-            >
-              <TabsList>
-                <TabsTrigger value="Personal" className="gap-2">
-                  <UserIcon className="h-4 w-4" />
-                  My Claims
-                </TabsTrigger>
+          <Tabs 
+            value="Personal" 
+            onValueChange={(val: any) => {
+              if (val === 'Report') {
+                router.push('/reports')
+              } else if (val === 'Management') {
+                setViewMode('Management')
+              } else {
+                setViewMode('Personal')
+              }
+            }} 
+            className="w-auto mr-2"
+          >
+            <TabsList>
+              <TabsTrigger value="Personal" className="gap-2">
+                <UserIcon className="h-4 w-4" />
+                My Claims
+              </TabsTrigger>
+              {isAdmin && (
                 <TabsTrigger value="Management" className="gap-2">
                   <Shield className="h-4 w-4" />
                   Management
                 </TabsTrigger>
-                <TabsTrigger value="Report" className="gap-2">
-                  <FileBarChart className="h-4 w-4" />
-                  Report
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
+              )}
+              <TabsTrigger value="Report" className="gap-2">
+                <FileBarChart className="h-4 w-4" />
+                Report
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
           <Dialog open={isSubmitOpen} onOpenChange={(val) => {
             setIsSubmitOpen(val)
             if (!val) setSubmitError(null)
