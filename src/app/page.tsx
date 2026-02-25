@@ -7,7 +7,7 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/internet-reimbursement');
+    router.replace('/internet-reimbursement-calendar');
   }, [router]);
 
   return null;

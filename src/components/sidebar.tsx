@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Wifi, Home, Calendar, FileBarChart } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 
 export function Sidebar() {
@@ -11,11 +11,6 @@ export function Sidebar() {
   const { currentUser } = useUser()
 
   const navItems = [
-    {
-      title: 'Internet Claims',
-      href: '/internet-reimbursement',
-      icon: Wifi,
-    },
     {
       title: 'Claims Calendar',
       href: '/internet-reimbursement-calendar',

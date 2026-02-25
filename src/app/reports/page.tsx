@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { format, parseISO, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts'
-import { Banknote, Clock, CheckCircle, XCircle, FileBarChart, Download, Calendar as CalendarIcon, User as UserIcon, Shield } from 'lucide-react'
+import { Banknote, Clock, CheckCircle, FileBarChart, Download, Calendar as CalendarIcon, User as UserIcon, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -32,7 +32,6 @@ export default function ReportsPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        // Fetch data based on role
         const url = isAdmin 
           ? '/api/reimbursements?isAdmin=true' 
           : `/api/reimbursements?userId=${currentUser.id}&isAdmin=false`
@@ -134,9 +133,9 @@ export default function ReportsPage() {
           value="Report" 
           onValueChange={(val: any) => {
             if (val === 'Personal') {
-              router.push('/internet-reimbursement')
+              router.push('/internet-reimbursement-calendar')
             } else if (val === 'Management') {
-              router.push('/internet-reimbursement?view=Management')
+              router.push('/internet-reimbursement-calendar')
             }
           }} 
           className="w-auto mr-2"
