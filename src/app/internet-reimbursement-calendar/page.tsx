@@ -348,18 +348,27 @@ export default function InternetReimbursementCalendarPage() {
                </Button>
              )}
             <div className="flex items-center gap-3">
-              <Label htmlFor="year-select" className="text-sm font-medium whitespace-nowrap">Select Year:</Label>
-              <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
-                <SelectTrigger id="year-select" className="w-[120px]">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-sm font-medium whitespace-nowrap">
+                {isAdmin && viewMode === 'Management' ? 'Year:' : 'Select Year:'}
+              </Label>
+              {isAdmin && viewMode === 'Management' ? (
+                <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-md border text-sm font-bold">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  {selectedYear}
+                </div>
+              ) : (
+                <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
+                  <SelectTrigger id="year-select" className="w-[120px]">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -757,7 +766,7 @@ export default function InternetReimbursementCalendarPage() {
             </div>
             <DialogFooter>
               <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                {isSubmitting ? 'Submit Request' : 'Submit Request'}
               </Button>
             </DialogFooter>
           </form>
