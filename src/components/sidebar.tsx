@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Calendar } from 'lucide-react'
+import { Calendar, Globe } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 
 export function Sidebar() {
@@ -12,9 +12,9 @@ export function Sidebar() {
 
   const navItems = [
     {
-      title: 'Claims Calendar',
+      title: 'Internet',
       href: '/internet-reimbursement-calendar',
-      icon: Calendar,
+      icon: Globe,
     },
   ]
 
@@ -22,7 +22,7 @@ export function Sidebar() {
     <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar h-screen sticky top-0">
       <div className="flex h-16 items-center px-6 border-b">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="h-8 w-8 rounded-bg bg-primary flex items-center justify-center text-primary-foreground">
+          <div className="h-8 w-8 rounded-bg bg-primary flex items-center justify-center text-primary-foreground font-bold">
              RM
           </div>
           <span>Reimbursement Mgmt</span>

@@ -317,9 +317,9 @@ export default function InternetReimbursementCalendarPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Claims Calendar">
+      <AppHeader title="Internet">
         <Tabs 
-          value="Personal" 
+          value={viewMode} 
           onValueChange={(val: any) => {
             if (val === 'Report') {
               router.push('/reports')
@@ -398,7 +398,7 @@ export default function InternetReimbursementCalendarPage() {
 
         {loading ? (
           <div className="text-center py-20">
-            <p className="text-muted-foreground animate-pulse font-medium">Loading claims data...</p>
+            <p className="text-muted-foreground animate-pulse font-medium">Loading data...</p>
           </div>
         ) : viewMode === 'Management' && !activeEmployee ? (
           <Card>
@@ -814,7 +814,7 @@ export default function InternetReimbursementCalendarPage() {
             </div>
             <DialogFooter>
               <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
-                {isSubmitting ? 'Submit Request' : 'Submit Request'}
+                Submit Request
               </Button>
             </DialogFooter>
           </form>
