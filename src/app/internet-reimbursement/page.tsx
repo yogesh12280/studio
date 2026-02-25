@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -302,7 +301,7 @@ export default function InternetReimbursementPage() {
   }
 
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
-    if (status === 'Paid') return; // Paid requires dialog for TX ID
+    if (status === 'Paid' || status === 'Rejected') return; // Requires dialog for TX ID or Remarks
     if (!currentUser) return
 
     try {
@@ -689,7 +688,11 @@ export default function InternetReimbursementPage() {
                                     <Button size="icon" variant="ghost" className="text-blue-600 hover:bg-blue-50" onClick={() => handleUpdateStatus(item.id, 'Approved')} title="Approve">
                                       <CheckCircle className="h-4 w-4" />
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => handleUpdateStatus(item.id, 'Rejected')} title="Reject">
+                                    <Button size="icon" variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => {
+                                      setApprovingItem(item);
+                                      setEditStatus('Rejected');
+                                      setAdminRemarks('');
+                                    }} title="Reject">
                                       <XCircle className="h-4 w-4" />
                                     </Button>
                                   </>
@@ -741,7 +744,7 @@ export default function InternetReimbursementPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {isBulkApproving ? 'Bulk Approve Claims' : (editStatus === 'Paid' ? 'Complete Payment' : 'Update Claim')}
+              {isBulkApproving ? 'Bulk Approve Claims' : (editStatus === 'Paid' ? 'Complete Payment' : (editStatus === 'Rejected' ? 'Reject Claim' : 'Update Claim'))}
             </DialogTitle>
             <DialogDescription>
               {isBulkApproving 
@@ -774,13 +777,13 @@ export default function InternetReimbursementPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="remarks">Remarks (Optional)</Label>
-              <Textarea id="remarks" placeholder="Add optional remarks." value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
+              <Label htmlFor="remarks">Remarks {editStatus === 'Rejected' ? '(Required)' : '(Optional)'}</Label>
+              <Textarea id="remarks" placeholder={editStatus === 'Rejected' ? 'Please provide a reason for rejection.' : 'Add optional remarks.'} value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setApprovingItem(null); setIsBulkApproving(false); }}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={editStatus === 'Paid' && !transactionId.trim()}>
+            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && !transactionId.trim()) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
               Confirm Changes
             </Button>
           </DialogFooter>

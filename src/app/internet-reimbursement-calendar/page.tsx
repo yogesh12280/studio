@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -591,17 +590,10 @@ export default function InternetReimbursementCalendarPage() {
                                   <CheckCircle className="h-3.5 w-3.5" />
                                   Approve
                                 </Button>
-                                <Button size="sm" variant="destructive" className="gap-1" onClick={async () => {
-                                  try {
-                                    await fetch(`/api/reimbursements/${claim.id}`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
-                                    });
-                                    fetchReimbursements();
-                                  } catch (e) {
-                                    toast({ variant: 'destructive', title: 'Error', description: 'Failed to reject.' });
-                                  }
+                                <Button size="sm" variant="destructive" className="gap-1" onClick={() => {
+                                  setApprovingItem(claim);
+                                  setEditStatus('Rejected');
+                                  setAdminRemarks('');
                                 }}>
                                   <XCircle className="h-3.5 w-3.5" />
                                   Reject
@@ -684,7 +676,9 @@ export default function InternetReimbursementCalendarPage() {
       <Dialog open={!!approvingItem} onOpenChange={(open) => !open && setApprovingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editStatus === 'Paid' ? 'Complete Payment' : 'Modify Claim'}</DialogTitle>
+            <DialogTitle>
+              {editStatus === 'Paid' ? 'Complete Payment' : (editStatus === 'Rejected' ? 'Reject Claim' : 'Modify Claim')}
+            </DialogTitle>
             <DialogDescription>Update claim details for {activeEmployee?.name || approvingItem?.userName}.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -709,13 +703,13 @@ export default function InternetReimbursementCalendarPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="remarks">Remarks (Optional)</Label>
-              <Textarea id="remarks" placeholder="Add optional remarks." value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
+              <Label htmlFor="remarks">Remarks {editStatus === 'Rejected' ? '(Required)' : '(Optional)'}</Label>
+              <Textarea id="remarks" placeholder={editStatus === 'Rejected' ? 'Please provide a reason for rejection.' : 'Add optional remarks.'} value={adminRemarks} onChange={e => setAdminRemarks(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={editStatus === 'Paid' && !transactionId.trim()}>
+            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && !transactionId.trim()) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
               Confirm Changes
             </Button>
           </DialogFooter>
