@@ -16,8 +16,8 @@ import { format, parseISO, startOfMonth, isFuture, endOfMonth } from 'date-fns'
 import { 
   PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
   Calendar as CalendarIcon, History, Eye, FileText, 
-  RefreshCw, Search, Shield, User as UserIcon, 
-  ChevronDown, X, CreditCard, Edit, ArrowLeft, CheckSquare
+  RefreshCw, Shield, User as UserIcon, 
+  CreditCard, Edit, ArrowLeft, CheckSquare
 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -25,11 +25,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { employees } from '@/lib/data'
 
 export default function InternetReimbursementCalendarPage() {
-  const { currentUser, users } = useUser()
+  const { currentUser } = useUser()
   const { toast } = useToast()
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,9 +39,7 @@ export default function InternetReimbursementCalendarPage() {
   // Admin view state
   const isAdmin = currentUser?.role === 'Admin'
   const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(isAdmin ? 'Management' : 'Personal')
-  const [nameSearch, setNameSearch] = useState('')
   const [activeEmployee, setActiveEmployee] = useState<{ id: string, name: string } | null>(null)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   // Admin approval/modify state
   const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
@@ -88,7 +84,6 @@ export default function InternetReimbursementCalendarPage() {
     try {
       setLoading(true)
       const isManagement = isAdmin && viewMode === 'Management';
-      // In management mode with no specific employee selected, we fetch ALL to build the summary list
       const targetUserId = (isManagement && !activeEmployee) ? '' : (isManagement ? activeEmployee?.id : currentUser.id);
       
       const url = targetUserId 
@@ -249,7 +244,6 @@ export default function InternetReimbursementCalendarPage() {
     setIsSubmitOpen(true)
   }
 
-  // Aggregate stats for the management summary table
   const managementSummary = useMemo(() => {
     if (!isAdmin || viewMode !== 'Management' || activeEmployee) return [];
 
@@ -312,6 +306,9 @@ export default function InternetReimbursementCalendarPage() {
     ? format(endOfMonth(new Date(selectedYear, activeSubmittingMonth, 1)), 'yyyy-MM-dd') 
     : undefined
 
+  // Condition to show static year label vs dropdown
+  const showStaticYear = isAdmin && viewMode === 'Management' && activeEmployee;
+
   return (
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Claims Calendar">
@@ -319,7 +316,6 @@ export default function InternetReimbursementCalendarPage() {
           <Tabs value={viewMode} onValueChange={(val: any) => {
             setViewMode(val);
             setActiveEmployee(null);
-            setNameSearch('');
           }} className="w-auto mr-2">
             <TabsList>
               <TabsTrigger value="Personal" className="gap-2">
@@ -341,7 +337,6 @@ export default function InternetReimbursementCalendarPage() {
              {activeEmployee && (
                <Button variant="ghost" size="sm" className="gap-2" onClick={() => {
                  setActiveEmployee(null);
-                 setNameSearch('');
                }}>
                  <ArrowLeft className="h-4 w-4" />
                  Back to Summary
@@ -349,9 +344,9 @@ export default function InternetReimbursementCalendarPage() {
              )}
             <div className="flex items-center gap-3">
               <Label className="text-sm font-medium whitespace-nowrap">
-                {isAdmin && viewMode === 'Management' ? 'Year:' : 'Select Year:'}
+                {showStaticYear ? 'Year:' : 'Select Year:'}
               </Label>
-              {isAdmin && viewMode === 'Management' ? (
+              {showStaticYear ? (
                 <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-md border text-sm font-bold">
                   <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                   {selectedYear}
@@ -572,7 +567,7 @@ export default function InternetReimbursementCalendarPage() {
                                 await fetch(`/api/reimbursements/${claim.id}`, {
                                   method: 'PUT',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser.name })
+                                  body: JSON.stringify({ status: 'Rejected', approvedBy: currentUser?.name })
                                 });
                                 fetchReimbursements();
                               } catch (e) {
