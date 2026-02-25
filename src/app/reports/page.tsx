@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -129,30 +130,32 @@ export default function ReportsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Analytics Report">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="year-select" className="hidden sm:inline-block text-sm font-medium">Select Year:</Label>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger id="year-select" className="w-[120px] h-9">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button variant="outline" size="sm" className="gap-2" onClick={exportSummary}>
-            <Download className="h-4 w-4" />
-            Export {selectedYear}
-          </Button>
-        </div>
-      </AppHeader>
+      <AppHeader title="Analytics Report" />
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="year-select" className="text-sm font-medium whitespace-nowrap">Select Year:</Label>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger id="year-select" className="w-[140px] h-10">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map(year => (
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button variant="outline" className="gap-2" onClick={exportSummary} disabled={loading}>
+            <Download className="h-4 w-4" />
+            Export {selectedYear} Summary
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

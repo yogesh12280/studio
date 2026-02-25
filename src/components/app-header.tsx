@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -30,6 +30,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
+  const pathname = usePathname()
   
   const allUsers = [...users, ...employees];
 
@@ -46,6 +47,7 @@ export function AppHeader({
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'Admin';
+  const isReportPage = pathname === '/reports';
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 w-full">
@@ -58,7 +60,7 @@ export function AppHeader({
       <div className="flex items-center gap-2">
         {children}
         
-        {isAdmin && (
+        {isAdmin && !isReportPage && (
           <Button variant="ghost" size="sm" asChild className="hidden sm:flex gap-2">
             <Link href="/reports">
               <FileBarChart className="h-4 w-4" />
