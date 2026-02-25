@@ -1,8 +1,6 @@
-
 'use client'
 
-import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,7 +15,6 @@ import { useUser } from '@/contexts/user-context'
 import type { User } from '@/lib/types'
 import { employees } from '@/lib/data'
 import { ThemeToggle } from './theme-toggle'
-import { FileBarChart } from 'lucide-react'
 
 interface AppHeaderProps {
   title: string
@@ -30,7 +27,6 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { currentUser, users, setCurrentUser } = useUser()
   const router = useRouter()
-  const pathname = usePathname()
   
   const allUsers = [...users, ...employees];
 
@@ -46,9 +42,6 @@ export function AppHeader({
 
   if (!currentUser) return null;
 
-  const isAdmin = currentUser.role === 'Admin';
-  const isReportPage = pathname === '/reports';
-
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 w-full">
       <h1 className="text-xl font-semibold md:text-2xl font-headline whitespace-nowrap">
@@ -59,15 +52,6 @@ export function AppHeader({
 
       <div className="flex items-center gap-2">
         {children}
-        
-        {isAdmin && !isReportPage && (
-          <Button variant="ghost" size="sm" asChild className="hidden sm:flex gap-2">
-            <Link href="/reports">
-              <FileBarChart className="h-4 w-4" />
-              Report
-            </Link>
-          </Button>
-        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

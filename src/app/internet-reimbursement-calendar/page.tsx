@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Button } from '@/components/ui/button'
@@ -17,7 +18,7 @@ import {
   PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
   Calendar as CalendarIcon, History, Eye, FileText, 
   RefreshCw, Shield, User as UserIcon, 
-  Banknote, Edit, ArrowLeft, CheckSquare
+  Banknote, Edit, ArrowLeft, CheckSquare, FileBarChart
 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -28,6 +29,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export default function InternetReimbursementCalendarPage() {
   const { currentUser } = useUser()
+  const router = useRouter()
   const { toast } = useToast()
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
@@ -297,7 +299,6 @@ export default function InternetReimbursementCalendarPage() {
       const d = parseISO(item.billDate)
       return d.getFullYear() === selectedYear && d.getMonth() === monthIndex
     }).sort((a, b) => {
-        // Sort order: Paid > Approved > Pending > Rejected
         const order = { 'Paid': 0, 'Approved': 1, 'Pending': 2, 'Rejected': 3 };
         return order[a.status] - order[b.status] || new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
     });
@@ -318,10 +319,18 @@ export default function InternetReimbursementCalendarPage() {
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Claims Calendar">
         {isAdmin && (
-          <Tabs value={viewMode} onValueChange={(val: any) => {
-            setViewMode(val);
-            setActiveEmployee(null);
-          }} className="w-auto mr-2">
+          <Tabs 
+            value={viewMode} 
+            onValueChange={(val: any) => {
+              if (val === 'Report') {
+                router.push('/reports')
+              } else {
+                setViewMode(val);
+                setActiveEmployee(null);
+              }
+            }} 
+            className="w-auto mr-2"
+          >
             <TabsList>
               <TabsTrigger value="Personal" className="gap-2">
                 <UserIcon className="h-4 w-4" />
@@ -330,6 +339,10 @@ export default function InternetReimbursementCalendarPage() {
               <TabsTrigger value="Management" className="gap-2">
                 <Shield className="h-4 w-4" />
                 Management
+              </TabsTrigger>
+              <TabsTrigger value="Report" className="gap-2">
+                <FileBarChart className="h-4 w-4" />
+                Report
               </TabsTrigger>
             </TabsList>
           </Tabs>

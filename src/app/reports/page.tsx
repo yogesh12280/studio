@@ -1,23 +1,25 @@
-
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { format, parseISO, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts'
-import { Banknote, Clock, CheckCircle, XCircle, FileBarChart, Download, Calendar as CalendarIcon } from 'lucide-react'
+import { Banknote, Clock, CheckCircle, XCircle, FileBarChart, Download, Calendar as CalendarIcon, User as UserIcon, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import type { Reimbursement } from '@/lib/types'
 import * as XLSX from 'xlsx'
 import { useToast } from '@/hooks/use-toast'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function ReportsPage() {
   const { currentUser } = useUser()
+  const router = useRouter()
   const { toast } = useToast()
   const [data, setData] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
@@ -130,7 +132,34 @@ export default function ReportsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Analytics Report" />
+      <AppHeader title="Analytics Report">
+        <Tabs 
+          value="Report" 
+          onValueChange={(val: any) => {
+            if (val === 'Personal') {
+              router.push('/internet-reimbursement')
+            } else if (val === 'Management') {
+              router.push('/internet-reimbursement?view=Management')
+            }
+          }} 
+          className="w-auto mr-2"
+        >
+          <TabsList>
+            <TabsTrigger value="Personal" className="gap-2">
+              <UserIcon className="h-4 w-4" />
+              My Claims
+            </TabsTrigger>
+            <TabsTrigger value="Management" className="gap-2">
+              <Shield className="h-4 w-4" />
+              Management
+            </TabsTrigger>
+            <TabsTrigger value="Report" className="gap-2">
+              <FileBarChart className="h-4 w-4" />
+              Report
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </AppHeader>
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { format, parseISO } from 'date-fns'
-import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield, Edit, Banknote } from 'lucide-react'
+import { PlusCircle, FileText, CheckCircle, XCircle, Clock, Eye, Trash2, AlertCircle, CreditCard, Search, CheckSquare, ChevronDown, X, Download, User as UserIcon, Shield, Edit, Banknote, FileBarChart } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -35,6 +36,7 @@ import * as XLSX from 'xlsx'
 
 export default function InternetReimbursementPage() {
   const { currentUser } = useUser()
+  const router = useRouter()
   const { toast } = useToast()
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
@@ -301,7 +303,7 @@ export default function InternetReimbursementPage() {
   }
 
   const handleUpdateStatus = async (id: string, status: ReimbursementStatus) => {
-    if (status === 'Paid' || status === 'Rejected') return; // Requires dialog for TX ID or Remarks
+    if (status === 'Paid' || status === 'Rejected') return; 
     if (!currentUser) return
 
     try {
@@ -414,7 +416,17 @@ export default function InternetReimbursementPage() {
       <AppHeader title="Internet Reimbursement">
         <div className="flex items-center gap-2">
           {isAdmin && (
-             <Tabs value={viewMode} onValueChange={(val: any) => setViewMode(val)} className="w-auto mr-2">
+             <Tabs 
+              value={viewMode} 
+              onValueChange={(val: any) => {
+                if (val === 'Report') {
+                  router.push('/reports')
+                } else {
+                  setViewMode(val)
+                }
+              }} 
+              className="w-auto mr-2"
+            >
               <TabsList>
                 <TabsTrigger value="Personal" className="gap-2">
                   <UserIcon className="h-4 w-4" />
@@ -423,6 +435,10 @@ export default function InternetReimbursementPage() {
                 <TabsTrigger value="Management" className="gap-2">
                   <Shield className="h-4 w-4" />
                   Management
+                </TabsTrigger>
+                <TabsTrigger value="Report" className="gap-2">
+                  <FileBarChart className="h-4 w-4" />
+                  Report
                 </TabsTrigger>
               </TabsList>
             </Tabs>
