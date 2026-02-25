@@ -17,13 +17,14 @@ import {
   PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
   Calendar as CalendarIcon, History, Eye, FileText, 
   RefreshCw, Search, Shield, User as UserIcon, 
-  ChevronDown, X, CreditCard, Edit
+  ChevronDown, X, CreditCard, Edit, ArrowLeft, CheckSquare
 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { employees } from '@/lib/data'
 
@@ -87,16 +88,14 @@ export default function InternetReimbursementCalendarPage() {
     try {
       setLoading(true)
       const isManagement = isAdmin && viewMode === 'Management';
-      const targetUserId = isManagement ? (activeEmployee?.id || '') : currentUser.id;
+      // In management mode with no specific employee selected, we fetch ALL to build the summary list
+      const targetUserId = (isManagement && !activeEmployee) ? '' : (isManagement ? activeEmployee?.id : currentUser.id);
       
-      // If in management mode but no employee selected, clear list and return
-      if (isManagement && !targetUserId) {
-        setItems([]);
-        return;
-      }
+      const url = targetUserId 
+        ? `/api/reimbursements?userId=${targetUserId}&isAdmin=${isManagement}`
+        : `/api/reimbursements?isAdmin=${isManagement}`;
 
-      // Fetch specific user data. API is now updated to respect userId even for admins.
-      const res = await fetch(`/api/reimbursements?userId=${targetUserId}&isAdmin=${isManagement}`)
+      const res = await fetch(url)
       const data = await res.json()
       setItems(data)
     } catch (err) {
@@ -250,28 +249,31 @@ export default function InternetReimbursementCalendarPage() {
     setIsSubmitOpen(true)
   }
 
-  const employeeSuggestions = useMemo(() => {
-    const uniqueEmployees = new Map<string, { name: string, id: string }>();
-    
-    // Include both static employees and dynamic users from context
-    employees.forEach(emp => {
-      uniqueEmployees.set(emp.id, { name: emp.name, id: emp.id });
-    });
-    users.forEach(u => {
-      if (u.name) uniqueEmployees.set(u.id, { name: u.name, id: u.id });
-    });
-    
-    return Array.from(uniqueEmployees.values());
-  }, [users]);
+  // Aggregate stats for the management summary table
+  const managementSummary = useMemo(() => {
+    if (!isAdmin || viewMode !== 'Management' || activeEmployee) return [];
 
-  const filteredSuggestions = useMemo(() => {
-    const query = nameSearch.toLowerCase();
-    if (!query.trim()) return [];
-    return employeeSuggestions.filter(emp => 
-      emp.name.toLowerCase().includes(query) || 
-      emp.id.toLowerCase().includes(query)
-    ).slice(0, 10);
-  }, [employeeSuggestions, nameSearch]);
+    const summaryMap = new Map<string, { id: string, name: string, hasPending: boolean, totalClaims: number }>();
+    
+    items.forEach(item => {
+      const d = parseISO(item.billDate);
+      if (d.getFullYear() !== selectedYear) return;
+
+      const existing = summaryMap.get(item.userId) || { 
+        id: item.userId, 
+        name: item.userName, 
+        hasPending: false, 
+        totalClaims: 0 
+      };
+
+      existing.totalClaims += 1;
+      if (item.status === 'Pending') existing.hasPending = true;
+      
+      summaryMap.set(item.userId, existing);
+    });
+
+    return Array.from(summaryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [items, isAdmin, viewMode, activeEmployee, selectedYear]);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -314,7 +316,11 @@ export default function InternetReimbursementCalendarPage() {
     <div className="flex-1 overflow-y-auto">
       <AppHeader title="Claims Calendar">
         {isAdmin && (
-          <Tabs value={viewMode} onValueChange={(val: any) => setViewMode(val)} className="w-auto mr-2">
+          <Tabs value={viewMode} onValueChange={(val: any) => {
+            setViewMode(val);
+            setActiveEmployee(null);
+            setNameSearch('');
+          }} className="w-auto mr-2">
             <TabsList>
               <TabsTrigger value="Personal" className="gap-2">
                 <UserIcon className="h-4 w-4" />
@@ -331,7 +337,16 @@ export default function InternetReimbursementCalendarPage() {
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm gap-4">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-4">
+             {activeEmployee && (
+               <Button variant="ghost" size="sm" className="gap-2" onClick={() => {
+                 setActiveEmployee(null);
+                 setNameSearch('');
+               }}>
+                 <ArrowLeft className="h-4 w-4" />
+                 Back to Summary
+               </Button>
+             )}
             <div className="flex items-center gap-3">
               <Label htmlFor="year-select" className="text-sm font-medium whitespace-nowrap">Select Year:</Label>
               <Select value={selectedYear.toString()} onValueChange={(val) => setSelectedYear(parseInt(val))}>
@@ -346,65 +361,11 @@ export default function InternetReimbursementCalendarPage() {
                 </SelectContent>
               </Select>
             </div>
-            
-            {isAdmin && viewMode === 'Management' && (
-              <div className="flex items-center gap-3 min-w-[280px]">
-                <Label htmlFor="search" className="text-sm font-medium whitespace-nowrap">Employee:</Label>
-                <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative w-full group">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="search"
-                        placeholder="Search by name..." 
-                        className="pl-8 pr-8 w-full" 
-                        value={nameSearch}
-                        onChange={(e) => {
-                          setNameSearch(e.target.value);
-                          if (!e.target.value) setActiveEmployee(null);
-                          setIsSearchOpen(true);
-                        }}
-                      />
-                      {nameSearch && (
-                        <button onClick={() => { setNameSearch(''); setActiveEmployee(null); }} className="absolute right-8 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground">
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
-                      <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" align="start">
-                    <div className="flex flex-col">
-                      {filteredSuggestions.length > 0 ? (
-                        filteredSuggestions.map((emp) => (
-                          <button
-                            key={emp.id}
-                            className="flex flex-col items-start px-4 py-2 hover:bg-accent text-sm text-left border-b last:border-0"
-                            onClick={() => {
-                              setNameSearch(emp.name);
-                              setActiveEmployee(emp);
-                              setIsSearchOpen(false);
-                            }}
-                          >
-                            <span className="font-medium">{emp.name}</span>
-                            <span className="text-xs text-muted-foreground font-mono">{emp.id}</span>
-                          </button>
-                        ))
-                      ) : (
-                        <div className="p-4 text-sm text-muted-foreground text-center">
-                          {nameSearch ? 'No matches' : 'Type to search...'}
-                        </div>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
           </div>
 
           <div className="text-sm font-medium text-muted-foreground bg-muted px-3 py-1 rounded-full text-center">
             {viewMode === 'Management' 
-              ? (activeEmployee ? `Viewing ${activeEmployee.name}'s ${selectedYear} History` : 'Select an employee')
+              ? (activeEmployee ? `Viewing ${activeEmployee.name}'s ${selectedYear} History` : `Employee Submission Summary - ${selectedYear}`)
               : `Reviewing My ${selectedYear} History`
             }
           </div>
@@ -412,14 +373,62 @@ export default function InternetReimbursementCalendarPage() {
 
         {loading ? (
           <div className="text-center py-20">
-            <p className="text-muted-foreground animate-pulse font-medium">Loading calendar data...</p>
+            <p className="text-muted-foreground animate-pulse font-medium">Loading claims data...</p>
           </div>
         ) : viewMode === 'Management' && !activeEmployee ? (
-          <div className="text-center py-24 border-2 border-dashed rounded-lg bg-muted/20">
-            <UserIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">No Employee Selected</h3>
-            <p className="text-muted-foreground">Please select an employee to view their reimbursement calendar.</p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Submissions Overview</CardTitle>
+              <CardDescription>All employees who have submitted claims in {selectedYear}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {managementSummary.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
+                  <UserIcon className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground">No claims submitted in {selectedYear} yet.</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee Name</TableHead>
+                        <TableHead>Total Submissions</TableHead>
+                        <TableHead>Year Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {managementSummary.map((emp) => (
+                        <TableRow key={emp.id}>
+                          <TableCell className="font-medium">{emp.name}</TableCell>
+                          <TableCell>{emp.totalClaims} claim(s)</TableCell>
+                          <TableCell>
+                            {emp.hasPending ? (
+                              <Badge variant="secondary" className="gap-1">
+                                <Clock className="h-3 w-3" />
+                                Pending
+                              </Badge>
+                            ) : (
+                              <Badge variant="success" className="gap-1 bg-green-100 text-green-800 border-green-200">
+                                <CheckSquare className="h-3 w-3" />
+                                Completed
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="ghost" title="View Calendar" onClick={() => setActiveEmployee({ id: emp.id, name: emp.name })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {months.map((monthName, index) => {
@@ -629,7 +638,7 @@ export default function InternetReimbursementCalendarPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{approvingItem?.status === 'Pending' ? 'Process Claim' : 'Modify Claim'}</DialogTitle>
-            <DialogDescription>Update claim details for {activeEmployee?.name}.</DialogDescription>
+            <DialogDescription>Update claim details for {activeEmployee?.name || approvingItem?.userName}.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {approvingItem?.status !== 'Pending' && (
