@@ -48,6 +48,7 @@ export default function InternetReimbursementCalendarPage() {
   const [transactionId, setTransactionId] = useState('')
   const [adminRemarks, setAdminRemarks] = useState('')
   const [editStatus, setEditStatus] = useState<ReimbursementStatus>('Approved')
+  const [paidAmount, setPaidAmount] = useState<string>('')
 
   // History View State
   const [viewingMonthHistory, setViewingMonthHistory] = useState<{ month: string, index: number, year: number } | null>(null)
@@ -203,6 +204,19 @@ export default function InternetReimbursementCalendarPage() {
   const handleApprove = async () => {
     if (!approvingItem || !currentUser) return
     
+    // Validation for paid amount
+    if (editStatus === 'Paid') {
+      const pAmt = parseFloat(paidAmount);
+      if (isNaN(pAmt) || pAmt <= 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid payment amount.' });
+        return;
+      }
+      if (pAmt > approvingItem.amount) {
+        toast({ variant: 'destructive', title: 'Error', description: `Payment cannot exceed claimed amount (${formatCurrency(approvingItem.amount)}).` });
+        return;
+      }
+    }
+
     try {
       const payload: any = { 
         status: editStatus,
@@ -213,6 +227,7 @@ export default function InternetReimbursementCalendarPage() {
       if (editStatus === 'Paid') {
          payload.transactionId = transactionId;
          payload.paidAt = new Date().toISOString();
+         payload.amount = parseFloat(paidAmount);
       } else if (editStatus === 'Approved' || editStatus === 'Rejected') {
          payload.transactionId = null;
          payload.paidAt = null;
@@ -229,6 +244,7 @@ export default function InternetReimbursementCalendarPage() {
         setApprovingItem(null)
         setTransactionId('')
         setAdminRemarks('')
+        setPaidAmount('')
         fetchReimbursements()
       } else {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to update claim.' })
@@ -610,6 +626,7 @@ export default function InternetReimbursementCalendarPage() {
                                   setApprovingItem(claim);
                                   setEditStatus('Rejected');
                                   setAdminRemarks('');
+                                  setPaidAmount('');
                                 }}>
                                   <XCircle className="h-3.5 w-3.5" />
                                   Reject
@@ -621,6 +638,7 @@ export default function InternetReimbursementCalendarPage() {
                                   setEditStatus('Paid');
                                   setTransactionId('');
                                   setAdminRemarks(claim.remarks || '');
+                                  setPaidAmount(claim.amount.toString());
                                }}>
                                  <Banknote className="h-3.5 w-3.5" />
                                  Mark as Paid
@@ -632,6 +650,7 @@ export default function InternetReimbursementCalendarPage() {
                                    setEditStatus(claim.status);
                                    setTransactionId(claim.transactionId || '');
                                    setAdminRemarks(claim.remarks || '');
+                                   setPaidAmount(claim.amount.toString());
                                 }}>
                                   <Edit className="h-3.5 w-3.5" />
                                   Modify
@@ -713,10 +732,26 @@ export default function InternetReimbursementCalendarPage() {
               </Select>
             </div>
             {editStatus === 'Paid' && (
-              <div className="space-y-2">
-                <Label htmlFor="txId">Transaction Number / ID</Label>
-                <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="paidAmt">Final Payment Amount (&#8377;)</Label>
+                  <Input 
+                    id="paidAmt" 
+                    type="number" 
+                    step="0.01" 
+                    value={paidAmount} 
+                    onChange={e => setPaidAmount(e.target.value)} 
+                    placeholder="Enter amount paid"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Original claimed amount: {formatCurrency(approvingItem?.amount || 0)}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="txId">Transaction Number / ID</Label>
+                  <Input id="txId" placeholder="e.g. TXN12345678" value={transactionId} onChange={e => setTransactionId(e.target.value)} />
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="remarks">Remarks {editStatus === 'Rejected' ? '(Required)' : '(Optional)'}</Label>
@@ -725,7 +760,7 @@ export default function InternetReimbursementCalendarPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApprovingItem(null)}>Cancel</Button>
-            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && !transactionId.trim()) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
+            <Button onClick={handleApprove} disabled={(editStatus === 'Paid' && (!transactionId.trim() || !paidAmount)) || (editStatus === 'Rejected' && !adminRemarks.trim())}>
               Confirm Changes
             </Button>
           </DialogFooter>
