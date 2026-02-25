@@ -1,12 +1,15 @@
+
 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Wifi, Home, Calendar } from 'lucide-react'
+import { Wifi, Home, Calendar, FileBarChart } from 'lucide-react'
+import { useUser } from '@/contexts/user-context'
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { currentUser } = useUser()
 
   const navItems = [
     {
@@ -20,6 +23,8 @@ export function Sidebar() {
       icon: Calendar,
     },
   ]
+
+  const isAdmin = currentUser?.role === 'Admin'
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar h-screen sticky top-0">
@@ -47,6 +52,20 @@ export function Sidebar() {
             {item.title}
           </Link>
         ))}
+        {isAdmin && (
+          <Link
+            href="/reports"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium",
+              pathname === '/reports'
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+            )}
+          >
+            <FileBarChart className="h-4 w-4" />
+            Reports
+          </Link>
+        )}
       </nav>
     </aside>
   )
