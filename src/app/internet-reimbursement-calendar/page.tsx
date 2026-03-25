@@ -174,6 +174,12 @@ function InternetCalendarContent() {
     e.preventDefault()
     if (!currentUser || isSubmitting) return
 
+    // Limit amount to 2000
+    if (parseFloat(amount) > 2000) {
+      setSubmitError('Claim amount cannot exceed ₹2,000.')
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitError(null)
 
@@ -820,7 +826,8 @@ function InternetCalendarContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Bill Amount (&#8377;)</Label>
-              <Input id="amount" type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} />
+              <Input id="amount" type="number" step="0.01" required value={amount} onChange={e => setAmount(e.target.value)} max="2000" />
+              <p className="text-[10px] text-muted-foreground">Maximum limit: ₹2,000</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="date">Bill Date</Label>

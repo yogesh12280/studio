@@ -30,6 +30,14 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { userId, userName, userAvatar, amount, billDate, description, receiptUrl } = body;
 
+  // Amount limit validation
+  if (Number(amount) > 2000) {
+    return NextResponse.json(
+      { message: "Claim amount cannot exceed ₹2,000." },
+      { status: 400 }
+    );
+  }
+
   // Validation: Check if a claim already exists for the same month and year (excluding Rejected ones)
   const newDate = new Date(billDate);
   const newMonth = newDate.getMonth();
