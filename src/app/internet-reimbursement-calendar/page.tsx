@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
 import { Button } from '@/components/ui/button'
@@ -17,20 +17,21 @@ import { format, parseISO, startOfMonth, isFuture, endOfMonth } from 'date-fns'
 import { 
   PlusCircle, CheckCircle, XCircle, Clock, AlertCircle, 
   Calendar as CalendarIcon, History, Eye, FileText, 
-  RefreshCw, Shield, User as UserIcon, 
-  Banknote, Edit, ArrowLeft, CheckSquare, FileBarChart
+  RefreshCw, User as UserIcon, 
+  Banknote, Edit, ArrowLeft, CheckSquare
 } from 'lucide-react'
 import type { Reimbursement, ReimbursementStatus } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-export default function InternetReimbursementCalendarPage() {
+function InternetCalendarContent() {
   const { currentUser } = useUser()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
+  
   const [items, setItems] = useState<Reimbursement[]>([])
   const [loading, setLoading] = useState(true)
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
@@ -40,8 +41,20 @@ export default function InternetReimbursementCalendarPage() {
   
   // Admin view state
   const isAdmin = currentUser?.role === 'Admin'
-  const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(isAdmin ? 'Management' : 'Personal')
+  const viewParam = searchParams.get('view')
+  const [viewMode, setViewMode] = useState<'Personal' | 'Management'>(
+    (viewParam === 'Management' && isAdmin) ? 'Management' : 'Personal'
+  )
   const [activeEmployee, setActiveEmployee] = useState<{ id: string, name: string } | null>(null)
+
+  // Sync viewMode with URL
+  useEffect(() => {
+    if (viewParam === 'Management' && isAdmin) {
+      setViewMode('Management')
+    } else {
+      setViewMode('Personal')
+    }
+  }, [viewParam, isAdmin])
 
   // Admin approval/modify state
   const [approvingItem, setApprovingItem] = useState<Reimbursement | null>(null)
@@ -204,7 +217,6 @@ export default function InternetReimbursementCalendarPage() {
   const handleApprove = async () => {
     if (!approvingItem || !currentUser) return
     
-    // Validation for paid amount
     if (editStatus === 'Paid') {
       const pAmt = parseFloat(paidAmountInput);
       if (isNaN(pAmt) || pAmt <= 0) {
@@ -334,40 +346,7 @@ export default function InternetReimbursementCalendarPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title="Internet">
-        <Tabs 
-          value={viewMode} 
-          onValueChange={(val: any) => {
-            if (val === 'Report') {
-              router.push('/reports')
-            } else if (val === 'Management') {
-              setViewMode('Management');
-              setActiveEmployee(null);
-            } else {
-              setViewMode('Personal');
-              setActiveEmployee(null);
-            }
-          }} 
-          className="w-auto mr-2"
-        >
-          <TabsList>
-            <TabsTrigger value="Personal" className="gap-2">
-              <UserIcon className="h-4 w-4" />
-              My Claims
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="Management" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Management
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="Report" className="gap-2">
-              <FileBarChart className="h-4 w-4" />
-              Report
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </AppHeader>
+      <AppHeader title={viewMode === 'Management' ? "Management Overview" : "My Claims"} />
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm gap-4">
@@ -877,5 +856,13 @@ export default function InternetReimbursementCalendarPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function InternetReimbursementCalendarPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center animate-pulse">Loading interface...</div>}>
+      <InternetCalendarContent />
+    </Suspense>
   )
 }

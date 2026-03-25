@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppHeader } from '@/components/app-header'
 import { useUser } from '@/contexts/user-context'
@@ -8,16 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { format, parseISO, startOfYear, endOfYear, eachMonthOfInterval } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts'
-import { Banknote, Clock, CheckCircle, FileBarChart, Download, Calendar as CalendarIcon, User as UserIcon, Shield } from 'lucide-react'
+import { Banknote, Clock, CheckCircle, FileBarChart, Download, Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import type { Reimbursement } from '@/lib/types'
 import * as XLSX from 'xlsx'
 import { useToast } from '@/hooks/use-toast'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-export default function ReportsPage() {
+function ReportsContent() {
   const { currentUser } = useUser()
   const router = useRouter()
   const { toast } = useToast()
@@ -129,36 +128,7 @@ export default function ReportsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <AppHeader title={isAdmin ? "Organizational Report" : "My Claims Analytics"}>
-        <Tabs 
-          value="Report" 
-          onValueChange={(val: any) => {
-            if (val === 'Personal') {
-              router.push('/internet-reimbursement-calendar')
-            } else if (val === 'Management') {
-              router.push('/internet-reimbursement-calendar')
-            }
-          }} 
-          className="w-auto mr-2"
-        >
-          <TabsList>
-            <TabsTrigger value="Personal" className="gap-2">
-              <UserIcon className="h-4 w-4" />
-              My Claims
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="Management" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Management
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="Report" className="gap-2">
-              <FileBarChart className="h-4 w-4" />
-              Report
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </AppHeader>
+      <AppHeader title={isAdmin ? "Organizational Report" : "My Claims Analytics"} />
 
       <main className="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
@@ -347,5 +317,13 @@ export default function ReportsPage() {
         </Card>
       </main>
     </div>
+  )
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center animate-pulse">Loading report...</div>}>
+      <ReportsContent />
+    </Suspense>
   )
 }
